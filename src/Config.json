@@ -3,7 +3,8 @@
         "type": "Category",
         "columns": [
             {
-                "name": "Id"
+                "name": "Id",
+                "hidden": true
             },
             {
                 "name": "CategoryName",
@@ -15,10 +16,11 @@
             }
         ],
         "relationships": [],
-        "label": null
+        "label": "null"
     },
     "Customer": {
         "type": "Customer",
+        "join_label": "CustomerLabel",
         "columns": [
             {
                 "name": "Id"
@@ -101,6 +103,8 @@
     },
     "Employee": {
         "type": "Employee",
+        "label": "emps",
+        "join_label": "EmployeeLabel",
         "columns": [
             {
                 "name": "Id"
@@ -204,8 +208,7 @@
                 ],
                 "direction": "tomany"
             }
-        ],
-        "label": null
+        ]
     },
     "Product": {
         "type": "Product",
