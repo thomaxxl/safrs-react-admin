@@ -5,9 +5,10 @@ import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { gen_DynResourceList, gen_DynResourceCreate, gen_DynResourceEdit, gen_DynResourceShow } from './DynResource';
 import Home from './Home.js'
+import conf from './Config'
 
-const API_ROOT = 'http://192.168.109.131:5000'
-const dataProvider = jsonapiClient(API_ROOT); // http://localhost:5000
+
+const dataProvider = jsonapiClient(conf.api_root); // http://localhost:5000
 
 const App = () => {
     return (
@@ -41,19 +42,19 @@ const AsyncResources = () => {
         })
         .catch((err) => {
             console.warn(err)
-            alert('failed to fetch schema')
+            alert('failed to fetch schema, no resources available')
+            setResources([])
         })
     }, []);
 
-    if(!resources){
+    if(resources ===  false){
         return <div>Loading...</div>
     }
     return (
         <AdminUI>
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
-            {resources.map(resource => {
-                return <DynResource name={resource.name} key={resource.name} />
-            })}
+            {resources.map(resource => resource.name ? <DynResource name={resource.name} key={resource.name} /> : null
+            )}
         </AdminUI>
     );
 }

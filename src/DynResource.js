@@ -7,7 +7,6 @@ import { List,
 } from "react-admin";
 import Grid from '@material-ui/core/Grid';
 import { TabbedShowLayout, Tab } from 'react-admin';
-
 import {
   Edit,
   Create,
@@ -24,25 +23,111 @@ import { useDataProvider } from 'react-admin';
 import { FunctionField } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
 import conf from './Config.js'
+import loadable from '@loadable/component'
+import Popover from '@material-ui/core/Popover';
+import Button from '@material-ui/core/Button';
+import JoinModal from './components/JoinModal'
 
 
 const customerFilters = [
     <TextInput source="q" label="Search" alwaysOn />
 ];
 
+const ColumnField = ({column}) => {
+    
+    const component = column.component
+    const default_comp = <TextField source={column.name} key={column.name} />
+    if(!component){
+        return default_comp
+    }
+    // component is specified => render the specified component
+    try{
+        const Component = loadable(() => import(`./components/Custom.js`), {
+            resolveComponent: (components) => components[`${component}`],
+        })
+        return <Component column={column}/>
+    }
+    catch(e){
+        alert("Custom component error")
+        console.error("Custom component error", e)
+    }
+    return default_comp
+}
 
-export const gen_DynResourceList = (columns) => (props) => {
+
+const JoinedField = ({column, join}) => {
+    const record = useRecordContext();
+    const id = record.id
+    const target_resource = join.target
+    const [item, setItem] = useState(false)
+    const dataProvider = useDataProvider();
+    const fk = join.fks[0]
+    
+    useEffect(() => {
+        dataProvider.getOne(target_resource, { id: record[fk] })
+            .then(({ data }) => {
+                setItem(data);
+            })
+    }, []);
+    
+    const join_label = conf[join.target]?.join_label
+    let label = id
+    if(item && join_label){
+        try{
+            const LabelComponent = loadable(() => import(`./components/Custom.js`), {
+                resolveComponent: (components) => components[`${join_label}`],
+            })
+            label = <LabelComponent instance={item} />
+        }
+        catch(e){
+            alert("Custom component error")
+            console.error("Custom component error", e)
+        }
+    }
+    
+    const data = <RelatedInstance instance={item} resource_name={join.target}/>
+    return <JoinModal label={label} key={column.name} content={data}/>
+}
+
+
+const column_fields = (columns, relationships) => {
+
+    const joins = relationships.filter(rel => rel.direction === "toone")
+    const fields = columns.map((column) => {
+
+        if (column.hidden){
+            return <span/> 
+        }
+        for(let join of joins){
+            // check if the column is a (toone) relationship FK
+            for(let fk of join.fks){
+                if(column.name == fk){
+                    return <JoinedField column={column} join={join} label={column.label? column.label: column.name}/>
+                }
+            }
+        }
+        return <ColumnField column={column} label={column.label? column.label: column.name}/>
+        }
+    )
+
+    return fields
+}
+
+export const gen_DynResourceList = (columns, relationships) => (props) => {
 
     const dataProvider = useDataProvider();
     const refresh = useRefresh();
-    
+    const fields = column_fields(columns, relationships);
+
     return <List filters={customerFilters} perPage={10}  {...props} >
                 <Datagrid rowClick="show">
-                    {columns.map((col) => <TextField source={col.name} key={col.name}/> )}
+                    {fields}
                     <EditButton label={""}/>
-                    <FunctionField onClick={(e)=> {e.stopPropagation()}}
-                                render={record => <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/>}
-                            />
+                    <FunctionField 
+                            onClick={(e)=> {e.stopPropagation()}}
+                            render={record => <DeleteIcon style={{fill: "#3f51b5"}}
+                            onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/>}
+                    />
                 </Datagrid>
             </List>
 };
@@ -123,16 +208,24 @@ const DynRelationship = (resource, id, relationship) => {
             })
     }, []);
     
-    const target_cols = conf[relationship.target].columns;
 
     return <Tab label={relationship.name}>
-                <dl>
-                    {target_cols.map( (col) => <div>
-                                    <dt><b>{col.name}</b></dt><dd>{related[col.name]}</dd>
+               <RelatedInstance instance={related} resource_name={relationship.target} />
+            </Tab>
+}
+
+const RelatedInstance = ({instance, resource_name}) => {
+
+    const resource_conf = conf[resource_name]
+    const columns = resource_conf?.columns ? resource_conf?.columns : [];
+    const result = <dl>
+                        {columns.map( (col) => <div key={col.name}>
+                                    <dt><b>{col.name}</b></dt><dd>{instance[col.name]}</dd>
                                     </div>
                                 )}
-                </dl>
-            </Tab>
+                    </dl>
+    
+    return result;
 }
 
 
@@ -146,7 +239,6 @@ const DynRelationshipMany = (resource, id, relationship) => {
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
-                console.log('data',data);
                 setRelated(data.relationships);
                 setLoading(false);
             })
@@ -189,7 +281,7 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
                     <hr style={{ margin: "30px 0px 30px" }}/>
 
                     <TabbedShowLayout>
-                        {relationships.map((rel) => rel.direction === "tomany" ? 
+                        {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
                             DynRelationshipMany(props.resource, props.id, rel) : 
                             DynRelationship(props.resource, props.id, rel)) }
                     </TabbedShowLayout>
