@@ -20,11 +20,10 @@ const App = () => {
 
 const DynResource = (props) => {
 
-    const conf = JSON.parse(localStorage.getItem("raconf"))
     const resource_conf = conf[props.name]
     
     const List=gen_DynResourceList(resource_conf.columns, resource_conf.relationships)
-    const Create = gen_DynResourceCreate(resource_conf.columns)
+    const Create = gen_DynResourceCreate(resource_conf)
     const Edit = gen_DynResourceEdit(resource_conf.columns)
     const Show = gen_DynResourceShow(resource_conf.columns, resource_conf.relationships)
     

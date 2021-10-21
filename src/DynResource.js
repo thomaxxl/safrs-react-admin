@@ -27,6 +27,7 @@ import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
+import { AutocompleteInput, ReferenceInput } from 'react-admin';
 
 
 const customerFilters = [
@@ -72,16 +73,25 @@ const JoinedField = ({column, join}) => {
     
     const join_label = conf[join.target]?.join_label
     let label = id
-    if(item && join_label){
-        try{
-            const LabelComponent = loadable(() => import(`./components/Custom.js`), {
-                resolveComponent: (components) => components[`${join_label}`],
-            })
-            label = <LabelComponent instance={item} />
+    
+    if(item && join_label ){
+        // join_label can be a column name or a custom component
+        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == join_label)
+        
+        if(target_col){
+            label = <span>{item[join_label]}</span>
         }
-        catch(e){
-            alert("Custom component error")
-            console.error("Custom component error", e)
+        else {
+            try{
+                const LabelComponent = loadable(() => import(`./components/Custom.js`), {
+                    resolveComponent: (components) => components[`${join_label}`],
+                })
+                label = <LabelComponent instance={item} />
+            }
+            catch(e){
+                alert("Custom component error")
+                console.error("Custom component error", e)
+            }
         }
     }
     
@@ -136,7 +146,7 @@ export const gen_DynResourceList = (columns, relationships) => (props) => {
 export const gen_DynResourceEdit = (columns) => (props) => (
     <Edit {...props}>
         <SimpleForm>
-            {columns.map((col) => <TextInput source={col.name} key={col.name}/> )}
+            {columns.map((col) => <DynInput column={col} key={col.name}/> )}
         </SimpleForm>
     </Edit>
 );
@@ -151,14 +161,34 @@ const deleteField = (dataProvider, resource, record, refresh) => {
     ).catch((e)=> alert('error'))
 }
 
+const DynInput = ({column, resource}) => {
 
-export const gen_DynResourceCreate = (columns) => (props) => (
-    <Create {...props}>
+    console.log(column);
+    if(column.relationship?.direction == "toone" && column.relationship.target){
+        const search_cols = "ProductName" //conf[column.relationship.target].search
+        if(!search_cols){
+            console.error("no searchable columns configured");
+            
+        }
+        return <ReferenceInput label={column.name} source={column.name} reference={column.relationship.target}>
+                    <AutocompleteInput optionText="ProductName" />
+                </ReferenceInput>
+        return <ReferenceInput label={column.relationship.name} source="post_id" reference={column.relationship.target} >
+                    <AutocompleteInput optionText={search_cols[0].name} />
+                </ReferenceInput>
+    }
+    return <TextInput source={column.name}/>
+}
+
+export const gen_DynResourceCreate = (resource) => (props) => {
+
+    
+    return <Create {...props}>
         <SimpleForm>
-            {columns.map((col) => <TextField source={col.name}/> )}
+            {resource.columns.map((col) => <DynInput column={col} resource={resource} key={col.name}/> )}
         </SimpleForm>
     </Create >
-);
+};
 
 
 const ResourceTitle = ({ record }) => {

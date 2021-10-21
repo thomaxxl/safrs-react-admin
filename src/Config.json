@@ -212,12 +212,14 @@
     },
     "Product": {
         "type": "Product",
+        "join_label" : "ProductName",
         "columns": [
             {
                 "name": "Id"
             },
             {
-                "name": "ProductName"
+                "name": "ProductName",
+                "search" : true
             },
             {
                 "name": "SupplierId"
