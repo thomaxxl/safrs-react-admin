@@ -13,10 +13,9 @@ const get_Conf = () => {
         localStorage.setItem("raconf", JSON.stringify(config))
     }
 
-    let result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config));
+    let result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
     
-    
-    result.api_root = result.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
+    result.api_root = result?.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
     result.api_root = 'https://apilogicserver.pythonanywhere.com/'
     result.api_root = result.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
     //result.api_root = 'http://172.16.17.31:5000' // 'https://apilogicserver.pythonanywhere.com/'
@@ -46,13 +45,17 @@ const get_Conf = () => {
             }
         }
     }
-    return result
+    
+    return result || reset_Conf()
 }
 
-export const reset_Conf = () => {
+export const reset_Conf = (reload) => {
     console.log("Resetting conf", config)
     localStorage.setItem("raconf", JSON.stringify(config));
-    window.location.reload()
+    if(reload){
+        window.location.reload()
+    }
+    return config
 }
 
 export default get_Conf()
