@@ -1,14 +1,28 @@
 import config from './Config.json'
 
+
 const get_Conf = () => {
 
-    const ls_conf = JSON.parse(localStorage.getItem("raconf"))
-    let result = ls_conf ? ls_conf : config
-    //result.api_root = result.api_root ? result.api_root : 'http://192.168.109.131:5000' // 'https://apilogicserver.pythonanywhere.com/'
+    let ls_conf = null
+    const lsc_str = localStorage.getItem("raconf")
+    try{
+        ls_conf = JSON.parse(lsc_str)
+    }
+    catch(e){
+        console.warn(`Failed to parse config ${lsc_str}`)
+        localStorage.setItem("raconf", JSON.stringify(config))
+    }
+
+    let result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config));
+    
+    
     result.api_root = result.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
     result.api_root = 'https://apilogicserver.pythonanywhere.com/'
-    
-    for(let [resource_name, resource] of Object.entries(result)){
+    result.api_root = result.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
+    //result.api_root = 'http://172.16.17.31:5000' // 'https://apilogicserver.pythonanywhere.com/'
+    const resources = result.resources
+
+    for(let [resource_name, resource] of Object.entries(resources)){
         
         // link relationship to FK column
         if(!(resource.columns instanceof Array || resource.relationships instanceof Array)){
@@ -16,14 +30,14 @@ const get_Conf = () => {
         }
 
         resource.search = []
-        result[resource_name].name = resource_name
+        result.resources[resource_name].name = resource_name
 
         for(let col of resource.columns){
             for(let rel of resource.relationships){
                 for(let fk of rel.fks || []){
                     if(col.name == fk){
                         col.relationship = rel;
-                        col.relationship.target_resource = result[col.relationship.target]
+                        col.relationship.target_resource = result.resources[col.relationship.target]
                     }
                 }
             }
@@ -33,6 +47,12 @@ const get_Conf = () => {
         }
     }
     return result
+}
+
+export const reset_Conf = () => {
+    console.log("Resetting conf", config)
+    localStorage.setItem("raconf", JSON.stringify(config));
+    window.location.reload()
 }
 
 export default get_Conf()

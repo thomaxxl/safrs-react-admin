@@ -1,12 +1,13 @@
-import { React } from "react";
-import { useState, useEffect } from 'react';
+import React from "react";
+
+import { useState, useEffect, useMemo} from 'react';
 import { List,
     Datagrid,
     TextField,
     EditButton,
 } from "react-admin";
 import Grid from '@material-ui/core/Grid';
-import { TabbedShowLayout, Tab } from 'react-admin';
+import { Resource, TabbedShowLayout, Tab } from 'react-admin';
 import {
   Edit,
   Create,
@@ -28,16 +29,19 @@ import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
+import { Pagination } from 'react-admin';
 
-
-const customerFilters = [
+const searchFilters = [
     <TextInput source="q" label="Search" alwaysOn />
 ];
 
 const ColumnField = ({column}) => {
     
     const component = column.component
-    const default_comp = <TextField source={column.name} key={column.name} />
+    const style = column.style || {}
+    console.log(style)
+        
+    const default_comp = <TextField source={column.name} key={column.name} style={style} />
     if(!component){
         return default_comp
     }
@@ -56,6 +60,21 @@ const ColumnField = ({column}) => {
 }
 
 
+const load_custom_component = (component_name, item) => {
+
+    try{
+        const LabelComponent = loadable(() => import(`./components/Custom.js`), {
+            resolveComponent: (components) => components[`${component_name}`],
+        })
+        return <LabelComponent instance={item} />
+    }
+    catch(e){
+        alert("Custom component error")
+        console.error("Custom component error", e)
+    }
+    return null
+}
+
 const JoinedField = ({column, join}) => {
     const record = useRecordContext();
     const id = record.id
@@ -71,27 +90,19 @@ const JoinedField = ({column, join}) => {
             })
     }, []);
     
-    const join_label = conf[join.target]?.join_label
+    const user_key = conf.resources[join.target]?.user_key
     let label = id
     
-    if(item && join_label ){
-        // join_label can be a column name or a custom component
-        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == join_label)
+    if(item && user_key ){
+        // user_key can be a column name or a custom component
+        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
         
         if(target_col){
-            label = <span>{item[join_label]}</span>
+            console.log(item)
+            label = <span>{item[user_key] || id}</span>
         }
         else {
-            try{
-                const LabelComponent = loadable(() => import(`./components/Custom.js`), {
-                    resolveComponent: (components) => components[`${join_label}`],
-                })
-                label = <LabelComponent instance={item} />
-            }
-            catch(e){
-                alert("Custom component error")
-                console.error("Custom component error", e)
-            }
+            label = load_custom_component(user_key, item)
         }
     }
     
@@ -106,50 +117,71 @@ const column_fields = (columns, relationships) => {
     const fields = columns.map((column) => {
 
         if (column.hidden){
-            return <span/> 
+            return null;
         }
         for(let join of joins){
             // check if the column is a (toone) relationship FK
             for(let fk of join.fks){
                 if(column.name == fk){
-                    return <JoinedField column={column} join={join} label={column.label? column.label: column.name}/>
+                    return <JoinedField key={column.name} column={column} join={join} label={column.label? column.label: column.name}/>
                 }
             }
         }
-        return <ColumnField column={column} label={column.label? column.label: column.name}/>
+        return <ColumnField key={column.name} column={column} label={column.label? column.label: column.name}/>
         }
     )
-
     return fields
 }
 
-export const gen_DynResourceList = (columns, relationships) => (props) => {
 
+const DynPagination = props => (
+    <Pagination rowsPerPageOptions={[10, 25, 50, 100]}
+                perPage={25}
+                {...props} />
+);
+
+
+export const gen_DynResourceList = (resource) => (props) => {
+
+    const columns = resource.columns
+    const relationships = resource.relationships
     const dataProvider = useDataProvider();
     const refresh = useRefresh();
     const fields = column_fields(columns, relationships);
-
-    return <List filters={customerFilters} perPage={10}  {...props} >
+    const buttons = [
+        resource.edit !== false ? <EditButton key={resource.name} label={""}/> : null,
+        resource.delete !== false ? <FunctionField 
+                onClick={(e)=> {e.stopPropagation()}}
+                key={resource.name}
+                render={record => <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/>}
+        /> : null
+    ]
+    
+    return <List filters={searchFilters} 
+                perPage={10}
+                {...props} >
                 <Datagrid rowClick="show">
                     {fields}
-                    <EditButton label={""}/>
-                    <FunctionField 
-                            onClick={(e)=> {e.stopPropagation()}}
-                            render={record => <DeleteIcon style={{fill: "#3f51b5"}}
-                            onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/>}
-                    />
+                    {buttons}
                 </Datagrid>
             </List>
 };
 
 
-export const gen_DynResourceEdit = (columns) => (props) => (
-    <Edit {...props}>
-        <SimpleForm>
-            {columns.map((col) => <DynInput column={col} key={col.name}/> )}
-        </SimpleForm>
-    </Edit>
-);
+export const gen_DynResourceEdit = (resource) => {
+    
+    const columns = resource.columns;
+
+    const Result = (props) => {
+        console.log(props)
+        return <Edit {...props}>
+            <SimpleForm>
+                {columns.map((col) => <DynInput column={col} key={col.name}/> )}
+            </SimpleForm>
+        </Edit>
+    }
+    return Result;
+}
 
 
 const deleteField = (dataProvider, resource, record, refresh) => {
@@ -161,11 +193,12 @@ const deleteField = (dataProvider, resource, record, refresh) => {
     ).catch((e)=> alert('error'))
 }
 
+
 const DynInput = ({column, resource}) => {
 
     console.log(column);
     if(column.relationship?.direction == "toone" && column.relationship.target){
-        const search_cols = "ProductName" //conf[column.relationship.target].search
+        const search_cols = "ProductName" 
         if(!search_cols){
             console.error("no searchable columns configured");
             
@@ -283,9 +316,10 @@ const DynRelationshipMany = (resource, id, relationship) => {
     return <Tab label={relationship.name}>
                 <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
                     <Datagrid rowClick="show">
-                        {target_cols.map( (col) => 
+                        {target_cols?.map( (col) => 
                             <FunctionField
                                     label={col.name}
+                                    key={col.name}
                                     render={record => <span>{record?.attributes ? record?.attributes[col.name] : ''}</span>} />
                         )}
                     <EditButton />
@@ -319,3 +353,14 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
                 </SimpleShowLayout>
             </Show>
 }
+
+
+export const DynResource = (props) => {
+    const resource_conf = conf.resources[props.name]
+    const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
+    const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
+    const Edit = useMemo(()=> gen_DynResourceEdit(resource_conf), [resource_conf])
+    const Show = useMemo(()=> gen_DynResourceShow(resource_conf.columns, resource_conf.relationships), [resource_conf])    
+    return <Resource key={props.name} {...props} list={List} edit={Edit} create={Create} show={Show} />
+}
+
