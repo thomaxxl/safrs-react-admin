@@ -1,6 +1,6 @@
 {
-    "api_root" : "https://apilogicserver.pythonanywhere.com/",
-    "resources" :  {
+    "api_root": "https://apilogicserver.pythonanywhere.com/",
+    "resources": {
         "Category": {
             "type": "Category",
             "columns": [
@@ -10,11 +10,15 @@
                 },
                 {
                     "name": "CategoryName",
-                    "label": "Cat Name",
+                    "label": "Custom Column Name",
                     "component": "SampleColumnField"
                 },
                 {
-                    "name": "Description"
+                    "name": "Description",
+                    "style": {
+                        "font-weight": "bold",
+                        "color": "blue"
+                    }
                 }
             ],
             "relationships": [],
@@ -214,14 +218,14 @@
         },
         "Product": {
             "type": "Product",
-            "user_key" : "ProductName",
+            "user_key": "ProductName",
             "columns": [
                 {
                     "name": "Id"
                 },
                 {
                     "name": "ProductName",
-                    "search" : true
+                    "search": true
                 },
                 {
                     "name": "SupplierId"

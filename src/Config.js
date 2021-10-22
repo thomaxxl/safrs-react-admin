@@ -21,7 +21,7 @@ const get_Conf = () => {
     //result.api_root = 'http://172.16.17.31:5000' // 'https://apilogicserver.pythonanywhere.com/'
     const resources = result.resources
 
-    for(let [resource_name, resource] of Object.entries(resources)){
+    for(let [resource_name, resource] of Object.entries(resources||{})){
         
         // link relationship to FK column
         if(!(resource.columns instanceof Array || resource.relationships instanceof Array)){
