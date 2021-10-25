@@ -13,7 +13,9 @@ const dataProvider = jsonapiClient(conf.api_root); // http://localhost:5000
 
 const AsyncResources = () => {
     const [resources, setResources] = useState(false);
+    
     const dataProvider = useDataProvider();
+    
 
     useEffect(() => {
         dataProvider.getResources().then((response) => {        
@@ -39,6 +41,7 @@ const AsyncResources = () => {
 }
 
 const App = () => {
+    
     return (
         <AdminContext dataProvider={dataProvider}>
             <AsyncResources />

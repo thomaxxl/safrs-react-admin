@@ -49,7 +49,6 @@ const ColumnField = ({column}) => {
         const Component = loadable(() => import(`./components/Custom.js`), {
             resolveComponent: (components) => components[component],
         })
-        return null;
         return <Component column={column}/>
     }
     catch(e){
@@ -312,9 +311,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     }, []);
 
     const target_cols = conf.resources[relationship.target]?.columns
-    console.log(target_cols)
-    console.log(conf)
-
+    
     return <Tab label={relationship.name}>
                 <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
                     <Datagrid rowClick="show">
@@ -358,6 +355,7 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
 
 
 export const DynResource = (props) => {
+    window.addEventListener('storage',()=>window.location.reload())
     const resource_conf = conf.resources[props.name]
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
