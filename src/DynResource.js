@@ -37,9 +37,8 @@ const searchFilters = [
 
 const ColumnField = ({column}) => {
     
-    const component = column.component
+    const component = column.component // component name to be loaded
     const style = column.style || {}
-    console.log(style)
         
     const default_comp = <TextField source={column.name} key={column.name} style={style} />
     if(!component){
@@ -48,8 +47,9 @@ const ColumnField = ({column}) => {
     // component is specified => render the specified component
     try{
         const Component = loadable(() => import(`./components/Custom.js`), {
-            resolveComponent: (components) => components[`${component}`],
+            resolveComponent: (components) => components[component],
         })
+        return null;
         return <Component column={column}/>
     }
     catch(e){
@@ -72,7 +72,7 @@ const load_custom_component = (component_name, item) => {
         alert("Custom component error")
         console.error("Custom component error", e)
     }
-    return null
+    return <span/>
 }
 
 const JoinedField = ({column, join}) => {
@@ -91,20 +91,19 @@ const JoinedField = ({column, join}) => {
     }, []);
     
     const user_key = conf.resources[join.target]?.user_key
+    const user_component = conf.resources[join.target]?.user_component
     let label = id
     
-    if(item && user_key ){
-        // user_key can be a column name or a custom component
-        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
-        
-        if(target_col){
-            console.log(item)
-            label = <span>{item[user_key] || id}</span>
-        }
-        else {
-            label = load_custom_component(user_key, item)
-        }
+    if(item && user_component){
+        // user_component: custom component
+        label = load_custom_component(user_component, item)
     }
+    else if(item && user_key){
+        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
+        label = <span>{item[user_key] || id}</span>
+        
+    }
+    
     
     const data = <RelatedInstance instance={item} resource_name={join.target}/>
     return <JoinModal label={label} key={column.name} content={data}/>
@@ -127,7 +126,6 @@ const column_fields = (columns, relationships) => {
                 }
             }
         }
-        console.log(column.header_style)
         return <ColumnField key={column.name} column={column} label={column.label? column.label: column.name} style={column.header_style} />
         }
     )
@@ -299,6 +297,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
+    
 
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
@@ -312,7 +311,9 @@ const DynRelationshipMany = (resource, id, relationship) => {
             })
     }, []);
 
-    const target_cols = conf[relationship.target]?.columns
+    const target_cols = conf.resources[relationship.target]?.columns
+    console.log(target_cols)
+    console.log(conf)
 
     return <Tab label={relationship.name}>
                 <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
