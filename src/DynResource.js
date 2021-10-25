@@ -127,7 +127,8 @@ const column_fields = (columns, relationships) => {
                 }
             }
         }
-        return <ColumnField key={column.name} column={column} label={column.label? column.label: column.name}/>
+        console.log(column.header_style)
+        return <ColumnField key={column.name} column={column} label={column.label? column.label: column.name} style={column.header_style} />
         }
     )
     return fields
