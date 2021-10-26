@@ -19,7 +19,7 @@ const style = {
 export default function JoinModal({label, content}) {
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
-  const handleClose = (e) => {setOpen(false);e.stopPropagation();}
+  const handleClose = (e) => {e.stopPropagation();setOpen(false);}
 
   return (
     <div>
