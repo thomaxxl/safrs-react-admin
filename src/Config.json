@@ -26,7 +26,7 @@
         },
         "Customer": {
             "type": "Customer",
-            "user_key": "CustomerLabel",
+            "user_component": "CustomerLabel",
             "columns": [
                 {
                     "name": "Id"

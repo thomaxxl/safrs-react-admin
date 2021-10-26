@@ -23,13 +23,15 @@ import { useRefresh } from 'react-admin';
 import { useDataProvider } from 'react-admin';
 import { FunctionField } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
-import conf from './Config.js'
+import {get_Conf} from './Config.js'
 import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
+
+const conf = get_Conf();
 
 const searchFilters = [
     <TextInput source="q" label="Search" alwaysOn />
@@ -355,7 +357,7 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
 
 
 export const DynResource = (props) => {
-    window.addEventListener('storage',()=>window.location.reload())
+    window.addEventListener("storage", ()=>window.location.reload())
     const resource_conf = conf.resources[props.name]
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])

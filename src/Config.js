@@ -1,7 +1,6 @@
 import config from './Config.json'
 
-
-const get_Conf = () => {
+export const get_Conf = () => {
 
     let ls_conf = null
     const lsc_str = localStorage.getItem("raconf")
@@ -58,4 +57,6 @@ export const reset_Conf = (reload) => {
     return config
 }
 
-export default get_Conf()
+export const conf = get_Conf()
+
+export default conf
