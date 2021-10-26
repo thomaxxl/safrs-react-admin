@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { AdminContext, AdminUI, Resource, ListGuesser, useDataProvider } from 'react-admin';
-//import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
+import { AdminContext, AdminUI, Resource, useDataProvider } from 'react-admin';
 import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';

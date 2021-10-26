@@ -30,6 +30,7 @@ import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
+import DefaultIcon from '@material-ui/icons/ViewList';
 
 const conf = get_Conf();
 
@@ -316,7 +317,6 @@ const DynRelationshipMany = (resource, id, relationship) => {
     }, []);
 
     const target_cols = conf.resources[relationship.target]?.columns
-    
     return <Tab label={relationship.name}>
                 <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
                     <Datagrid rowClick="show">
@@ -339,7 +339,7 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
                 <SimpleShowLayout>
                     
                     <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        Instance Data:
+                        Instance Data
                     </Typography>
 
                     <Grid container spacing={3} margin={5} m={40}>
@@ -347,6 +347,9 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
                     </Grid>
                     
                     <hr style={{ margin: "30px 0px 30px" }}/>
+                    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
+                        Related Data
+                    </Typography>                    
 
                     <TabbedShowLayout>
                         {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
