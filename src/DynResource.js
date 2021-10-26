@@ -16,7 +16,8 @@ import {
   TextInput,
   SimpleShowLayout,
   ReferenceManyField,
-  useRecordContext
+  useRecordContext,
+  Link
 } from "react-admin";
 import { Typography } from '@material-ui/core';
 import { useRefresh } from 'react-admin';
@@ -285,12 +286,22 @@ const DynRelationship = (resource, id, relationship) => {
 
 const RelatedInstance = ({instance, resource_name}) => {
 
+    if (!instance){
+        return null;
+    }
     const resource_conf = conf.resources[resource_name]
     const columns = resource_conf?.columns ? resource_conf?.columns : [];
 
-    const result = instance? <Grid container spacing={3} margin={5} m={40}>
-                    {columns.map((col) => <ShowField label={col.name} value={instance[col.name]}/> )}
-                    </Grid> : null
+    const result = [<Grid container spacing={3} margin={5} m={40}>
+                            {columns.map((col) => <ShowField label={col.name} value={instance[col.name]}/> )}
+                    </Grid>,
+                    <div style={{textAlign:"left", width:"100%"}}><Button
+                        component={Link}
+                        to={{
+                            pathname: `${resource_name}/${instance.id}`
+                            }}
+                        label="Link"><EditButton /></Button></div>
+                    ]
     
     return result;
 }
@@ -302,7 +313,6 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
-    
 
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })

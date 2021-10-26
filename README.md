@@ -2,8 +2,7 @@
 
 React based Web Admin Dashboard for [APILogicServer](https://github.com/valhuber/ApiLogicServer). 
 
-[View live demo!](https://apilogicserver.askteam.how/) 
-(username is admin and password is p)
+[View live demo!](https://jsonapi.hardened.be/als/) 
 
 ## Installation
 
@@ -24,8 +23,4 @@ You will also see any lint errors in the console.
 ### `yarn build`
 
 Builds the app for production to the `build` folder.\
-
-## How to Get Support
-
-Contact the developer meera.datey@gmail.com
 
