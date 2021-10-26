@@ -229,21 +229,26 @@ const ResourceTitle = ({ record }) => {
 };
 
 
-
-const ShowField = ({ source }) => {
+const ShowRecordField = ({ source }) => {
   const record = useRecordContext();
-  return record ? (
-    <Grid item xs={3}>
-      <Typography variant="body2" color="textSecondary" component="p">
-        {source}
-      </Typography>
-      <Typography variant="body2" component="p">
-        {record[source]}
-      </Typography>
-    </Grid>
-  ) : null;
+  return record ? <ShowField label={source} value={record[source]}/> : null
 };
 
+
+const ShowField = ({ label, value }) => {
+    
+    return (
+      <Grid item xs={3}>
+        <Typography variant="body2" color="textSecondary" component="p">
+          {label}
+        </Typography>
+        <Typography variant="body2" component="p">
+          {value}
+        </Typography>
+      </Grid>
+    )
+  };
+  
 
 const DynRelationship = (resource, id, relationship) => {
 
@@ -279,14 +284,12 @@ const DynRelationship = (resource, id, relationship) => {
 
 const RelatedInstance = ({instance, resource_name}) => {
 
-    const resource_conf = conf[resource_name]
+    const resource_conf = conf.resources[resource_name]
     const columns = resource_conf?.columns ? resource_conf?.columns : [];
-    const result = <dl>
-                        {columns.map( (col) => <div key={col.name}>
-                                    <dt><b>{col.name}</b></dt><dd>{instance[col.name]}</dd>
-                                    </div>
-                                )}
-                    </dl>
+
+    const result = instance? <Grid container spacing={3} margin={5} m={40}>
+                    {columns.map((col) => <ShowField label={col.name} value={instance[col.name]}/> )}
+                    </Grid> : null
     
     return result;
 }
@@ -340,7 +343,7 @@ export const gen_DynResourceShow = (columns, relationships) => (props) => {
                     </Typography>
 
                     <Grid container spacing={3} margin={5} m={40}>
-                        {columns.map((col) => <ShowField source={col.name}/> )}
+                        {columns.map((col) => <ShowRecordField source={col.name}/> )}
                     </Grid>
                     
                     <hr style={{ margin: "30px 0px 30px" }}/>
