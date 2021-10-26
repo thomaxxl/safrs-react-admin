@@ -208,16 +208,12 @@ const DynInput = ({column, resource}) => {
         return <ReferenceInput label={column.name} source={column.name} reference={column.relationship.target}>
                     <AutocompleteInput optionText="ProductName" />
                 </ReferenceInput>
-        return <ReferenceInput label={column.relationship.name} source="post_id" reference={column.relationship.target} >
-                    <AutocompleteInput optionText={search_cols[0].name} />
-                </ReferenceInput>
     }
     return <TextInput source={column.name}/>
 }
 
 export const gen_DynResourceCreate = (resource) => (props) => {
 
-    
     return <Create {...props}>
         <SimpleForm>
             {resource.columns.map((col) => <DynInput column={col} resource={resource} key={col.name}/> )}
@@ -227,7 +223,8 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
 
 const ResourceTitle = ({ record }) => {
-    return <span>Post {record ? `ID: "${record.id}" ContactName: "${record.ContactName}"` : ''}</span>;
+
+    return <span>{record ? `${record.type ? record.type : null}, ID: "${record.id}"` : ''}</span>;
 };
 
 
@@ -343,7 +340,10 @@ const DynRelationshipMany = (resource, id, relationship) => {
 }
 
 
-export const gen_DynResourceShow = (columns, relationships) => (props) => {
+export const gen_DynResourceShow = (resource_conf) => (props) => {
+
+    const columns = resource_conf.columns
+    const relationships= resource_conf.relationships
 
     return <Show title={<ResourceTitle />} {...props}>
                 <SimpleShowLayout>
@@ -378,7 +378,7 @@ export const DynResource = (props) => {
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
     const Edit = useMemo(()=> gen_DynResourceEdit(resource_conf), [resource_conf])
-    const Show = useMemo(()=> gen_DynResourceShow(resource_conf.columns, resource_conf.relationships), [resource_conf])    
+    const Show = useMemo(()=> gen_DynResourceShow(resource_conf), [resource_conf])    
     return <Resource key={props.name} {...props} list={List} edit={Edit} create={Create} show={Show} />
 }
 
