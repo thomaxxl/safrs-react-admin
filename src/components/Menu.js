@@ -15,7 +15,7 @@ export const MenuA = (props) => (
 */
 
 const onMenuClick = (evt) => {
-    console.log(`Menu Click`, evt);
+    //console.log(`Menu Click`, evt);
 }
 
 export const Menu = (props) => {

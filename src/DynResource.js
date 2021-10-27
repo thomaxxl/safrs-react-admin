@@ -31,7 +31,7 @@ import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
-import {ExtComp} from './components/ExtComp';
+//import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
 
@@ -199,15 +199,13 @@ const deleteField = (dataProvider, resource, record, refresh) => {
 
 const DynInput = ({column, resource}) => {
 
-    console.log(column);
     if(column.relationship?.direction == "toone" && column.relationship.target){
-        const search_cols = "ProductName" 
+        const search_cols = conf.resources[resource].search_cols || ["name"]
         if(!search_cols){
             console.error("no searchable columns configured");
-            
         }
         return <ReferenceInput label={column.name} source={column.name} reference={column.relationship.target}>
-                    <AutocompleteInput optionText="ProductName" />
+                    <AutocompleteInput optionText={search_cols[0]} />
                 </ReferenceInput>
     }
     return <TextInput source={column.name}/>

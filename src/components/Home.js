@@ -64,7 +64,7 @@ const Home = () => {
                     />
                     <br/>
                     <Button className={classes.widget} onClick={()=> saveEdit("")} color="primary" >Clear</Button>
-                    <Button className={classes.widget} onClick={()=> reset_Conf()} color="primary" >Reset</Button>
+                    <Button className={classes.widget} onClick={()=> saveEdit(JSON.stringify(reset_Conf(), null, 4))} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
                     <FormControlLabel
                         control={<Checkbox checked={autosave} onChange={handleAutoSaveChange} />}

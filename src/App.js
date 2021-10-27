@@ -5,9 +5,11 @@ import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
-import conf from './Config'
+import {get_Conf} from './Config'
 import { Layout }  from './components/Layout';
 
+const conf = get_Conf();
+console.log(conf.api_root)
 const dataProvider = jsonapiClient(conf.api_root); // http://localhost:5000
 
 const AsyncResources = () => {
@@ -22,7 +24,6 @@ const AsyncResources = () => {
         })
         .catch((err) => {
             console.warn(err)
-            alert(`failed to fetch schema, no resources available for api ${conf.api_root}`)
             setResources([])
         })
     }, []);

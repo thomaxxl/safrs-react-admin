@@ -15,9 +15,7 @@ export const get_Conf = () => {
     let result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
     
     result.api_root = result?.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
-    result.api_root = 'https://apilogicserver.pythonanywhere.com/'
-    result.api_root = result.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
-    //result.api_root = 'http://172.16.17.31:5000' // 'https://apilogicserver.pythonanywhere.com/'
+
     const resources = result.resources
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
