@@ -161,7 +161,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     ]
     
     return <List filters={searchFilters} 
-                perPage={10}
+                perPage={resource.perPage || 20}
                 {...props} >
                 <Datagrid rowClick="show">
                     {fields}
