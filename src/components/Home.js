@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { TextareaAutosize, TextField } from '@material-ui/core';
 import Checkbox from "@material-ui/core/Checkbox";
 import Button from '@material-ui/core/Button';
@@ -18,7 +19,8 @@ const useStyles = makeStyles((theme) => ({
         width : "80%"
     }
 }));
-    
+
+
 const Home = () => {
 
     const classes = useStyles();
@@ -49,8 +51,7 @@ const Home = () => {
     const handleAutoSaveChange = (event) => {
         setAutosave(event.target.checked);
     };
-
-
+    
     return <div >
                 <div>
                     <TextField
@@ -69,7 +70,6 @@ const Home = () => {
                         control={<Checkbox checked={autosave} onChange={handleAutoSaveChange} />}
                         label="Auto Save Config"
                     />
-                    
                 </div>
                 <TextareaAutosize
                     variant="outlined"

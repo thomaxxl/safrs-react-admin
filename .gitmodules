@@ -1,0 +1,4 @@
+[submodule "rav3-jsonapi-client"]
+  path = rav3-jsonapi-client
+  url = https://github.com/thomaxxl/rav3-jsonapi-client
+

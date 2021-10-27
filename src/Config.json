@@ -110,7 +110,7 @@
         "Employee": {
             "type": "Employee",
             "label": "emps",
-            "user_key": "EmployeeLabel",
+            "user_component": "EmployeeLabel",
             "columns": [
                 {
                     "name": "Id"

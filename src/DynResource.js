@@ -31,7 +31,7 @@ import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
-import DefaultIcon from '@material-ui/icons/ViewList';
+import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
 
@@ -50,8 +50,9 @@ const ColumnField = ({column}) => {
     }
     // component is specified => render the specified component
     try{
+        //const Component = loadable(() => import(`./components/Custom.js`), {
         const Component = loadable(() => import(`./components/Custom.js`), {
-            resolveComponent: (components) => components[component],
+                resolveComponent: (components) => components[component],
         })
         return <Component column={column}/>
     }
@@ -346,8 +347,8 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
     const relationships= resource_conf.relationships
 
     return <Show title={<ResourceTitle />} {...props}>
+                
                 <SimpleShowLayout>
-                    
                     <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
                         Instance Data
                     </Typography>
