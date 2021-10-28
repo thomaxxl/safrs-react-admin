@@ -177,7 +177,6 @@ export const gen_DynResourceEdit = (resource) => {
     const columns = resource.columns;
 
     const Result = (props) => {
-        console.log(props)
         return <Edit {...props}>
             <SimpleForm>
                 {columns.map((col) => <DynInput column={col} key={col.name}/> )}
@@ -201,9 +200,13 @@ const deleteField = (dataProvider, resource, record, refresh) => {
 const DynInput = ({column, resource}) => {
 
     if(column.relationship?.direction == "toone" && column.relationship.target){
-        const search_cols = conf.resources[resource].search_cols || ["name"]
+        const search_cols = conf.resources[column.relationship.target].search_cols
+        console.log(search_cols)
         if(!search_cols){
             console.error("no searchable columns configured");
+        }
+        else if(search_cols.length == 0){
+            console.warn(`no searchable columns configured for ${column.relationship.target}`);
         }
         return <ReferenceInput label={column.name} source={column.name} reference={column.relationship.target}>
                     <AutocompleteInput optionText={search_cols[0]} />
@@ -230,7 +233,7 @@ const ResourceTitle = ({ record }) => {
 
 const ShowRecordField = ({ source }) => {
   const record = useRecordContext();
-  return record ? <ShowField label={source} value={record[source]}/> : null
+  return record ? <ShowField key={source} label={source} value={record[source]}/> : null
 };
 
 
@@ -277,7 +280,7 @@ const DynRelationship = (resource, id, relationship) => {
     
 
     return <Tab label={relationship.name}>
-               <RelatedInstance instance={related} resource_name={relationship.target} />
+               <RelatedInstance instance={related} key={related.id} resource_name={relationship.target} />
             </Tab>
 }
 

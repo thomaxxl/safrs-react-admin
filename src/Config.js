@@ -25,7 +25,7 @@ export const get_Conf = () => {
             continue
         }
 
-        resource.search = []
+        resource.search_cols = []
         result.resources[resource_name].name = resource_name
 
         for(let col of resource.columns){
@@ -38,9 +38,10 @@ export const get_Conf = () => {
                 }
             }
             if(col.search){
-                resource.search.push(col);
+                resource.search_cols.push(col);
             }
         }
+        console.log(`${resource_name} search cols`, resource.search_cols)
     }
     
     return result || reset_Conf()
