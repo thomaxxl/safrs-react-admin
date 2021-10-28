@@ -60,5 +60,5 @@
     "postcss": "^7.0.36",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.6"
   },
-  "homepage": "https://hardened.be/als/"
+  "homepage": "https://hardened.be/admin-app/"
 }
