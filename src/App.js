@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { AdminContext, AdminUI, Resource, useDataProvider } from 'react-admin';
-import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
+//import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
+import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-provider"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'

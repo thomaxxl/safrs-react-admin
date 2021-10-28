@@ -138,7 +138,7 @@ const column_fields = (columns, relationships) => {
 
 
 const DynPagination = props => (
-    <Pagination rowsPerPageOptions={[10, 25, 50, 100]}
+    <Pagination rowsPerPageOptions={[10, 20, 50, 100]}
                 perPage={25}
                 {...props} />
 );
@@ -161,7 +161,8 @@ export const gen_DynResourceList = (resource) => (props) => {
     ]
     
     return <List filters={searchFilters} 
-                perPage={resource.perPage || 20}
+                perPage={resource.perPage || 25}
+                rowsPerPageOptions={[10, 25, 50, 100]}
                 {...props} >
                 <Datagrid rowClick="show">
                     {fields}

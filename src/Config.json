@@ -11,7 +11,8 @@
                 {
                     "name": "CategoryName",
                     "label": "Custom Column Name",
-                    "component": "SampleColumnField"
+                    "component": "SampleColumnField",
+                    "search": true
                 },
                 {
                     "name": "Description",
@@ -35,10 +36,12 @@
                     "name": "CompanyName"
                 },
                 {
-                    "name": "ContactName"
+                    "name": "ContactName",
+                    "search": true
                 },
                 {
-                    "name": "ContactTitle"
+                    "name": "ContactTitle",
+                    "search": true
                 },
                 {
                     "name": "Address"
@@ -116,10 +119,12 @@
                     "name": "Id"
                 },
                 {
-                    "name": "LastName"
+                    "name": "LastName",
+                    "search": true
                 },
                 {
-                    "name": "FirstName"
+                    "name": "FirstName",
+                    "search": true
                 },
                 {
                     "name": "Title"
@@ -303,13 +308,16 @@
                     "name": "Id"
                 },
                 {
-                    "name": "CompanyName"
+                    "name": "CompanyName",
+                    "search": true
                 },
                 {
-                    "name": "ContactName"
+                    "name": "ContactName",
+                    "search": true
                 },
                 {
-                    "name": "ContactTitle"
+                    "name": "ContactTitle",
+                    "search": true
                 },
                 {
                     "name": "Address"
@@ -393,16 +401,19 @@
                     "name": "Id"
                 },
                 {
-                    "name": "Title"
+                    "name": "Title",
+                    "search": true
                 },
                 {
                     "name": "Salary"
                 },
                 {
-                    "name": "LastName"
+                    "name": "LastName",
+                    "search": true
                 },
                 {
-                    "name": "FirstName"
+                    "name": "FirstName",
+                    "search": true
                 },
                 {
                     "name": "EmployeeId"
@@ -484,13 +495,16 @@
                     "name": "Freight"
                 },
                 {
-                    "name": "ShipName"
+                    "name": "ShipName",
+                    "search": true
                 },
                 {
-                    "name": "ShipAddress"
+                    "name": "ShipAddress",
+                    "search": true
                 },
                 {
-                    "name": "ShipCity"
+                    "name": "ShipCity",
+                    "search": true
                 },
                 {
                     "name": "ShipRegion"
