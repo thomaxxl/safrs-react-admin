@@ -1,0 +1,8 @@
+.JoinedField {
+    width: 100%;
+    color: #3f51b5;
+}
+
+.JoinedField:hover{
+    color: black;
+}

@@ -134,15 +134,6 @@ export const jsonapiClient = (
           const jsonData = json.data.map((resource: any) =>
             lookup.unwrapData(resource, includes)
           );
-          /* const jsonData = json.data.map((value: any) => {
-          const relAttributeKey = Object.keys(value)[0];
-          return Object.assign(
-            { id: value.id },
-            value.attributes,
-            value[relAttributeKey]
-          );
-        }); */
-
           return {
             data: jsonData,
             total: total
@@ -155,17 +146,12 @@ export const jsonapiClient = (
         });
     },
 
-    /* getOne: (resource, params) =>
-      httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
-        data: json.data
-      })), */
-
     getOne: (resource: any, params: { id: any }) => {
       const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball&page[limit]=50`;
       return httpClient(url).then(({ json }) => {
-        const { id, attributes, relationships } = json.data;
+        const { id, attributes, relationships, type } = json.data;
         //const included = json.included;
-        Object.assign(attributes, relationships);
+        Object.assign(attributes, relationships, {type: type});
         return {
           data: {
             id,
@@ -193,7 +179,7 @@ export const jsonapiClient = (
         // Use the length of the data array as a fallback.
         total = total || json.data.length; //  { id: any; attributes: any; }
         const jsonData = json.data.map((value: any) =>
-          Object.assign({ id: value.id }, value.attributes)
+          Object.assign({ id: value.id, type: value.type }, value.attributes)
         );
 
         return {

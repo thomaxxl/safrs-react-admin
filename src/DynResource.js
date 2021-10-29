@@ -24,6 +24,7 @@ import { useRefresh } from 'react-admin';
 import { useDataProvider } from 'react-admin';
 import { FunctionField } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
 import {get_Conf} from './Config.js'
 import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';
@@ -31,6 +32,7 @@ import Button from '@material-ui/core/Button';
 import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
+import './style/DynStyle.css'
 //import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
@@ -91,7 +93,7 @@ const JoinedField = ({column, join}) => {
         dataProvider.getOne(target_resource, { id: record[fk] })
             .then(({ data }) => {
                 setItem(data);
-            })
+            }).catch(e => console.error(e))
     }, []);
     
     const user_key = conf.resources[join.target]?.user_key
@@ -105,12 +107,11 @@ const JoinedField = ({column, join}) => {
     else if(item && user_key){
         const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
         label = <span>{item[user_key] || id}</span>
-        
     }
     
     
     const data = <RelatedInstance instance={item} resource_name={join.target}/>
-    return <JoinModal label={label} key={column.name} content={data}/>
+    return <JoinModal label={label} key={column.name} content={data} resource_name={join.target}/>
 }
 
 
@@ -139,7 +140,7 @@ const column_fields = (columns, relationships) => {
 
 const DynPagination = props => (
     <Pagination rowsPerPageOptions={[10, 20, 50, 100]}
-                perPage={25}
+                perPage={props.perPage || 25 }
                 {...props} />
 );
 
@@ -160,9 +161,8 @@ export const gen_DynResourceList = (resource) => (props) => {
         /> : null
     ]
     
-    return <List filters={searchFilters} 
-                perPage={resource.perPage || 25}
-                rowsPerPageOptions={[10, 25, 50, 100]}
+    return <List filters={searchFilters}
+                pagination={<DynPagination perPage={resource.perPage}/>}
                 {...props} >
                 <Datagrid rowClick="show">
                     {fields}
@@ -201,15 +201,18 @@ const DynInput = ({column, resource}) => {
 
     if(column.relationship?.direction == "toone" && column.relationship.target){
         const search_cols = conf.resources[column.relationship.target].search_cols
-        console.log(search_cols)
+        let input =  <AutocompleteInput optionText={''} key={column.name}/>
         if(!search_cols){
             console.error("no searchable columns configured");
         }
         else if(search_cols.length == 0){
             console.warn(`no searchable columns configured for ${column.relationship.target}`);
         }
-        return <ReferenceInput label={column.name} source={column.name} reference={column.relationship.target}>
-                    <AutocompleteInput optionText={search_cols[0]} />
+        else {
+            input = <AutocompleteInput optionText={search_cols[0].name} key={column.name}/>
+        }
+        return <ReferenceInput source={column.name} label={`${column.relationship.name} (${column.name})`} reference={column.relationship.target}>
+                    {input}
                 </ReferenceInput>
     }
     return <TextInput source={column.name}/>
@@ -227,13 +230,13 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
 const ResourceTitle = ({ record }) => {
 
-    return <span>{record ? `${record.type ? record.type : null}, ID: "${record.id}"` : ''}</span>;
+    return <span>{record ? `${record.type ? record.type +" " : ""} #${record.id}` : ''}</span>;
 };
 
 
 const ShowRecordField = ({ source }) => {
   const record = useRecordContext();
-  return record ? <ShowField key={source} label={source} value={record[source]}/> : null
+  return record ? <ShowField label={source} value={record[source]}/> : null
 };
 
 
@@ -280,7 +283,7 @@ const DynRelationship = (resource, id, relationship) => {
     
 
     return <Tab label={relationship.name}>
-               <RelatedInstance instance={related} key={related.id} resource_name={relationship.target} />
+               <RelatedInstance instance={related} resource_name={relationship.target} />
             </Tab>
 }
 
@@ -293,14 +296,17 @@ const RelatedInstance = ({instance, resource_name}) => {
     const columns = resource_conf?.columns ? resource_conf?.columns : [];
 
     const result = [<Grid container spacing={3} margin={5} m={40}>
-                            {columns.map((col) => <ShowField label={col.name} value={instance[col.name]}/> )}
+                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance[col.name]}/> )}
                     </Grid>,
-                    <div style={{textAlign:"left", width:"100%"}}><Button
-                        component={Link}
-                        to={{
-                            pathname: `${resource_name}/${instance.id}`
-                            }}
-                        label="Link"><EditButton /></Button></div>
+                    <div style={{textAlign:"left", width:"100%"}}>
+                        <Button
+                            component={Link}
+                            to={{
+                                pathname: `${resource_name}/${instance.id}`
+                                }}
+                            label="Link"><EditIcon /> Edit {resource_conf.type || resource_name}
+                        </Button>
+                    </div>
                     ]
     
     return result;
@@ -361,7 +367,7 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
                     
                     <hr style={{ margin: "30px 0px 30px" }}/>
                     <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        Related Data
+                        {relationships.length ? "Related Data" : "" }
                     </Typography>                    
 
                     <TabbedShowLayout>
