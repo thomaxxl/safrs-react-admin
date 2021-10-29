@@ -6,6 +6,9 @@ import { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import {reset_Conf} from "../Config"
+import MonacoEditor from '@uiw/react-monacoeditor';
+
+const yaml = require('js-yaml')
 
 
 const useStyles = makeStyles((theme) => ({
@@ -23,6 +26,19 @@ const useStyles = makeStyles((theme) => ({
 
 const Home = () => {
 
+    const save_yaml = (ystr, ev) => {
+        console.log(ystr)
+        try{
+            const jj = yaml.load(ystr)
+            saveEdit(JSON.stringify(jj))
+            setBgColor("black");
+        }
+        catch(e){
+            console.warn(`Failed to process`, ystr)
+            setBgColor("red");
+        }
+    }
+
     const classes = useStyles();
 
     const saveEdit = (text) => {
@@ -37,14 +53,16 @@ const Home = () => {
                 window.location.reload();
             }
         }catch (e){
-            setBgColor("#eedddd");
+            //setBgColor("#eedddd");
+            setBgColor("red");
         }
         setTaConf(text)
     }
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(reset_Conf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");
-    const [bgColor, setBgColor] = useState("#ddeedd");
+    //const [bgColor, setBgColor] = useState("#ddeedd");
+    const [bgColor, setBgColor] = useState("black");
     const [autosave, setAutosave] = useState(true);
     const [api_root, setApiroot] = useState(JSON.parse(conf)?.api_root);
     
@@ -52,8 +70,9 @@ const Home = () => {
         setAutosave(event.target.checked);
     };
     
-    return <div >
+    return <div>
                 <div>
+                    <br/>
                     <TextField
                         className={classes.textInput}
                         variant="outlined"
@@ -71,16 +90,28 @@ const Home = () => {
                         label="Auto Save Config"
                     />
                 </div>
-                <TextareaAutosize
-                    variant="outlined"
-                    minRows={3}
-                    className={classes.textInput}
-                    style={{ backgroundColor : bgColor }}
-                    value= {taConf}
-                    onChange={(evt)=>saveEdit(evt.target.value)}
-                />
-                
+                <div>
+                    <MonacoEditor
+                        language="yaml"
+                        value={yaml.dump(JSON.parse(taConf))}
+                        options={{
+                            theme: 'vs-dark',
+                        }}
+                        height="1000px"
+                        style = {{ borderLeft: `8px solid ${bgColor}`}}
+                        onChange={(ystr, ev) => save_yaml(ystr, ev)}
+                    />
+                </div>
             </div>
 }
 
+
+/*const ta = <TextareaAutosize
+variant="outlined"
+minRows={3}
+className={classes.textInput}
+style={{ backgroundColor : bgColor }}
+value= {taConf}
+onChange={(evt)=>saveEdit(evt.target.value)}
+/>*/
 export default Home
