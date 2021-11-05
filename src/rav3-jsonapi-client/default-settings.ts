@@ -1,5 +1,5 @@
 import { safrsErrorHandler, HttpErrorHandler } from './errors';
-import { includeRelations } from './ra-jsonapi-provider';
+import { includeRelations } from './ra-jsonapi-client';
 
 export const defaultSettings: settings = {
   total: 'total',

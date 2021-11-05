@@ -1,596 +1,184 @@
 {
-    "api_root": "https://apilogicserver.pythonanywhere.com/",
+    "api_root": "//thomaxxl.pythonanywhere.com/api",
     "resources": {
-        "Category": {
-            "type": "Category",
+        "People": {
+            "type": "Person",
+            "user_key": "name",
             "columns": [
                 {
-                    "name": "Id",
+                    "name": "id",
                     "hidden": true
                 },
                 {
-                    "name": "CategoryName",
-                    "label": "Custom Column Name",
-                    "component": "SampleColumnField",
-                    "search": true
+                    "name": "name"
                 },
                 {
-                    "name": "Description",
-                    "style": {
-                        "font-weight": "bold",
-                        "color": "blue"
-                    }
-                }
-            ],
-            "relationships": [],
-            "label": "null"
-        },
-        "Customer": {
-            "type": "Customer",
-            "user_component": "CustomerLabel",
-            "columns": [
-                {
-                    "name": "Id"
+                    "name": "email"
                 },
                 {
-                    "name": "CompanyName"
+                    "name": "comment"
                 },
                 {
-                    "name": "ContactName",
-                    "search": true
+                    "name": "dob"
                 },
                 {
-                    "name": "ContactTitle",
-                    "search": true
+                    "name": "employer_id"
                 },
                 {
-                    "name": "Address"
-                },
-                {
-                    "name": "City"
-                },
-                {
-                    "name": "Region"
-                },
-                {
-                    "name": "PostalCode"
-                },
-                {
-                    "name": "Country"
-                },
-                {
-                    "name": "Phone"
-                },
-                {
-                    "name": "Fax"
-                },
-                {
-                    "name": "Balance"
-                },
-                {
-                    "name": "CreditLimit"
-                },
-                {
-                    "name": "OrderCount"
-                },
-                {
-                    "name": "UnpaidOrderCount"
+                    "name": "_password"
                 }
             ],
             "relationships": [
                 {
-                    "name": "CustomerCustomerDemoList",
-                    "target": "CustomerCustomerDemo",
+                    "name": "books_read",
+                    "target": "Books",
                     "fks": [
-                        "CustomerTypeId"
+                        "reader_id"
                     ],
                     "direction": "tomany"
                 },
                 {
-                    "name": "OrderList",
-                    "target": "Order",
+                    "name": "books_written",
+                    "target": "Books",
                     "fks": [
-                        "CustomerId"
+                        "author_id"
+                    ],
+                    "direction": "tomany"
+                },
+                {
+                    "name": "reviews",
+                    "target": "Reviews",
+                    "fks": [
+                        "reader_id"
+                    ],
+                    "direction": "tomany"
+                },
+                {
+                    "name": "friends",
+                    "target": "People",
+                    "fks": [
+                        "friend_a_id",
+                        "friend_b_id"
                     ],
                     "direction": "tomany"
                 }
             ],
             "label": null
         },
-        "CustomerDemographic": {
-            "type": "CustomerDemographic",
+        "Books": {
+            "type": "Book",
+            "user_key": "title",
             "columns": [
                 {
-                    "name": "Id"
+                    "name": "id",
+                    "hidden": true
                 },
                 {
-                    "name": "CustomerDesc"
-                }
-            ],
-            "relationships": [],
-            "label": null
-        },
-        "Employee": {
-            "type": "Employee",
-            "label": "emps",
-            "user_component": "EmployeeLabel",
-            "columns": [
-                {
-                    "name": "Id"
+                    "name": "title"
                 },
                 {
-                    "name": "LastName",
-                    "search": true
+                    "name": "reader_id"
                 },
                 {
-                    "name": "FirstName",
-                    "search": true
+                    "name": "author_id"
                 },
                 {
-                    "name": "Title"
+                    "name": "publisher_id"
                 },
                 {
-                    "name": "TitleOfCourtesy"
-                },
-                {
-                    "name": "BirthDate"
-                },
-                {
-                    "name": "HireDate"
-                },
-                {
-                    "name": "Address"
-                },
-                {
-                    "name": "City"
-                },
-                {
-                    "name": "Region"
-                },
-                {
-                    "name": "PostalCode"
-                },
-                {
-                    "name": "Country"
-                },
-                {
-                    "name": "HomePhone"
-                },
-                {
-                    "name": "Extension"
-                },
-                {
-                    "name": "Photo"
-                },
-                {
-                    "name": "Notes"
-                },
-                {
-                    "name": "ReportsTo"
-                },
-                {
-                    "name": "PhotoPath"
-                },
-                {
-                    "name": "IsCommissioned"
-                },
-                {
-                    "name": "Salary"
+                    "name": "published"
                 }
             ],
             "relationships": [
                 {
-                    "name": "Manager",
-                    "target": "Employee",
+                    "name": "publisher",
+                    "target": "Publishers",
                     "fks": [
-                        "ReportsTo"
+                        "publisher_id"
                     ],
                     "direction": "toone"
                 },
                 {
-                    "name": "Manages",
-                    "target": "Employee",
+                    "name": "reviews",
+                    "target": "Reviews",
                     "fks": [
-                        "ReportsTo"
+                        "book_id"
                     ],
                     "direction": "tomany"
                 },
                 {
-                    "name": "EmployeeAuditList",
-                    "target": "EmployeeAudit",
+                    "name": "reader",
+                    "target": "People",
                     "fks": [
-                        "EmployeeId"
+                        "reader_id"
+                    ],
+                    "direction": "toone"
+                },
+                {
+                    "name": "author",
+                    "target": "People",
+                    "fks": [
+                        "author_id"
+                    ],
+                    "direction": "toone"
+                }
+            ],
+            "label": null
+        },
+        "Reviews": {
+            "type": "Review",
+            "columns": [
+                {
+                    "name": "book_id"
+                },
+                {
+                    "name": "reader_id"
+                },
+                {
+                    "name": "review"
+                },
+                {
+                    "name": "created"
+                }
+            ],
+            "relationships": [
+                {
+                    "name": "book",
+                    "target": "Books",
+                    "fks": [
+                        "book_id"
+                    ],
+                    "direction": "toone"
+                },
+                {
+                    "name": "reader",
+                    "target": "People",
+                    "fks": [
+                        "reader_id"
+                    ],
+                    "direction": "toone"
+                }
+            ],
+            "label": null
+        },
+        "Publishers": {
+            "type": "Publisher",
+            "columns": [
+                {
+                    "name": "id"
+                },
+                {
+                    "name": "name"
+                }
+            ],
+            "relationships": [
+                {
+                    "name": "books",
+                    "target": "Books",
+                    "fks": [
+                        "publisher_id"
                     ],
                     "direction": "tomany"
-                },
-                {
-                    "name": "EmployeeTerritoryList",
-                    "target": "EmployeeTerritory",
-                    "fks": [
-                        "EmployeeId"
-                    ],
-                    "direction": "tomany"
-                },
-                {
-                    "name": "OrderList",
-                    "target": "Order",
-                    "fks": [
-                        "EmployeeId"
-                    ],
-                    "direction": "tomany"
-                }
-            ]
-        },
-        "Product": {
-            "type": "Product",
-            "user_key": "ProductName",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "ProductName",
-                    "search": true
-                },
-                {
-                    "name": "SupplierId"
-                },
-                {
-                    "name": "CategoryId"
-                },
-                {
-                    "name": "QuantityPerUnit"
-                },
-                {
-                    "name": "UnitPrice"
-                },
-                {
-                    "name": "UnitsInStock"
-                },
-                {
-                    "name": "UnitsOnOrder"
-                },
-                {
-                    "name": "ReorderLevel"
-                },
-                {
-                    "name": "Discontinued"
-                },
-                {
-                    "name": "UnitsShipped"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "OrderDetailList",
-                    "target": "OrderDetail",
-                    "fks": [
-                        "ProductId"
-                    ],
-                    "direction": "tomany"
-                }
-            ],
-            "label": null
-        },
-        "Region": {
-            "type": "Region",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "RegionDescription"
-                }
-            ],
-            "relationships": [],
-            "label": null
-        },
-        "Shipper": {
-            "type": "Shipper",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "CompanyName"
-                },
-                {
-                    "name": "Phone"
-                }
-            ],
-            "relationships": [],
-            "label": null
-        },
-        "Supplier": {
-            "type": "Supplier",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "CompanyName",
-                    "search": true
-                },
-                {
-                    "name": "ContactName",
-                    "search": true
-                },
-                {
-                    "name": "ContactTitle",
-                    "search": true
-                },
-                {
-                    "name": "Address"
-                },
-                {
-                    "name": "City"
-                },
-                {
-                    "name": "Region"
-                },
-                {
-                    "name": "PostalCode"
-                },
-                {
-                    "name": "Country"
-                },
-                {
-                    "name": "Phone"
-                },
-                {
-                    "name": "Fax"
-                },
-                {
-                    "name": "HomePage"
-                }
-            ],
-            "relationships": [],
-            "label": null
-        },
-        "Territory": {
-            "type": "Territory",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "TerritoryDescription"
-                },
-                {
-                    "name": "RegionId"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "EmployeeTerritoryList",
-                    "target": "EmployeeTerritory",
-                    "fks": [
-                        "TerritoryId"
-                    ],
-                    "direction": "tomany"
-                }
-            ],
-            "label": null
-        },
-        "CustomerCustomerDemo": {
-            "type": "CustomerCustomerDemo",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "CustomerTypeId"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "Customer",
-                    "target": "Customer",
-                    "fks": [
-                        "CustomerTypeId"
-                    ],
-                    "direction": "toone"
-                }
-            ],
-            "label": null
-        },
-        "EmployeeAudit": {
-            "type": "EmployeeAudit",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "Title",
-                    "search": true
-                },
-                {
-                    "name": "Salary"
-                },
-                {
-                    "name": "LastName",
-                    "search": true
-                },
-                {
-                    "name": "FirstName",
-                    "search": true
-                },
-                {
-                    "name": "EmployeeId"
-                },
-                {
-                    "name": "CreatedOn"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "Employee",
-                    "target": "Employee",
-                    "fks": [
-                        "EmployeeId"
-                    ],
-                    "direction": "toone"
-                }
-            ],
-            "label": null
-        },
-        "EmployeeTerritory": {
-            "type": "EmployeeTerritory",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "EmployeeId"
-                },
-                {
-                    "name": "TerritoryId"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "Employee",
-                    "target": "Employee",
-                    "fks": [
-                        "EmployeeId"
-                    ],
-                    "direction": "toone"
-                },
-                {
-                    "name": "Territory",
-                    "target": "Territory",
-                    "fks": [
-                        "TerritoryId"
-                    ],
-                    "direction": "toone"
-                }
-            ],
-            "label": null
-        },
-        "Order": {
-            "type": "Order",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "CustomerId"
-                },
-                {
-                    "name": "EmployeeId"
-                },
-                {
-                    "name": "OrderDate"
-                },
-                {
-                    "name": "RequiredDate"
-                },
-                {
-                    "name": "ShippedDate"
-                },
-                {
-                    "name": "ShipVia"
-                },
-                {
-                    "name": "Freight"
-                },
-                {
-                    "name": "ShipName",
-                    "search": true
-                },
-                {
-                    "name": "ShipAddress",
-                    "search": true
-                },
-                {
-                    "name": "ShipCity",
-                    "search": true
-                },
-                {
-                    "name": "ShipRegion"
-                },
-                {
-                    "name": "ShipPostalCode"
-                },
-                {
-                    "name": "ShipCountry"
-                },
-                {
-                    "name": "AmountTotal"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "Customer",
-                    "target": "Customer",
-                    "fks": [
-                        "CustomerId"
-                    ],
-                    "direction": "toone"
-                },
-                {
-                    "name": "Employee",
-                    "target": "Employee",
-                    "fks": [
-                        "EmployeeId"
-                    ],
-                    "direction": "toone"
-                },
-                {
-                    "name": "OrderDetailList",
-                    "target": "OrderDetail",
-                    "fks": [
-                        "OrderId"
-                    ],
-                    "direction": "tomany"
-                }
-            ],
-            "label": null
-        },
-        "OrderDetail": {
-            "type": "OrderDetail",
-            "columns": [
-                {
-                    "name": "Id"
-                },
-                {
-                    "name": "OrderId"
-                },
-                {
-                    "name": "ProductId"
-                },
-                {
-                    "name": "UnitPrice"
-                },
-                {
-                    "name": "Quantity"
-                },
-                {
-                    "name": "Discount"
-                },
-                {
-                    "name": "Amount"
-                },
-                {
-                    "name": "ShippedDate"
-                }
-            ],
-            "relationships": [
-                {
-                    "name": "Order",
-                    "target": "Order",
-                    "fks": [
-                        "OrderId"
-                    ],
-                    "direction": "toone"
-                },
-                {
-                    "name": "Product",
-                    "target": "Product",
-                    "fks": [
-                        "ProductId"
-                    ],
-                    "direction": "toone"
                 }
             ],
             "label": null

@@ -60,7 +60,8 @@
   "devDependencies": {
     "autoprefixer": "^9.8.6",
     "postcss": "^7.0.36",
+    "ra-data-simple-rest": "^3.19.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.6"
   },
-  "homepage": "https://hardened.be/admin-app/"
+  "homepage": "http://thomaxxl.pythonanywhere.com/admin-app"
 }

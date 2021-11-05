@@ -7,6 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import {reset_Conf} from "../Config"
 import MonacoEditor from '@uiw/react-monacoeditor';
+import { TabbedShowLayout, Tab } from 'react-admin';
 
 const yaml = require('js-yaml')
 
@@ -91,16 +92,25 @@ const Home = () => {
                     />
                 </div>
                 <div>
-                    <MonacoEditor
-                        language="yaml"
-                        value={yaml.dump(JSON.parse(taConf))}
-                        options={{
-                            theme: 'vs-dark',
-                        }}
-                        height="1000px"
-                        style = {{ borderLeft: `8px solid ${bgColor}`}}
-                        onChange={(ystr, ev) => save_yaml(ystr, ev)}
-                    />
+                    <TabbedShowLayout>
+                        <Tab label="yaml">
+                            <MonacoEditor
+                                language="yaml"
+                                value={yaml.dump(JSON.parse(taConf))}
+                                options={{
+                                    theme: 'vs-dark',
+                                }}
+                                height="1000px"
+                                style = {{ borderLeft: `8px solid ${bgColor}`}}
+                                onChange={(ystr, ev) => save_yaml(ystr, ev)}
+                            />
+                        </Tab>
+                        <Tab label="json">
+                            <pre>
+                                {JSON.stringify(JSON.parse(taConf), null, 4)}
+                            </pre>
+                        </Tab>
+                    </TabbedShowLayout>
                 </div>
             </div>
 }

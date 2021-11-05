@@ -69,6 +69,8 @@ export default class ResourceLookup {
    * @param {Object} response A JSON API data object
    */
   unwrapData(response: any, includes: string[]) {
+    
+    //console.log(response);
     // The base resource object
     const ret = Object.assign(
       {
@@ -123,5 +125,6 @@ export default class ResourceLookup {
 }
 
 function lowerFirstLetter(s: string): string {
+  return s;
   return s[0].toLowerCase() + s.slice(1);
 }

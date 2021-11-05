@@ -14,7 +14,10 @@ const style = {
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
+  textAlign: "left"
 };
+
+
 
 export default function JoinModal({label, content, resource_name}) {
   const [open, setOpen] = React.useState(false);
@@ -23,7 +26,7 @@ export default function JoinModal({label, content, resource_name}) {
 
   return (
     <div>
-      <Button style={{justifyContent: "flex-start"}} onClick={handleOpen} className="JoinedField" title={resource_name}>{label} </Button>
+      <span onClick={handleOpen} className="JoinedField" title={resource_name}>{label} </span>
       <Modal
         open={open}
         onClose={handleClose}

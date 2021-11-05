@@ -8,7 +8,7 @@ import {get_Conf} from '../Config.js'
 const requires = createRequires(resolve);
 export const useRemoteComponent = createUseRemoteComponent({ requires });
 
-const ext_comp_url = get_Conf().ext_comp_url//"https://raw.githubusercontent.com/Paciolan/remote-component/master/examples/remote-components/HelloWorld.js";
+const ext_comp_url = get_Conf().ext_comp_url //"https://raw.githubusercontent.com/Paciolan/remote-component/master/examples/remote-components/HelloWorld.js";
 
 export const ExtComp = props => {
     const [loading, err, Component] = useRemoteComponent(ext_comp_url);

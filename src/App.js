@@ -1,23 +1,42 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { AdminContext, AdminUI, Resource, useDataProvider } from 'react-admin';
+import { AdminContext, Admin, AdminUI, Resource, useDataProvider } from 'react-admin';
 //import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
-import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-provider"
+import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
 import {get_Conf} from './Config'
 import { Layout }  from './components/Layout';
+import { put, takeEvery } from 'redux-saga/effects';
+import { showNotification } from 'react-admin';
+import createAdminStore from './createAdminStore';
+import { Provider } from 'react-redux';
+import { createHashHistory } from 'history';
+
+const history = createHashHistory();
+
+
+
+const bcR =  (previousState = 0, { type, payload }) => {
+
+    if(type === 'RA/CRUD_GET_LIST_SUCCESS'){
+        console.log('bcR', type, payload)
+        console.log(previousState);
+    }
+   
+    return previousState;
+}
 
 const conf = get_Conf();
-console.log(conf.api_root)
-const dataProvider = jsonapiClient(conf.api_root); // http://localhost:5000
+//const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
+const dataProvider = jsonapiClient(conf.api_root, {});
+const authProvider = () => Promise.resolve();
 
 const AsyncResources = () => {
     const [resources, setResources] = useState(false);
     const dataProvider = useDataProvider();
     
-
     useEffect(() => {
         dataProvider.getResources().then((response) => {        
             let res = Object.keys(response.data.resources).map((resource_name) => { return {name: resource_name} })
@@ -32,18 +51,31 @@ const AsyncResources = () => {
     if(resources ===  false){
         return <div>Loading...</div>
     }
+    
     return (
+        <Provider
+        store={createAdminStore({
+            authProvider,
+            dataProvider,
+            history,
+        })}
+    >
         <AdminUI layout={Layout}>
+            
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
             {resources.map(resource => <DynResource name={resource.name} key={resource.name} />)}
+
         </AdminUI>
+        </Provider>
     );
 }
+
+
 
 const App = () => {
     
     return (
-        <AdminContext dataProvider={dataProvider}>
+        <AdminContext dataProvider={dataProvider}  customReducers={{ admin2: bcR }}  >
             <AsyncResources />
         </AdminContext>
     );

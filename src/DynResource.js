@@ -33,6 +33,8 @@ import JoinModal from './components/JoinModal'
 import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
 import './style/DynStyle.css'
+import { useQueryWithStore, Loading, Error } from 'react-admin';
+
 //import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
@@ -82,23 +84,23 @@ const load_custom_component = (component_name, item) => {
 }
 
 const JoinedField = ({column, join}) => {
+    const rel_name = join.name;
     const record = useRecordContext();
     const id = record.id
     const target_resource = join.target
-    const [item, setItem] = useState(false)
+    
     const dataProvider = useDataProvider();
     const fk = join.fks[0]
-    
-    useEffect(() => {
-        dataProvider.getOne(target_resource, { id: record[fk] })
-            .then(({ data }) => {
-                setItem(data);
-            }).catch(e => console.error(e))
-    }, []);
-    
+    const { data, loading, error } = useQueryWithStore({ 
+        type: 'getOne',
+        resource: target_resource,
+        payload: { id: record[fk] }
+    });
+    const item = data || record[rel_name]
+    //const item = record[rel_name]
     const user_key = conf.resources[join.target]?.user_key
     const user_component = conf.resources[join.target]?.user_component
-    let label = id
+    let label = item?.id
     
     if(item && user_component){
         // user_component: custom component
@@ -106,12 +108,11 @@ const JoinedField = ({column, join}) => {
     }
     else if(item && user_key){
         const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
-        label = <span>{item[user_key] || id}</span>
+        label = <span>{item[user_key] || item.id}</span>
     }
     
-    
-    const data = <RelatedInstance instance={item} resource_name={join.target}/>
-    return <JoinModal label={label} key={column.name} content={data} resource_name={join.target}/>
+    const content = <RelatedInstance instance={item} resource_name={join.target}/>
+    return <JoinModal label={label} key={column.name} content={content} resource_name={join.target}/>
 }
 
 
@@ -381,13 +382,19 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
 }
 
 
+
 export const DynResource = (props) => {
-    window.addEventListener("storage", ()=>window.location.reload())
-    const resource_conf = conf.resources[props.name]
+    //window.addEventListener("storage", ()=>window.location.reload())
+    const [, updateState] = React.useState();
+    const [resource_conf, setConf] = useState(conf.resources[props.name])
+    const forceUpdate = React.useCallback(() => updateState({}), []);
+    //window.addEventListener("storage", ()=>{ console.log('UUU'); forceUpdate() })
+
+    //const resource_conf = conf.resources[props.name]
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
     const Edit = useMemo(()=> gen_DynResourceEdit(resource_conf), [resource_conf])
-    const Show = useMemo(()=> gen_DynResourceShow(resource_conf), [resource_conf])    
+    const Show = useMemo(()=> gen_DynResourceShow(resource_conf), [resource_conf])
     return <Resource key={props.name} {...props} list={List} edit={Edit} create={Create} show={Show} />
 }
 
