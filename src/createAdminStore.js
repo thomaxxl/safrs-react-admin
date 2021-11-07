@@ -3,7 +3,7 @@ import { routerMiddleware, connectRouter } from 'connected-react-router';
 import createSagaMiddleware from 'redux-saga';
 import { all, fork } from 'redux-saga/effects';
 import { put, takeEvery } from 'redux-saga/effects';
-import { showNotification } from 'react-admin';
+import { AutocompleteArrayInput, showNotification } from 'react-admin';
 
 import {
     adminReducer,
@@ -31,7 +31,6 @@ function* postSaga() {
 const sReducer = (previousState = 0, { type, payload }) => {
     
     if (type === 'RA/CRUD_GET_LIST_SUCCESS') {
-        console.log(previousState, type, payload);
         return previousState;
     }
     return previousState;
@@ -47,8 +46,12 @@ const type2resource = (type) => {
 }
 
 const adminReducerWrapper = (previousState, action) => {
-    console.log(action)
+    
     const result = adminReducer(previousState, action)
+    console.log(action)
+    if(action.type == "CRUD_GET_ONE_SUCCESS"){
+        return result;
+    }
     // Add the included resources to the redux store
     for(let instance of action.payload?.included || []){
         const resource_name = type2resource(instance.type)
@@ -57,11 +60,31 @@ const adminReducerWrapper = (previousState, action) => {
         }
     }
 
-    for(let instance of action.payload?.data || []){
-        for(let rel of instance.relationships || []){
-            console.log(rel)
+    if(Array.isArray(action.payload?.data)){
+        /*
+            link all related data to the corresponding item in the store
+            getList, getMany etc .. check action.type
+        */
+        for(let instance of action.payload.data){
+            if(!instance.relationships){
+                continue;
+            }
+            for(let [rel_name , rel] of Object.entries(instance.relationships)){
+                let rel_resource_name = type2resource(rel.data?.type)
+                if(rel_resource_name){
+                    if(Array.isArray(rel.data)){
+                        instance.relationships[rel_name] = instance[rel_name] = rel.data.map(rel_inst => result['resources'][rel_resource_name][rel_inst.id])
+                    }
+                    else if(rel.data?.id){
+                        // link toone resources
+                        instance.relationships[rel_name] = instance[rel_name] = result['resources'][rel_resource_name][rel.data.id]
+                    }
+                }
+            }
         }
-    
+    }
+    else if(action.payload?.data?.type){
+
     }
     
     return result;

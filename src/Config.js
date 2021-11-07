@@ -13,20 +13,18 @@ export const get_Conf = () => {
     init_Conf();
 
     let ls_conf = null
+    let result = null
     const lsc_str = localStorage.getItem("raconf")
     try{
         ls_conf = JSON.parse(lsc_str)
+        result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
     }
     catch(e){
         console.warn(`Failed to parse config ${lsc_str}`)
         localStorage.setItem("raconf", JSON.stringify(config))
     }
 
-    let result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
-    
-    result.api_root = result?.api_root ? result.api_root : 'https://apilogicserver.pythonanywhere.com/'
-
-    const resources = result.resources
+    const resources = result?.resources || {}
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
         

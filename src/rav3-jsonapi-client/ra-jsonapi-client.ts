@@ -113,7 +113,7 @@ export const jsonapiClient = (
 
         const { id, attributes, relationships, type } = json.data;
         //const included = json.included;
-        Object.assign(attributes, relationships, {type: type}, {relationships: relationships});
+        Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
         return {
           data: {
             id,

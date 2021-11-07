@@ -69,12 +69,12 @@ export default class ResourceLookup {
    * @param {Object} response A JSON API data object
    */
   unwrapData(response: any, includes: string[]) {
-    
     //console.log(response);
     // The base resource object
     const ret = Object.assign(
       {
-        id: response.id
+        id: response.id,
+        ja_type: response.type
       },
       response.attributes
     );
@@ -85,8 +85,9 @@ export default class ResourceLookup {
     // Deal with relationships
     // if (response.hasOwnProperty('relationships')) {
     if (Object.prototype.hasOwnProperty.call(response, 'relationships')) {
-      // ret.relationships = {};
-      for (const relationName of Object.keys(response.relationships)) {
+      ret.relationships = response.relationships;
+      /*for (const relationName of Object.keys(response.relationships)) {
+        
         if (!includes.includes(relationName)) {
           continue; // if we do not have includes for rlationships, we skip
         }
@@ -99,12 +100,15 @@ export default class ResourceLookup {
             const includedRelation = this.get(resource);
             const relationshipData = Object.assign(
               {
-                id: includedRelation.id
+                id: includedRelation.id,
+                ja_type: includedRelation.type
               },
               includedRelation.attributes
             );
             return relationshipData; // this.unwrapData(this.get(resource));
           });
+          
+          ret.relationships[relationName] = ret[relationName];
         } else if (relation == null) {
           continue; // empty many to one relanships return a null value in jsaonaopi spec , == instead of ===: doing nothing also in case of undefined
         } else {
@@ -115,9 +119,9 @@ export default class ResourceLookup {
             },
             includedResource.attributes
           );
-          ret[lowerFirstLetter(relation.type)] = relationshipData; // this.unwrapData(this.get(relation)); // ret.relationships[relationName] =
+          //ret[lowerFirstLetter(relation.type)] = relationshipData; // this.unwrapData(this.get(relation)); // ret.relationships[relationName] =
         }
-      }
+      }*/
     }
 
     return ret;

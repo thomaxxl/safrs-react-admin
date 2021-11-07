@@ -80,7 +80,7 @@ const load_custom_component = (component_name, item) => {
         alert("Custom component error")
         console.error("Custom component error", e)
     }
-    return <span/>
+    return null
 }
 
 const JoinedField = ({column, join}) => {
@@ -91,14 +91,15 @@ const JoinedField = ({column, join}) => {
     
     const dataProvider = useDataProvider();
     const fk = join.fks[0]
+    const user_key = conf.resources[join.target]?.user_key
+    
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource,
         payload: { id: record[fk] }
     });
-    const item = data || record[rel_name]
-    //const item = record[rel_name]
-    const user_key = conf.resources[join.target]?.user_key
+    let item = data || record[rel_name]
+    
     const user_component = conf.resources[join.target]?.user_component
     let label = item?.id
     
@@ -106,9 +107,9 @@ const JoinedField = ({column, join}) => {
         // user_component: custom component
         label = load_custom_component(user_component, item)
     }
-    else if(item && user_key){
+    else if(item?.attributes && user_key){
         const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
-        label = <span>{item[user_key] || item.id}</span>
+        label = <span>{item.attributes[user_key] || item.id}</span>
     }
     
     const content = <RelatedInstance instance={item} resource_name={join.target}/>
@@ -190,7 +191,7 @@ export const gen_DynResourceEdit = (resource) => {
 
 const deleteField = (dataProvider, resource, record, refresh) => {
 
-    console.log(record)
+    console.log('Delete', record)
     dataProvider.delete(resource, record).then(()=>{
         refresh();
         }
@@ -256,7 +257,7 @@ const ShowField = ({ label, value }) => {
   };
   
 
-const DynRelationship = (resource, id, relationship) => {
+const DynRelationshipOne = (resource, id, relationship) => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState();
@@ -266,11 +267,9 @@ const DynRelationship = (resource, id, relationship) => {
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
-                console.log('data',data);
                 return { rel_resource: data[relationship.target]?.data.type, rel_id: data[relationship.target]?.data.id }
             })
             .then(({rel_resource, rel_id}) => {
-                console.log(rel_resource, rel_id)
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
                    setRelated(data)
                 )
@@ -297,7 +296,7 @@ const RelatedInstance = ({instance, resource_name}) => {
     const columns = resource_conf?.columns ? resource_conf?.columns : [];
 
     const result = [<Grid container spacing={3} margin={5} m={40}>
-                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance[col.name]}/> )}
+                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
                     </Grid>,
                     <div style={{textAlign:"left", width:"100%"}}>
                         <Button
@@ -333,19 +332,27 @@ const DynRelationshipMany = (resource, id, relationship) => {
             })
     }, []);
 
-    const target_cols = conf.resources[relationship.target]?.columns
+    const target_resource = conf.resources[relationship.target]
+    if(!target_resource){
+        console.warn(`${resource}: No resource conf for ${target_resource}`)
+        return <span></span>
+    }
+    const target_cols = target_resource?.columns
+
     return <Tab label={relationship.name}>
-                <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
-                    <Datagrid rowClick="show">
-                        {target_cols?.map( (col) => 
-                            <FunctionField
-                                    label={col.name}
-                                    key={col.name}
-                                    render={record => <span>{record?.attributes ? record?.attributes[col.name] : ''}</span>} />
-                        )}
-                    <EditButton />
-                    </Datagrid>
-                </ReferenceManyField>
+                <List pagination={<DynPagination perPage={target_resource.perPage}/>}>
+                    <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
+                        <Datagrid rowClick="show">
+                            {target_cols?.map( (col) => 
+                                <FunctionField
+                                        label={col.name}
+                                        key={col.name}
+                                        render={record => <span>{record?.attributes ? record?.attributes[col.name] : ''}</span>} />
+                            )}
+                        <EditButton />
+                        </Datagrid>
+                    </ReferenceManyField>
+                </List>
             </Tab>
 }
 
@@ -374,7 +381,7 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
                     <TabbedShowLayout>
                         {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
                             DynRelationshipMany(props.resource, props.id, rel) : 
-                            DynRelationship(props.resource, props.id, rel)) }
+                            DynRelationshipOne(props.resource, props.id, rel)) }
                     </TabbedShowLayout>
 
                 </SimpleShowLayout>

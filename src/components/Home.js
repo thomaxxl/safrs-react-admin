@@ -8,6 +8,11 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import {reset_Conf} from "../Config"
 import MonacoEditor from '@uiw/react-monacoeditor';
 import { TabbedShowLayout, Tab } from 'react-admin';
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
 
 const yaml = require('js-yaml')
 
@@ -23,6 +28,55 @@ const useStyles = makeStyles((theme) => ({
         width : "80%"
     }
 }));
+
+
+const ConfSelect = () => {
+    let configs = []
+    try{
+        configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
+    }
+    catch(e){
+        
+    }
+    const [current, setCurrent] = React.useState(configs && configs[0]);
+  
+    const handleChange = (event) => {
+      setCurrent(event.target.value);
+    };
+  
+    return (
+      <Box sx={{ minWidth: 120 }}>
+        <FormControl fullWidth>
+          <InputLabel id="demo-simple-select-label">Config</InputLabel>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={current}
+            label="Configs"
+            size="small"
+            onChange={handleChange}
+            defaultValue={"30"}
+          >
+            {
+                configs ? Object.entries(configs).map((config) => <MenuItem value={"30"}>Ten</MenuItem>) : null
+            }
+          </Select>
+        </FormControl>
+      </Box>
+    );
+  }
+
+
+const saveConfig = () => {
+    /*
+    Save the current config in raconf to raconfigs
+    */
+    let current_conf = localStorage.getItem("raconf")
+    const configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
+    
+
+
+}
 
 
 const Home = () => {
@@ -49,6 +103,7 @@ const Home = () => {
                 setApiroot(parsed_conf.api_root);
             }
             setBgColor("#ddeedd");
+            //localStorage.setItem("raconf", JSON.stringify(text, null, 4));
             localStorage.setItem("raconf", text);
             if(!taConf){
                 window.location.reload();
@@ -73,19 +128,11 @@ const Home = () => {
     
     return <div>
                 <div>
-                    <br/>
-                    <TextField
-                        className={classes.textInput}
-                        variant="outlined"
-                        id="outlined-helperText"
-                        label="API root URL"
-                        size="small"
-                        defaultValue={api_root}
-                    />
-                    <br/>
+                    <ConfSelect/>
                     <Button className={classes.widget} onClick={()=> saveEdit("")} color="primary" >Clear</Button>
                     <Button className={classes.widget} onClick={()=> saveEdit(JSON.stringify(reset_Conf(), null, 4))} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
+                    <Button className={classes.widget} onClick={()=> saveConfig()} color="primary" >Save</Button>
                     <FormControlLabel
                         control={<Checkbox checked={autosave} onChange={handleAutoSaveChange} />}
                         label="Auto Save Config"
@@ -106,10 +153,15 @@ const Home = () => {
                             />
                         </Tab>
                         <Tab label="json">
-                            <pre>
-                                {JSON.stringify(JSON.parse(taConf), null, 4)}
-                            </pre>
+                        <TextareaAutosize
+                                variant="outlined"
+                                minRows={3}
+                                style={{ width: "80%", backgroundColor : "white" }}
+                                value= {JSON.stringify(JSON.parse(taConf), null, 4) }
+                                onChange={(evt)=>saveEdit(evt.target.value)}
+                            />
                         </Tab>
+
                     </TabbedShowLayout>
                 </div>
             </div>

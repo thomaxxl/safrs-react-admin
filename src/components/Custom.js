@@ -12,10 +12,10 @@ export const SampleColumnField = ({column}) => {
 
 export const EmployeeLabel = (props) => {
     const employee = props.instance
-    return <div> {employee.FirstName} {employee.LastName}</div>
+    return <div> {employee.attributes?.FirstName} {employee.attributes?.LastName}</div>
 }
 
 export const CustomerLabel = (props) => {
     const customer = props.instance
-    return <div> <b>{customer.CompanyName}</b> <i>{customer.ContactName}</i></div>
+    return <div> <b>{customer.attributes?.CompanyName}</b> <i>{customer.attributes?.ContactName}</i></div>
 }
