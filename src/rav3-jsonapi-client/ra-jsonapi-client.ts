@@ -5,7 +5,7 @@ import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
 import {get_Conf} from '../Config'
 
-const conf = get_Conf();
+const conf : { [ key: string] : any } = get_Conf();
 /**
  * Based on
  * 
@@ -43,9 +43,9 @@ export const jsonapiClient = (
       };
 
       // Add all filter params to query.
-      if(params.filter?.q){
+      if(params.filter?.q && "resources" in conf){
         // search is requested by react-admin
-        const resource_conf : any = conf.resources[resource_name]        ;
+        const resource_conf : any = conf.resources[resource_name];
         const search_cols = resource_conf.columns.filter((col : any) => col.search == true).map((col :any) => col.name);
         console.log(search_cols);
         query['filter'] = JSON.stringify(search_cols.map((col_name: string) => {return { 

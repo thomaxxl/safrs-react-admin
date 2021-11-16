@@ -13,18 +13,22 @@ export const get_Conf = () => {
     init_Conf();
 
     let ls_conf = null
-    let result = null
+    let result = {}
     const lsc_str = localStorage.getItem("raconf")
     try{
         ls_conf = JSON.parse(lsc_str)
         result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
+        Object.entries(result.resources)
     }
     catch(e){
         console.warn(`Failed to parse config ${lsc_str}`)
         localStorage.setItem("raconf", JSON.stringify(config))
     }
-
-    const resources = result?.resources || {}
+    
+    if(!result.resources){
+        result.resources = {}
+    }
+    const resources = result.resources
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
         

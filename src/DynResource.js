@@ -119,6 +119,9 @@ const JoinedField = ({column, join}) => {
 
 const column_fields = (columns, relationships) => {
 
+    if(!relationships){
+        return []
+    }
     const joins = relationships.filter(rel => rel.direction === "toone")
     const fields = columns.map((column) => {
 
