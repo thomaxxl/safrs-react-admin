@@ -24,7 +24,7 @@ export const get_Conf = () => {
         console.warn(`Failed to parse config ${lsc_str}`)
         localStorage.setItem("raconf", JSON.stringify(config))
     }
-    
+
     if(!result.resources){
         result.resources = {}
     }
@@ -45,7 +45,7 @@ export const get_Conf = () => {
         result.resources[resource_name].name = resource_name
 
         for(let col of resource.columns){
-            for(let rel of resource.relationships){
+            for(let rel of resource.relationships || []){
                 for(let fk of rel.fks || []){
                     if(col.name == fk){
                         col.relationship = rel;
