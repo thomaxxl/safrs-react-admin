@@ -6,6 +6,7 @@ import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
+import ConfigurationUI from './components/ConfigurationUI'
 import {get_Conf} from './Config'
 import { Layout }  from './components/Layout';
 import { put, takeEvery } from 'redux-saga/effects';
@@ -13,6 +14,7 @@ import { showNotification } from 'react-admin';
 import createAdminStore from './createAdminStore';
 import { Provider } from 'react-redux';
 import { createHashHistory } from 'history';
+import SettingsIcon from '@material-ui/icons/Settings';
 
 const history = createHashHistory();
 
@@ -63,6 +65,7 @@ const AsyncResources = () => {
         <AdminUI layout={Layout}>
             
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
+            <Resource name="Configuration" show={ConfigurationUI} list={ConfigurationUI} options={{ label: 'Configuration' }} icon={SettingsIcon}/>
             {resources.map(resource => <DynResource name={resource.name} key={resource.name} />)}
 
         </AdminUI>
