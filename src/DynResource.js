@@ -84,8 +84,12 @@ const load_custom_component = (component_name, item) => {
 }
 
 const JoinedField = ({column, join}) => {
-    const rel_name = join.name;
     const record = useRecordContext();
+    if(record.attributes){
+        Object.assign(record, record.attributes)
+    }
+    console.log(record)
+    const rel_name = join.name;
     const id = record.id
     const target_resource = join.target
     
@@ -154,9 +158,9 @@ export const gen_DynResourceList = (resource) => (props) => {
 
     const columns = resource.columns
     const relationships = resource.relationships
+    const fields = column_fields(columns, relationships);
     const dataProvider = useDataProvider();
     const refresh = useRefresh();
-    const fields = column_fields(columns, relationships);
     const buttons = [
         resource.edit !== false ? <EditButton key={resource.name} label={""}/> : null,
         resource.delete !== false ? <FunctionField 
@@ -340,18 +344,22 @@ const DynRelationshipMany = (resource, id, relationship) => {
         console.warn(`${resource}: No resource conf for ${target_resource}`)
         return <span></span>
     }
-    const target_cols = target_resource?.columns
 
+    if(!target_resource?.columns){
+        console.log("No target resource columns")
+        return <div/>
+    }
+
+    // ignore relationships pointing back to the parent resource
+    const columns = target_resource.columns.filter(col => col.relationship?.target !== resource)
+    const relationships = target_resource?.relationships
+    const fields = column_fields(columns, relationships);
+    
     return <Tab label={relationship.name}>
                 <List pagination={<DynPagination perPage={target_resource.perPage}/>}>
                     <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
                         <Datagrid rowClick="show">
-                            {target_cols?.map( (col) => 
-                                <FunctionField
-                                        label={col.name}
-                                        key={col.name}
-                                        render={record => <span>{record?.attributes ? record?.attributes[col.name] : ''}</span>} />
-                            )}
+                            {fields}
                         <EditButton />
                         </Datagrid>
                     </ReferenceManyField>
@@ -390,6 +398,7 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
                 </SimpleShowLayout>
             </Show>
 }
+
 
 
 
