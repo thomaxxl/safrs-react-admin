@@ -48,7 +48,7 @@ const type2resource = (type) => {
 const adminReducerWrapper = (previousState, action) => {
     
     const result = adminReducer(previousState, action)
-    console.log(action)
+    //console.log(action)
     if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
     }

@@ -239,7 +239,7 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
 const ResourceTitle = ({ record }) => {
 
-    return <span>{record ? `${record.type ? record.type +" " : ""} #${record.id}` : ''}</span>;
+    return <span>{record ? `${record.type ? record.type +" " : ""} #${record.id} ` : ''}</span>;
 };
 
 
@@ -277,6 +277,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 return { rel_resource: data[relationship.target]?.data.type, rel_id: data[relationship.target]?.data.id }
             })
             .then(({rel_resource, rel_id}) => {
+                console.log(rel_resource, rel_id)
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
                    setRelated(data)
                 )
@@ -288,22 +289,22 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
     
-
     return <Tab label={relationship.name}>
-               <RelatedInstance instance={related} resource_name={relationship.target} />
+               <RelatedInstance instance={related}/>
             </Tab>
 }
 
-const RelatedInstance = ({instance, resource_name}) => {
+const RelatedInstance = ({instance}) => {
 
-    if (!instance){
-        return null;
+    if (!instance || ! instance.type in conf.resources){
+        return <span></span>;
     }
+    const resource_name = instance.type
     const resource_conf = conf.resources[resource_name]
-    const columns = resource_conf?.columns ? resource_conf?.columns : [];
-
+    const columns = resource_conf?.columns || [];
+    
     const result = [<Grid container spacing={3} margin={5} m={40}>
-                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
+                        {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
                     </Grid>,
                     <div style={{textAlign:"left", width:"100%"}}>
                         <Button
@@ -367,6 +368,32 @@ const DynRelationshipMany = (resource, id, relationship) => {
             </Tab>
 }
 
+const ShowInstance = ({columns, relationships, resource_name, id}) => {
+
+    const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
+                        Instance Data <i style={{color: "#ccc"}}>{resource_name}  #{id}</i>
+                   </Typography>
+
+    return <SimpleShowLayout>
+                    {title}
+                    <Grid container spacing={3} margin={5} m={40}>
+                        {columns.map((col) => <ShowRecordField source={col.name}/> )}
+                    </Grid>
+                    
+                    <hr style={{ margin: "30px 0px 30px" }}/>
+                    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
+                        {relationships.length ? `Related Data` : "" }
+                    </Typography>                    
+
+                    <TabbedShowLayout>
+                        {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
+                            DynRelationshipMany(resource_name, id, rel) : 
+                            DynRelationshipOne(resource_name, id, rel)) }
+                    </TabbedShowLayout>
+
+                </SimpleShowLayout>
+
+}
 
 export const gen_DynResourceShow = (resource_conf) => (props) => {
 
@@ -374,42 +401,15 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
     const relationships= resource_conf.relationships
 
     return <Show title={<ResourceTitle />} {...props}>
-                
-                <SimpleShowLayout>
-                    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        Instance Data
-                    </Typography>
-
-                    <Grid container spacing={3} margin={5} m={40}>
-                        {columns.map((col) => <ShowRecordField source={col.name}/> )}
-                    </Grid>
-                    
-                    <hr style={{ margin: "30px 0px 30px" }}/>
-                    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        {relationships.length ? "Related Data" : "" }
-                    </Typography>                    
-
-                    <TabbedShowLayout>
-                        {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
-                            DynRelationshipMany(props.resource, props.id, rel) : 
-                            DynRelationshipOne(props.resource, props.id, rel)) }
-                    </TabbedShowLayout>
-
-                </SimpleShowLayout>
+                <ShowInstance columns={columns} relationships={relationships} resource_name={props.resource} id={props.id}/>
             </Show>
 }
 
 
-
-
 export const DynResource = (props) => {
-    //window.addEventListener("storage", ()=>window.location.reload())
+    window.addEventListener("storage", ()=>window.location.reload())
     const [, updateState] = React.useState();
     const [resource_conf, setConf] = useState(conf.resources[props.name])
-    const forceUpdate = React.useCallback(() => updateState({}), []);
-    //window.addEventListener("storage", ()=>{ console.log('UUU'); forceUpdate() })
-
-    //const resource_conf = conf.resources[props.name]
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
     const Edit = useMemo(()=> gen_DynResourceEdit(resource_conf), [resource_conf])

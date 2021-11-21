@@ -107,7 +107,7 @@ export const jsonapiClient = (
     ********************************************************************************************/
     getOne: (resource: any, params: { id: any }) => {
       //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball&page[limit]=50`;
-      const url = `${apiUrl}/${resource}/${params.id}`;
+      const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball`;
       
       return httpClient(url).then(({ json }) => {
 
