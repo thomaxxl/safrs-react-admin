@@ -158,7 +158,9 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getManyReference
     ********************************************************************************************/
-    getManyReference: (resource, params) => {
+    getManyReference: (resource, params : any) => {
+      console.log('GMR')
+      console.log(resource, params.target)
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
@@ -169,8 +171,10 @@ export const jsonapiClient = (
           ...params.filter
         })
       };
-      query[`filter[${params.target}]`] = params.id
-      const url = `${apiUrl}/${resource}?${stringify(query)}`;
+      //query[`filter[${params.target}]`] = params.id
+      //const url = `${apiUrl}/${resource}?${stringify(query)}`;
+      const relationship_name = params.target?.name
+      const url = `${apiUrl}/${params.target?.source}/${params.id}/${relationship_name}`
       const options = {};
       
       return httpClient(url, options).then(({ headers, json }) => {
@@ -181,14 +185,7 @@ export const jsonapiClient = (
         }
         return {
           data: json.data,
-          total: 100
-          /*  countHeader === 'Content-Range'
-              ? parseInt(
-                  headers.get('content-range') ?? ''.split('/').pop() ?? '10',
-                  10
-                )
-              : parseInt(headers.get(countHeader.toLowerCase()) ?? '0')
-        }; */
+          total: json.data?.length
         };
       });
     },

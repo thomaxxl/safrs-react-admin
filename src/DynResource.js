@@ -15,6 +15,7 @@ import {
   SimpleForm,
   TextInput,
   SimpleShowLayout,
+  TabbedShowLayoutTabs,
   ReferenceManyField,
   useRecordContext,
   Link
@@ -25,6 +26,7 @@ import { useDataProvider } from 'react-admin';
 import { FunctionField } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
+import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import {get_Conf} from './Config.js'
 import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';
@@ -88,7 +90,6 @@ const JoinedField = ({column, join}) => {
     if(record.attributes){
         Object.assign(record, record.attributes)
     }
-    console.log(record)
     const rel_name = join.name;
     const id = record.id
     const target_resource = join.target
@@ -289,8 +290,8 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
     
-    return <Tab label={relationship.name}>
-               <RelatedInstance instance={related}/>
+    return <Tab label={relationship.name} >
+               <RelatedInstance instance={related} />
             </Tab>
 }
 
@@ -303,19 +304,31 @@ const RelatedInstance = ({instance}) => {
     const resource_conf = conf.resources[resource_name]
     const columns = resource_conf?.columns || [];
     
-    const result = [<Grid container spacing={3} margin={5} m={40}>
-                        {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
-                    </Grid>,
-                    <div style={{textAlign:"left", width:"100%"}}>
+    // ugly manual styling because adding to TabbedShowLayout didn't work
+    const result = <div style={{left: "-16px", position: "relative"}}> 
+                    
+                    <div style={{textAlign:"right", width:"100%"}}>
                         <Button
+                            title="edit"
                             component={Link}
                             to={{
                                 pathname: `${resource_name}/${instance.id}`
                                 }}
-                            label="Link"><EditIcon /> Edit {resource_conf.type || resource_name}
+                            label="Link"><EditIcon />Edit
+                        </Button>
+                        <Button
+                            title="view"
+                            component={Link}
+                            to={{
+                                pathname: `/${resource_name}/${instance.id}/show`
+                                }}
+                            label="Link"><KeyboardArrowRightIcon />View
                         </Button>
                     </div>
-                    ]
+                    <Grid container >
+                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
+                    </Grid>
+                    </div>
     
     return result;
 }
@@ -355,10 +368,11 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const columns = target_resource.columns.filter(col => col.relationship?.target !== resource)
     const relationships = target_resource?.relationships
     const fields = column_fields(columns, relationships);
+    relationship.source = resource
     
-    return <Tab label={relationship.name}>
-                <List pagination={<DynPagination perPage={target_resource.perPage}/>}>
-                    <ReferenceManyField reference={relationship.target} target={relationship.fks[0]} addLabel = {false}>
+    return <Tab label={relationship.name} >
+                <List pagination={<DynPagination perPage={target_resource.perPage}/>} >
+                    <ReferenceManyField reference={relationship.target} target={relationship} addLabel = {false}>
                         <Datagrid rowClick="show">
                             {fields}
                         <EditButton />
@@ -374,7 +388,7 @@ const ShowInstance = ({columns, relationships, resource_name, id}) => {
                         Instance Data <i style={{color: "#ccc"}}>{resource_name}  #{id}</i>
                    </Typography>
 
-    return <SimpleShowLayout>
+    return <SimpleShowLayout >
                     {title}
                     <Grid container spacing={3} margin={5} m={40}>
                         {columns.map((col) => <ShowRecordField source={col.name}/> )}
@@ -385,7 +399,7 @@ const ShowInstance = ({columns, relationships, resource_name, id}) => {
                         {relationships.length ? `Related Data` : "" }
                     </Typography>                    
 
-                    <TabbedShowLayout>
+                    <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
                         {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
                             DynRelationshipMany(resource_name, id, rel) : 
                             DynRelationshipOne(resource_name, id, rel)) }
