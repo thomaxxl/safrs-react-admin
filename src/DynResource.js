@@ -45,6 +45,18 @@ const searchFilters = [
     <TextInput source="q" label="Search" alwaysOn />
 ];
 
+
+const type2resource = (type) => {
+    for(let [resource_name, resource] of Object.entries(conf?.resources)){
+        if(resource.type === type){
+            return resource_name
+        }
+    }
+    console.warn(`No resource for type "${type}`)
+    return conf[type]
+}
+
+
 const ColumnField = ({column}) => {
     
     const component = column.component // component name to be loaded
@@ -84,6 +96,7 @@ const load_custom_component = (component_name, item) => {
     }
     return null
 }
+
 
 const JoinedField = ({column, join}) => {
     const record = useRecordContext();
@@ -228,6 +241,7 @@ const DynInput = ({column, resource}) => {
     return <TextInput source={column.name}/>
 }
 
+
 export const gen_DynResourceCreate = (resource) => (props) => {
 
     return <Create {...props}>
@@ -278,11 +292,14 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 return { rel_resource: data[relationship.target]?.data.type, rel_id: data[relationship.target]?.data.id }
             })
             .then(({rel_resource, rel_id}) => {
-                console.log(rel_resource, rel_id)
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
-                   setRelated(data)
+                {console.log(data)
+                    return setRelated(data)
+                }
                 )
+                .then(()=>console.log(related))
                 setLoading(false);
+                
             })
             .catch(error => {
                 setError(error);
@@ -294,45 +311,6 @@ const DynRelationshipOne = (resource, id, relationship) => {
                <RelatedInstance instance={related} />
             </Tab>
 }
-
-const RelatedInstance = ({instance}) => {
-
-    if (!instance || ! instance.type in conf.resources){
-        return <span></span>;
-    }
-    const resource_name = instance.type
-    const resource_conf = conf.resources[resource_name]
-    const columns = resource_conf?.columns || [];
-    
-    // ugly manual styling because adding to TabbedShowLayout didn't work
-    const result = <div style={{left: "-16px", position: "relative"}}> 
-                    
-                    <div style={{textAlign:"right", width:"100%"}}>
-                        <Button
-                            title="edit"
-                            component={Link}
-                            to={{
-                                pathname: `${resource_name}/${instance.id}`
-                                }}
-                            label="Link"><EditIcon />Edit
-                        </Button>
-                        <Button
-                            title="view"
-                            component={Link}
-                            to={{
-                                pathname: `/${resource_name}/${instance.id}/show`
-                                }}
-                            label="Link"><KeyboardArrowRightIcon />View
-                        </Button>
-                    </div>
-                    <Grid container >
-                            {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
-                    </Grid>
-                    </div>
-    
-    return result;
-}
-
 
 const DynRelationshipMany = (resource, id, relationship) => {
 
@@ -382,6 +360,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
             </Tab>
 }
 
+
 const ShowInstance = ({columns, relationships, resource_name, id}) => {
 
     const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
@@ -408,6 +387,49 @@ const ShowInstance = ({columns, relationships, resource_name, id}) => {
                 </SimpleShowLayout>
 
 }
+
+
+const RelatedInstance = ({instance}) => {
+
+    const resource_name = type2resource(instance?.type)
+    if (!instance || ! resource_name){
+        return <span></span>;
+    }
+    
+    const resource_conf = conf.resources[resource_name]
+    const columns = resource_conf?.columns || [];
+    const relationships = resource_conf?.relationships || [];
+    
+    // ugly manual styling because adding to TabbedShowLayout didn't work
+    const result = <div style={{left: "-16px", position: "relative"}}> 
+                    
+                        <div style={{textAlign:"right", width:"100%"}}>
+                            <Button
+                                title="edit"
+                                component={Link}
+                                to={{
+                                    pathname: `${resource_name}/${instance.id}`
+                                    }}
+                                label="Link"><EditIcon />Edit
+                            </Button>
+                            <Button
+                                title="view"
+                                component={Link}
+                                to={{
+                                    pathname: `/${resource_name}/${instance.id}/show`
+                                    }}
+                                label="Link"><KeyboardArrowRightIcon />View
+                            </Button>
+                        </div>
+                        <Grid container >
+                                {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
+                        </Grid>
+                    </div>
+
+    
+    return result;
+}
+
 
 export const gen_DynResourceShow = (resource_conf) => (props) => {
 
