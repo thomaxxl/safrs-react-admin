@@ -57,7 +57,6 @@ export const get_Conf = () => {
                 resource.search_cols.push(col);
             }
         }
-        console.log(`${resource_name} search cols`, resource.search_cols)
     }
     
     return result || reset_Conf()

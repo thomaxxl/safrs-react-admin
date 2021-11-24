@@ -2,7 +2,7 @@
 
 React based Web Admin Dashboard for [APILogicServer](https://github.com/valhuber/ApiLogicServer). 
 
-[View live demo!](https://jsonapi.hardened.be/als/) 
+[View live demo!](http://thomaxxl.pythonanywhere.com/admin-app/index.html#/Home) 
 
 ## Installation
 

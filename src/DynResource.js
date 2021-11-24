@@ -36,6 +36,8 @@ import { AutocompleteInput, ReferenceInput } from 'react-admin';
 import { Pagination } from 'react-admin';
 import './style/DynStyle.css'
 import { useQueryWithStore, Loading, Error } from 'react-admin';
+import { useNotify, useRedirect } from 'react-admin';
+
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -186,6 +188,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     return <List filters={searchFilters}
                 pagination={<DynPagination perPage={resource.perPage}/>}
+                sort={resource.sort || ""}
                 {...props} >
                 <Datagrid rowClick="show">
                     {fields}
@@ -198,9 +201,18 @@ export const gen_DynResourceList = (resource) => (props) => {
 export const gen_DynResourceEdit = (resource) => {
     
     const columns = resource.columns;
-
+    
     const Result = (props) => {
-        return <Edit {...props}>
+        const notify = useNotify();
+        const refresh = useRefresh();
+        const redirect = useRedirect();
+
+        const onFailure = (error) => {
+            redirect('edit', props.basePath, props.id);
+            refresh();
+        }
+    
+        return <Edit {...props} onFailure={onFailure}>
             <SimpleForm>
                 {columns.map((col) => <DynInput column={col} key={col.name}/> )}
             </SimpleForm>
@@ -351,7 +363,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     return <Tab label={relationship.name} >
                 <List pagination={<DynPagination perPage={target_resource.perPage}/>} >
                     <ReferenceManyField reference={relationship.target} target={relationship} addLabel = {false}>
-                        <Datagrid rowClick="show">
+                        <Datagrid rowClick="show" sort="id">
                             {fields}
                         <EditButton />
                         </Datagrid>
@@ -364,28 +376,24 @@ const DynRelationshipMany = (resource, id, relationship) => {
 const ShowInstance = ({columns, relationships, resource_name, id}) => {
 
     const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        Instance Data <i style={{color: "#ccc"}}>{resource_name}  #{id}</i>
+                        {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
                    </Typography>
 
-    return <SimpleShowLayout >
-                    {title}
-                    <Grid container spacing={3} margin={5} m={40}>
-                        {columns.map((col) => <ShowRecordField source={col.name}/> )}
-                    </Grid>
-                    
-                    <hr style={{ margin: "30px 0px 30px" }}/>
-                    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
-                        {relationships.length ? `Related Data` : "" }
-                    </Typography>                    
+    return <SimpleShowLayout>
+                {title}
+                <Grid container spacing={3} margin={5} m={40}>
+                    {columns.map((col) => <ShowRecordField source={col.name}/> )}
+                </Grid>
+                
+                <hr style={{ margin: "30px 0px 30px" }}/>
 
-                    <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
-                        {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
-                            DynRelationshipMany(resource_name, id, rel) : 
-                            DynRelationshipOne(resource_name, id, rel)) }
-                    </TabbedShowLayout>
+                <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
+                    {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
+                        DynRelationshipMany(resource_name, id, rel) : 
+                        DynRelationshipOne(resource_name, id, rel)) }
+                </TabbedShowLayout>
 
-                </SimpleShowLayout>
-
+            </SimpleShowLayout>
 }
 
 
@@ -421,7 +429,7 @@ const RelatedInstance = ({instance}) => {
                                 label="Link"><KeyboardArrowRightIcon />View
                             </Button>
                         </div>
-                        <Grid container >
+                        <Grid container title="qsd">
                                 {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
                         </Grid>
                     </div>

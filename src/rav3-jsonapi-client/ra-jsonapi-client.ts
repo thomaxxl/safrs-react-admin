@@ -30,30 +30,30 @@ export const jsonapiClient = (
     getList: (resource, params) => {
       /*todo: rename resource to resource_name*/
       const resource_name = resource;
-      console.log("getList", resource, params);
       const { page, perPage } = params.pagination;
       
+      const resource_conf : any = conf.resources[resource_name];
+      const sort : string = resource_conf.sort
       // Create query with pagination params.
       const query : {[k: string]: any} = {
         'page[number]': page,
         'page[size]': perPage,
         'page[offset]': (page - 1) * perPage,
         'page[limit]': perPage,
-        sort: ' '
+        sort: sort ? sort : ''
       };
+
 
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
         // search is requested by react-admin
-        const resource_conf : any = conf.resources[resource_name];
         const search_cols = resource_conf.columns.filter((col : any) => col.search == true).map((col :any) => col.name);
-        console.log(search_cols);
+        const sort = resource_conf.sort
         query['filter'] = JSON.stringify(search_cols.map((col_name: string) => {return { 
                               "name":col_name,
                               "op":"like",
                               "val":`${params.filter.q}%`};}) // => startswith operator in sql
             )
-        console.log(query['filter'])
       }
       else{
         Object.keys(params.filter || {}).forEach((key) => {
@@ -61,7 +61,7 @@ export const jsonapiClient = (
         });
       }
 
-      // Add sort parameter
+      // Add sort parameter, first check the default configured sorting, then the customized sort
       if (params.sort && params.sort.field) {
         const prefix = params.sort.order === 'ASC' ? '' : '-';
         query.sort = `${prefix}${params.sort.field}`;
@@ -92,6 +92,7 @@ export const jsonapiClient = (
           return {
             data: jsonData,
             included: json.included,
+            //included: json.included.map((item: any) => lookup.unwrapData(item, [])),
             total: total
           };
         })
@@ -107,7 +108,11 @@ export const jsonapiClient = (
     ********************************************************************************************/
     getOne: (resource: any, params: { id: any }) => {
       //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball&page[limit]=50`;
-      const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball`;
+      const resource_conf = conf["resources"][resource];
+      const rel_conf = resource_conf.relationships || [];
+      const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
+      //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball`;
+      const url = `${apiUrl}/${resource}/${params.id}?include=${includes}`;
       
       return httpClient(url).then(({ json }) => {
 
@@ -174,7 +179,7 @@ export const jsonapiClient = (
       //query[`filter[${params.target}]`] = params.id
       //const url = `${apiUrl}/${resource}?${stringify(query)}`;
       const relationship_name = params.target?.name
-      const url = `${apiUrl}/${params.target?.source}/${params.id}/${relationship_name}`
+      const url = `${apiUrl}/${params.target?.source}/${params.id}/${relationship_name}?${stringify(query)}`
       const options = {};
       
       return httpClient(url, options).then(({ headers, json }) => {
