@@ -5,6 +5,7 @@ import { List,
     Datagrid,
     TextField,
     EditButton,
+    ShowButton
 } from "react-admin";
 import Grid from '@material-ui/core/Grid';
 import { Resource, TabbedShowLayout, Tab } from 'react-admin';
@@ -37,7 +38,6 @@ import { Pagination } from 'react-admin';
 import './style/DynStyle.css'
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { useNotify, useRedirect } from 'react-admin';
-
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -102,22 +102,24 @@ const load_custom_component = (component_name, item) => {
 
 const JoinedField = ({column, join}) => {
     const record = useRecordContext();
-    if(record.attributes){
+    if(record?.attributes){
         Object.assign(record, record.attributes)
     }
     const rel_name = join.name;
-    const id = record.id
     const target_resource = join.target
     
-    const dataProvider = useDataProvider();
     const fk = join.fks[0]
     const user_key = conf.resources[join.target]?.user_key
     
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource,
-        payload: { id: record[fk] }
+        payload: { id: record ? record[fk] : null }
     });
+
+    if(!record){
+        return null
+    }
     let item = data || record[rel_name]
     
     const user_component = conf.resources[join.target]?.user_component
@@ -163,8 +165,8 @@ const column_fields = (columns, relationships) => {
 }
 
 
-const DynPagination = props => (
-    <Pagination rowsPerPageOptions={[10, 20, 50, 100]}
+const DynPagination = (props) => (
+    <Pagination rowsPerPageOptions={[10, 25, 50, 100]}
                 perPage={props.perPage || 25 }
                 {...props} />
 );
@@ -172,27 +174,37 @@ const DynPagination = props => (
 
 export const gen_DynResourceList = (resource) => (props) => {
 
+    const ButtonField = (props) => {
+        const dataProvider = useDataProvider();
+        const refresh = useRefresh();
+        const buttons = [
+            resource.edit !== false ? <EditButton title="Edit" key={resource.name} label={""} {...props} /> : null,
+            resource.delete !== false ? <FunctionField title="Delete"
+                    onClick={(e)=> {e.stopPropagation()}}
+                    key={resource.name}
+                    render={record => <Button> <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/> </Button>}
+                    {...props} /> : null,
+            <ShowButton title="Show" label="" {...props} />
+        ]
+        return buttons
+    }
+    
     const columns = resource.columns
     const relationships = resource.relationships
     const fields = column_fields(columns, relationships);
-    const dataProvider = useDataProvider();
-    const refresh = useRefresh();
-    const buttons = [
-        resource.edit !== false ? <EditButton key={resource.name} label={""}/> : null,
-        resource.delete !== false ? <FunctionField 
-                onClick={(e)=> {e.stopPropagation()}}
-                key={resource.name}
-                render={record => <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/>}
-        /> : null
-    ]
     
+    
+    const EditPanel = props => {
+        return <div><pre>{JSON.stringify(props, null, 4)}</pre></div>
+    }
+
     return <List filters={searchFilters}
                 pagination={<DynPagination perPage={resource.perPage}/>}
                 sort={resource.sort || ""}
                 {...props} >
-                <Datagrid rowClick="show">
+                <Datagrid rowClick="show" expand={<EditPanel />}>
                     {fields}
-                    {buttons}
+                    <ButtonField resource={resource} {...props} />
                 </Datagrid>
             </List>
 };
@@ -319,7 +331,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
     
-    return <Tab label={relationship.name} >
+    return <Tab label={relationship.name} key={relationship.name}>
                <RelatedInstance instance={related} />
             </Tab>
 }
@@ -360,15 +372,15 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const fields = column_fields(columns, relationships);
     relationship.source = resource
     
-    return <Tab label={relationship.name} >
-                <List pagination={<DynPagination perPage={target_resource.perPage}/>} >
-                    <ReferenceManyField reference={relationship.target} target={relationship} addLabel = {false}>
-                        <Datagrid rowClick="show" sort="id">
+    const fk = relationship.fks[0]
+    
+    return <Tab label={relationship.name} key={relationship.name}>
+                    <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination perPage={10}/>}  >
+                        <Datagrid rowClick="show">
                             {fields}
-                        <EditButton />
+                            <EditButton />
                         </Datagrid>
-                    </ReferenceManyField>
-                </List>
+                    </ReferenceManyField>            
             </Tab>
 }
 
@@ -411,7 +423,7 @@ const RelatedInstance = ({instance}) => {
     // ugly manual styling because adding to TabbedShowLayout didn't work
     const result = <div style={{left: "-16px", position: "relative"}}> 
                     
-                        <div style={{textAlign:"right", width:"100%"}}>
+                        <div style={{textAlign:"right", width:"100%"}} >
                             <Button
                                 title="edit"
                                 component={Link}
@@ -448,7 +460,6 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
                 <ShowInstance columns={columns} relationships={relationships} resource_name={props.resource} id={props.id}/>
             </Show>
 }
-
 
 export const DynResource = (props) => {
     window.addEventListener("storage", ()=>window.location.reload())

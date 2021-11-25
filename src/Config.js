@@ -43,20 +43,22 @@ export const get_Conf = () => {
 
         resource.search_cols = []
         result.resources[resource_name].name = resource_name
+        let attributes = resource.columns || []
 
-        for(let col of resource.columns){
+        for(let attr of attributes){
             for(let rel of resource.relationships || []){
                 for(let fk of rel.fks || []){
-                    if(col.name == fk){
-                        col.relationship = rel;
-                        col.relationship.target_resource = result.resources[col.relationship.target]
+                    if(attr.name == fk){
+                        attr.relationship = rel;
+                        attr.relationship.target_resource = result.resources[attr.relationship.target]
                     }
                 }
             }
-            if(col.search){
-                resource.search_cols.push(col);
+            if(attr.search){
+                resource.search_cols.push(attr);
             }
         }
+        resource.attributes = resource.columns
     }
     
     return result || reset_Conf()

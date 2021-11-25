@@ -44,6 +44,7 @@ export const jsonapiClient = (
       };
 
 
+      console.log(params)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
         // search is requested by react-admin
@@ -109,7 +110,11 @@ export const jsonapiClient = (
     getOne: (resource: any, params: { id: any }) => {
       //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball&page[limit]=50`;
       const resource_conf = conf["resources"][resource];
-      const rel_conf = resource_conf.relationships || [];
+      if(!resource_conf){
+        console.warn(`Invalid resource ${resource}`)
+        return new Promise(()=>{});
+      }
+      const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
       //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball`;
       const url = `${apiUrl}/${resource}/${params.id}?include=${includes}`;
@@ -164,23 +169,23 @@ export const jsonapiClient = (
       getManyReference
     ********************************************************************************************/
     getManyReference: (resource, params : any) => {
-      console.log('GMR')
+      console.log('GMR', params)
       console.log(resource, params.target)
+      const fk = params.target
+      
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
       const query: {[k: string]: any} = {
         sort: JSON.stringify([field, order]),
-        range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
-        filter_: JSON.stringify({
-          ...params.filter
-        })
+        
       };
-      //query[`filter[${params.target}]`] = params.id
-      //const url = `${apiUrl}/${resource}?${stringify(query)}`;
-      const relationship_name = params.target?.name
-      const url = `${apiUrl}/${params.target?.source}/${params.id}/${relationship_name}?${stringify(query)}`
+      query[`filter[${fk}]`] = params.id
+      query[`page[limit]`] = perPage
+      query[`page[offset]`] = (page - 1) * perPage
+     
       const options = {};
+      const url = `${apiUrl}/${resource}?${stringify(query)}&include=%2Ball`
       
       return httpClient(url, options).then(({ headers, json }) => {
         if (!headers.has(countHeader)) {
@@ -188,9 +193,18 @@ export const jsonapiClient = (
             `The ${countHeader} header is missing in the HTTP Response. The simple REST data provider expects responses for lists of resources to contain this header with the total number of results to build the pagination. If you are using CORS, did you declare ${countHeader} in the Access-Control-Expose-Headers header?`
           );
         }
+        let total = json.meta?.total;
+        if (json.meta && settings.total) {
+          total = json.meta[settings.total];
+        }
+        console.log(json.meta)
+        // Use the length of the data array as a fallback.
+        total = total || json.data.length;
+        
+        
         return {
           data: json.data,
-          total: json.data?.length
+          total: total
         };
       });
     },
