@@ -4,7 +4,9 @@ import Checkbox from "@material-ui/core/Checkbox";
 import Button from '@material-ui/core/Button';
 import { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import ClearIcon from "@material-ui/icons/Clear";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+
 import {reset_Conf} from "../Config"
 import MonacoEditor from '@uiw/react-monacoeditor';
 import { TabbedShowLayout, Tab } from 'react-admin';
@@ -13,6 +15,8 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import Modal from '@material-ui/core/Modal';
+import Typography from '@material-ui/core/Typography';
 
 const yaml = require('js-yaml')
 
@@ -26,28 +30,125 @@ const useStyles = makeStyles((theme) => ({
     },
     textInput : {
         width : "80%"
+    },
+    modal : {
+        position: 'absolute',
+        top: '15%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: "75%",
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+        textAlign: "left"
     }
 }));
 
 
-const ConfSelect = () => {
+const DeleteConf = (conf_name) => {
+    if(! window.confirm(`Delete ${conf_name}`)){
+        return
+    }
+
+    try{
+        let configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
+        delete configs[conf_name]
+        localStorage.setItem("raconfigs",JSON.stringify(configs))
+        window.location.reload()
+    }
+    catch(e){
+        alert("Localstorage error")
+    }
+    
+}
+
+const ManageModal = () => {
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = (e) => {setOpen(true);}
+    const handleClose = (e) => {setOpen(false);}
+
     let configs = []
+    
     try{
         configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
     }
     catch(e){
-        
+        alert("Localstorage error")
     }
-    const [current, setCurrent] = React.useState(configs && configs[0]);
+
+    const classes = useStyles();
+    const modal_style =  {
+        position: 'absolute',
+        top: '25%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: "75%",
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+        textAlign: "left"
+    }
+
+    const config_list = configs ? Object.entries(configs).map(([name, conf]) =><li>{name} <ClearIcon title="delete" onClick={()=>DeleteConf(name)}/></li> ) : null
+    
+    return [
+        <Button className={classes.widget} onClick={()=> handleOpen()} color="primary" >Manage</Button>,
+        <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description">
+            <Box sx={modal_style}>
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                    Manage Configurations
+                </Typography>
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                    <ul>
+                        {config_list}
+                    </ul>
+                </Typography>
+                
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                    Load Configuration from URL
+                </Typography>
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                    <TextField label="Config URL" style={{ margin: 16, width: "100%" }}/>
+                    <Button className={classes.widget} onClick={()=> alert("Not implemented")} color="primary" >Load</Button>
+                </Typography>
+            </Box>
+        </Modal>
+    ]
+}
+
+
+const ConfSelect = () => {
+    let configs = []
+    
+    try{
+        configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
+    }
+    catch(e){
+        alert("Localstorage error")
+    }
+    const current_conf = JSON.parse(localStorage.getItem("raconf",""))
+    const [current, setCurrent] = React.useState(current_conf.api_root);
   
     const handleChange = (event) => {
       setCurrent(event.target.value);
+      const new_conf = configs[event.target.value]
+      if(!new_conf){
+          return
+      }
+      localStorage.setItem("raconf", JSON.stringify(new_conf));
+      window.location.reload()
     };
-  
+      
     return (
       <Box sx={{ minWidth: 120 }}>
         <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Config</InputLabel>
+          <InputLabel id="demo-simple-select-label">Saved Configurations</InputLabel>
           <Select
             labelId="demo-simple-select-label"
             id="demo-simple-select"
@@ -55,10 +156,10 @@ const ConfSelect = () => {
             label="Configs"
             size="small"
             onChange={handleChange}
-            defaultValue={"30"}
+            defaultValue={current}
           >
             {
-                configs ? Object.entries(configs).map((config) => <MenuItem value={"30"}>Ten</MenuItem>) : null
+                configs ? Object.entries(configs).map(([name, config]) => <MenuItem value={name}>{name}</MenuItem>) : null
             }
           </Select>
         </FormControl>
@@ -71,11 +172,20 @@ const saveConfig = () => {
     /*
     Save the current config in raconf to raconfigs
     */
-    let current_conf = localStorage.getItem("raconf")
-    const configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
-    
-
-
+    let current_conf = JSON.parse(localStorage.getItem("raconf"))
+    const api_root = current_conf.api_root
+    if(!api_root){
+        alert("Can't save: no 'api_root' set in config")
+        console.log(current_conf)
+        return
+    }
+    let configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
+    if(!configs){
+        configs = {}
+    }
+    configs[api_root] = current_conf
+    localStorage.setItem("raconfigs", JSON.stringify(configs));
+    window.location.reload()
 }
 
 
@@ -129,6 +239,7 @@ const ConfigurationUI = () => {
     return <div>
                 <div>
                     <ConfSelect/>
+                    <ManageModal/>
                     <Button className={classes.widget} onClick={()=> saveEdit("")} color="primary" >Clear</Button>
                     <Button className={classes.widget} onClick={()=> saveEdit(JSON.stringify(reset_Conf(), null, 4))} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
