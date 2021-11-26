@@ -1,4 +1,5 @@
 import config from './Config.json'
+import als_config from './Config.als.json'
 
 const init_Conf = () => {
     if(! "raconf" in localStorage){
@@ -65,8 +66,14 @@ export const get_Conf = () => {
 }
 
 export const reset_Conf = (reload) => {
+    const configs = {}
     console.log("Resetting conf", config)
     localStorage.setItem("raconf", JSON.stringify(config));
+    configs[config.api_root] = config
+    configs[als_config.api_root] = als_config
+
+    localStorage.setItem("raconfigs", JSON.stringify(configs));
+
     if(reload){
         window.location.reload()
     }
