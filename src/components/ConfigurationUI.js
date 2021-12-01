@@ -66,9 +66,22 @@ const DeleteConf = (conf_name) => {
 
 
 const LoadYaml = (config_url) => {
+    const saveYaml = (ystr) => {
+        console.log(yaml)
+        try{
+            const jj = yaml.load(ystr)
+            const conf = JSON.stringify(jj)
+            localStorage.setItem("raconf", conf);
+            window.location.reload();
+        }
+        catch(e){
+            console.warn(`Failed to process`, ystr)
+        }
+    }
+
     fetch(config_url)
     .then((response) => response.text())
-    .then((yaml) => console.log(yaml))
+    .then((yaml) => saveYaml(yaml))
     .catch((err)=>alert(`Failed to download yaml from ${config_url}`))
 }
 
@@ -214,8 +227,6 @@ const ConfigurationUI = () => {
         }
     }
 
-    const classes = useStyles();
-
     const saveEdit = (text) => {
         try{
             if(text){
@@ -234,6 +245,9 @@ const ConfigurationUI = () => {
         }
         setTaConf(text)
     }
+
+    
+    const classes = useStyles();
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(reset_Conf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");
