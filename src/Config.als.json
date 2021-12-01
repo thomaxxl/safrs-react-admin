@@ -1,5 +1,5 @@
 {
-    "api_root": "https://apilogicserver.pythonanywhere.com/",
+    "api_root": "//apilogicserver.pythonanywhere.com/",
     "resources": {
         "Category": {
             "type": "Category",

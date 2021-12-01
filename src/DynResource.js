@@ -38,6 +38,7 @@ import { Pagination } from 'react-admin';
 import './style/DynStyle.css'
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { useNotify, useRedirect } from 'react-admin';
+import { updateJsxAttribute } from "typescript";
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -59,12 +60,12 @@ const type2resource = (type) => {
 }
 
 
-const ColumnField = ({column}) => {
+const AttrField = ({attribute}) => {
     
-    const component = column.component // component name to be loaded
-    const style = column.style || {}
+    const component = attribute.component // component name to be loaded
+    const style = attribute.style || {}
         
-    const default_comp = <TextField source={column.name} key={column.name} style={style} />
+    const default_comp = <TextField source={attribute.name} key={attribute.name} style={style} />
     if(!component){
         return default_comp
     }
@@ -74,7 +75,7 @@ const ColumnField = ({column}) => {
         const Component = loadable(() => import(`./components/Custom.js`), {
                 resolveComponent: (components) => components[component],
         })
-        return <Component column={column}/>
+        return <Component attribute={attribute}/>
     }
     catch(e){
         alert("Custom component error")
@@ -100,7 +101,7 @@ const load_custom_component = (component_name, item) => {
 }
 
 
-const JoinedField = ({column, join}) => {
+const JoinedField = ({attribute, join}) => {
     const record = useRecordContext();
     if(record?.attributes){
         Object.assign(record, record.attributes)
@@ -130,35 +131,39 @@ const JoinedField = ({column, join}) => {
         label = load_custom_component(user_component, item)
     }
     else if(item?.attributes && user_key){
-        const target_col = column.relationship.target_resource.columns.filter((col) => col.name == user_key)
+        const target_col = attribute.relationship.target_resource.attributes.filter((col) => col.name == user_key)
         label = <span>{item.attributes[user_key] || item.id}</span>
     }
     
     const content = <RelatedInstance instance={item} resource_name={join.target}/>
-    return <JoinModal label={label} key={column.name} content={content} resource_name={join.target}/>
+    return <JoinModal label={label} key={attribute.name} content={content} resource_name={join.target}/>
 }
 
 
-const column_fields = (columns, relationships) => {
+const attr_fields = (attributes, relationships) => {
 
+    if(!attributes){
+        console.warn("No attributes")
+        return []
+    }
     if(!relationships){
         return []
     }
     const joins = relationships.filter(rel => rel.direction === "toone")
-    const fields = columns.map((column) => {
+    const fields = attributes.map((attr) => {
 
-        if (column.hidden){
+        if (AttrField.hidden){
             return null;
         }
         for(let join of joins){
-            // check if the column is a (toone) relationship FK
+            // check if the attr is a (toone) relationship FK
             for(let fk of join.fks){
-                if(column.name == fk){
-                    return <JoinedField key={column.name} column={column} join={join} label={column.label? column.label: column.name}/>
+                if(attr.name == fk){
+                    return <JoinedField key={attr.name} attribute={attr} join={join} label={attr.label? attr.label: attr.name}/>
                 }
             }
         }
-        return <ColumnField key={column.name} column={column} label={column.label? column.label: column.name} style={column.header_style} />
+        return <AttrField key={attr.name} attribute={attr} label={attr.label? attr.label: attr.name} style={attr.header_style} />
         }
     )
     return fields
@@ -178,10 +183,10 @@ export const gen_DynResourceList = (resource) => (props) => {
         const dataProvider = useDataProvider();
         const refresh = useRefresh();
         const buttons = [
-            resource.edit !== false ? <EditButton title="Edit" key={resource.name} label={""} {...props} /> : null,
+            resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...props} /> : null,
             resource.delete !== false ? <FunctionField title="Delete"
                     onClick={(e)=> {e.stopPropagation()}}
-                    key={resource.name}
+                    key={`${resource.name}_delete`}
                     render={record => <Button> <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/> </Button>}
                     {...props} /> : null,
             <ShowButton title="Show" label="" {...props} />
@@ -189,9 +194,9 @@ export const gen_DynResourceList = (resource) => (props) => {
         return buttons
     }
     
-    const columns = resource.columns
+    const attributes = resource.attributes
     const relationships = resource.relationships
-    const fields = column_fields(columns, relationships);
+    const fields = attr_fields(attributes, relationships);
     
     
     const EditPanel = props => {
@@ -212,7 +217,7 @@ export const gen_DynResourceList = (resource) => (props) => {
 
 export const gen_DynResourceEdit = (resource) => {
     
-    const columns = resource.columns;
+    const attributes = resource.attributes;
     
     const Result = (props) => {
         const notify = useNotify();
@@ -226,7 +231,7 @@ export const gen_DynResourceEdit = (resource) => {
     
         return <Edit {...props} onFailure={onFailure}>
             <SimpleForm>
-                {columns.map((col) => <DynInput column={col} key={col.name}/> )}
+                {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
             </SimpleForm>
         </Edit>
     }
@@ -244,25 +249,25 @@ const deleteField = (dataProvider, resource, record, refresh) => {
 }
 
 
-const DynInput = ({column, resource}) => {
+const DynInput = ({attribute, resource}) => {
 
-    if(column.relationship?.direction == "toone" && column.relationship.target){
-        const search_cols = conf.resources[column.relationship.target].search_cols
-        let input =  <AutocompleteInput optionText={''} key={column.name}/>
+    if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
+        const search_cols = conf.resources[attribute.relationship.target].search_cols
+        let input =  <AutocompleteInput optionText={''} key={attribute.name}/>
         if(!search_cols){
-            console.error("no searchable columns configured");
+            console.error("no searchable attributes configured");
         }
         else if(search_cols.length == 0){
-            console.warn(`no searchable columns configured for ${column.relationship.target}`);
+            console.warn(`no searchable attributes configured for ${attribute.relationship.target}`);
         }
         else {
-            input = <AutocompleteInput optionText={search_cols[0].name} key={column.name}/>
+            input = <AutocompleteInput optionText={search_cols[0].name} key={attribute.name}/>
         }
-        return <ReferenceInput source={column.name} label={`${column.relationship.name} (${column.name})`} reference={column.relationship.target}>
+        return <ReferenceInput source={attribute.name} label={`${attribute.relationship.name} (${attribute.name})`} reference={attribute.relationship.target}>
                     {input}
                 </ReferenceInput>
     }
-    return <TextInput source={column.name}/>
+    return <TextInput source={attribute.name}/>
 }
 
 
@@ -270,7 +275,7 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
     return <Create {...props}>
         <SimpleForm>
-            {resource.columns.map((col) => <DynInput column={col} resource={resource} key={col.name}/> )}
+            {resource.attributes.map((col) => <DynInput attribute={col} resource={resource} key={col.name}/> )}
         </SimpleForm>
     </Create >
 };
@@ -361,15 +366,15 @@ const DynRelationshipMany = (resource, id, relationship) => {
         return <span></span>
     }
 
-    if(!target_resource?.columns){
-        console.log("No target resource columns")
+    if(!target_resource?.attributes){
+        console.log("No target resource attributes")
         return <div/>
     }
 
     // ignore relationships pointing back to the parent resource
-    const columns = target_resource.columns.filter(col => col.relationship?.target !== resource)
+    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource)
     const relationships = target_resource?.relationships
-    const fields = column_fields(columns, relationships);
+    const fields = attr_fields(attributes, relationships);
     relationship.source = resource
     
     const fk = relationship.fks[0]
@@ -385,7 +390,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
 }
 
 
-const ShowInstance = ({columns, relationships, resource_name, id}) => {
+const ShowInstance = ({attributes, relationships, resource_name, id}) => {
 
     const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
@@ -394,7 +399,7 @@ const ShowInstance = ({columns, relationships, resource_name, id}) => {
     return <SimpleShowLayout>
                 {title}
                 <Grid container spacing={3} margin={5} m={40}>
-                    {columns.map((col) => <ShowRecordField source={col.name}/> )}
+                    {attributes.map((attr) => <ShowRecordField source={attr.name}/> )}
                 </Grid>
                 
                 <hr style={{ margin: "30px 0px 30px" }}/>
@@ -417,7 +422,7 @@ const RelatedInstance = ({instance}) => {
     }
     
     const resource_conf = conf.resources[resource_name]
-    const columns = resource_conf?.columns || [];
+    const attributes = resource_conf?.attributes || [];
     const relationships = resource_conf?.relationships || [];
     
     // ugly manual styling because adding to TabbedShowLayout didn't work
@@ -442,22 +447,21 @@ const RelatedInstance = ({instance}) => {
                             </Button>
                         </div>
                         <Grid container title="qsd">
-                                {columns.map((col) => <ShowField label={col.name} key={col.name} value={instance.attributes[col.name]}/> )}
+                                {attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )}
                         </Grid>
                     </div>
-
-    
+   
     return result;
 }
 
 
 export const gen_DynResourceShow = (resource_conf) => (props) => {
 
-    const columns = resource_conf.columns
+    const attributes = resource_conf.attributes
     const relationships= resource_conf.relationships
 
     return <Show title={<ResourceTitle />} {...props}>
-                <ShowInstance columns={columns} relationships={relationships} resource_name={props.resource} id={props.id}/>
+                <ShowInstance attributes={attributes} relationships={relationships} resource_name={props.resource} id={props.id}/>
             </Show>
 }
 

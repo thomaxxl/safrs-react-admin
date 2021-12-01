@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 const DeleteConf = (conf_name) => {
-    if(! window.confirm(`Delete ${conf_name}`)){
+    if(! window.confirm(`Delete configuration "${conf_name}" ?`)){
         return
     }
 
@@ -91,7 +91,7 @@ const ManageModal = () => {
         textAlign: "left"
     }
 
-    const config_list = configs ? Object.entries(configs).map(([name, conf]) =><li>{name} <ClearIcon title="delete" onClick={()=>DeleteConf(name)}/></li> ) : null
+    const config_list = configs ? Object.entries(configs).map(([name, conf]) =><li>{name} <ClearIcon onClick={()=>DeleteConf(name)}/></li> ) : null
     
     return [
         <Button className={classes.widget} onClick={()=> handleOpen()} color="primary" >Manage</Button>,
@@ -176,7 +176,7 @@ const saveConfig = () => {
     const api_root = current_conf.api_root
     if(!api_root){
         alert("Can't save: no 'api_root' set in config")
-        console.log(current_conf)
+        //console.log(current_conf)
         return
     }
     let configs = JSON.parse(localStorage.getItem("raconfigs","{}"))
@@ -192,7 +192,7 @@ const saveConfig = () => {
 const ConfigurationUI = () => {
 
     const save_yaml = (ystr, ev) => {
-        console.log(ystr)
+        //console.log(ystr)
         try{
             const jj = yaml.load(ystr)
             saveEdit(JSON.stringify(jj))

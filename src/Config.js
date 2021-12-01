@@ -34,7 +34,7 @@ export const get_Conf = () => {
     for(let [resource_name, resource] of Object.entries(resources||{})){
         
         // link relationship to FK column
-        if(!(resource.columns instanceof Array || resource.relationships instanceof Array)){
+        if(!(resource.attributes instanceof Array || resource.relationships instanceof Array)){
             continue
         }
 
@@ -44,9 +44,14 @@ export const get_Conf = () => {
 
         resource.search_cols = []
         result.resources[resource_name].name = resource_name
-        let attributes = resource.columns || []
+        let attributes = resource.attributes || []
 
         for(let attr of attributes){
+            if(!(attr.constructor == Object)){
+                console.warn(`Invalid attribute ${attr}`)
+                continue
+                resource.attributes = Object.entries(resource.attributes).map(([attr_name, vals]) => Object.assign({name: attr_name}, vals))
+            }
             for(let rel of resource.relationships || []){
                 for(let fk of rel.fks || []){
                     if(attr.name == fk){
@@ -59,7 +64,7 @@ export const get_Conf = () => {
                 resource.search_cols.push(attr);
             }
         }
-        resource.attributes = resource.columns
+        //resource.attributes = resource.columns
     }
     
     return result || reset_Conf()

@@ -6,8 +6,8 @@ import { List,
 } from "react-admin";
 
 
-export const SampleColumnField = ({column}) => {
-    return <TextField source={column.name} key={column.name} style={{color : "red" }} />
+export const SampleColumnField = ({attribute}) => {
+    return <TextField source={attribute.name} key={attribute.name} style={{color : "red" }} />
 }
 
 export const EmployeeLabel = (props) => {
