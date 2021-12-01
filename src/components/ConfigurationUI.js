@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRef, Component } from 'react'
 import { TextareaAutosize, TextField } from '@material-ui/core';
 import Checkbox from "@material-ui/core/Checkbox";
 import Button from '@material-ui/core/Button';
@@ -63,6 +64,14 @@ const DeleteConf = (conf_name) => {
     
 }
 
+
+const LoadYaml = (config_url) => {
+    fetch(config_url)
+    .then((response) => response.text())
+    .then((yaml) => console.log(yaml))
+    .catch((err)=>alert(`Failed to download yaml from ${config_url}`))
+}
+
 const ManageModal = () => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = (e) => {setOpen(true);}
@@ -92,7 +101,8 @@ const ManageModal = () => {
     }
 
     const config_list = configs ? Object.entries(configs).map(([name, conf]) =><li>{name} <ClearIcon onClick={()=>DeleteConf(name)}/></li> ) : null
-    
+    const textFieldRef = useRef();
+
     return [
         <Button className={classes.widget} onClick={()=> handleOpen()} color="primary" >Manage</Button>,
         <Modal
@@ -114,8 +124,8 @@ const ManageModal = () => {
                     Load Configuration from URL
                 </Typography>
                 <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                    <TextField label="Config URL" style={{ margin: 16, width: "100%" }}/>
-                    <Button className={classes.widget} onClick={()=> alert("Not implemented")} color="primary" >Load</Button>
+                    <TextField label="Config URL" style={{ margin: 16, width: "100%" }} inputRef={textFieldRef}/>
+                    <Button className={classes.widget} onClick={(evt)=> LoadYaml(textFieldRef.current.value)} color="primary" >Load</Button>
                 </Typography>
             </Box>
         </Modal>
@@ -191,7 +201,7 @@ const saveConfig = () => {
 
 const ConfigurationUI = () => {
 
-    const save_yaml = (ystr, ev) => {
+    const saveYaml = (ystr, ev) => {
         //console.log(ystr)
         try{
             const jj = yaml.load(ystr)
@@ -227,7 +237,6 @@ const ConfigurationUI = () => {
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(reset_Conf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");
-    //const [bgColor, setBgColor] = useState("#ddeedd");
     const [bgColor, setBgColor] = useState("black");
     const [autosave, setAutosave] = useState(true);
     const [api_root, setApiroot] = useState(JSON.parse(conf)?.api_root);
@@ -260,7 +269,7 @@ const ConfigurationUI = () => {
                                 }}
                                 height="1000px"
                                 style = {{ borderLeft: `8px solid ${bgColor}`}}
-                                onChange={(ystr, ev) => save_yaml(ystr, ev)}
+                                onChange={(ystr, ev) => saveYaml(ystr, ev)}
                             />
                         </Tab>
                         <Tab label="json">
