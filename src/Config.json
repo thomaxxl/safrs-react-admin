@@ -4,7 +4,7 @@
         "People": {
             "type": "Person",
             "user_key": "name",
-            "columns": [
+            "attributes": [
                 {
                     "name": "id",
                     "hidden": true
@@ -68,7 +68,7 @@
         "Books": {
             "type": "Book",
             "user_key": "title",
-            "columns": [
+            "attributes": [
                 {
                     "name": "id",
                     "hidden": true
@@ -127,7 +127,7 @@
         },
         "Reviews": {
             "type": "Review",
-            "columns": [
+            "attributes": [
                 {
                     "name": "book_id"
                 },
@@ -163,7 +163,7 @@
         },
         "Publishers": {
             "type": "Publisher",
-            "columns": [
+            "attributes": [
                 {
                     "name": "id"
                 },

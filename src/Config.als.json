@@ -3,7 +3,7 @@
     "resources": {
         "Category": {
             "type": "Category",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id",
                     "hidden": true
@@ -28,7 +28,7 @@
         "Customer": {
             "type": "Customer",
             "user_component": "CustomerLabel",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -99,7 +99,7 @@
         },
         "CustomerDemographic": {
             "type": "CustomerDemographic",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -114,7 +114,7 @@
             "type": "Employee",
             "label": "emps",
             "user_component": "EmployeeLabel",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -224,7 +224,7 @@
         "Product": {
             "type": "Product",
             "user_key": "ProductName",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -274,7 +274,7 @@
         },
         "Region": {
             "type": "Region",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -287,7 +287,7 @@
         },
         "Shipper": {
             "type": "Shipper",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -303,7 +303,7 @@
         },
         "Supplier": {
             "type": "Supplier",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -349,7 +349,7 @@
         },
         "Territory": {
             "type": "Territory",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -374,7 +374,7 @@
         },
         "CustomerCustomerDemo": {
             "type": "CustomerCustomerDemo",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -396,7 +396,7 @@
         },
         "EmployeeAudit": {
             "type": "EmployeeAudit",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -436,7 +436,7 @@
         },
         "EmployeeTerritory": {
             "type": "EmployeeTerritory",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -469,7 +469,7 @@
         },
         "Order": {
             "type": "Order",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },
@@ -549,7 +549,7 @@
         },
         "OrderDetail": {
             "type": "OrderDetail",
-            "columns": [
+            "attributes": [
                 {
                     "name": "Id"
                 },

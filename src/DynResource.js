@@ -315,12 +315,16 @@ const DynRelationshipOne = (resource, id, relationship) => {
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
     
+    console.log(resource, id, relationship)
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
-                return { rel_resource: data[relationship.target]?.data.type, rel_id: data[relationship.target]?.data.id }
+                const rel_resource = type2resource(data[relationship.name]?.data.type)
+                const rel_id = data[relationship.name]?.data.id
+                return { rel_resource: rel_resource, rel_id: rel_id }
             })
             .then(({rel_resource, rel_id}) => {
+                console.log(rel_resource, rel_id)
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
                 {console.log(data)
                     return setRelated(data)
@@ -335,9 +339,11 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 setLoading(false);
             })
     }, []);
+
+    const comp = related ? <RelatedInstance instance={related} /> : <pre>{JSON.stringify({resource : id}, null, 2)}</pre>
     
-    return <Tab label={relationship.name} key={relationship.name}>
-               <RelatedInstance instance={related} />
+    return <Tab label={relationship.name} key={relationship.name}>ccc
+               {comp}
             </Tab>
 }
 
@@ -363,12 +369,12 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const target_resource = conf.resources[relationship.target]
     if(!target_resource){
         console.warn(`${resource}: No resource conf for ${target_resource}`)
-        return <span></span>
+        return null
     }
 
     if(!target_resource?.attributes){
         console.log("No target resource attributes")
-        return <div/>
+        return null
     }
 
     // ignore relationships pointing back to the parent resource
@@ -379,7 +385,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     
     const fk = relationship.fks[0]
     
-    return <Tab label={relationship.name} key={relationship.name}>
+    return <Tab label={relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination perPage={10}/>}  >
                         <Datagrid rowClick="show">
                             {fields}
@@ -418,7 +424,7 @@ const RelatedInstance = ({instance}) => {
 
     const resource_name = type2resource(instance?.type)
     if (!instance || ! resource_name){
-        return <span></span>;
+        return <span>{JSON.stringify(instance)}</span>;
     }
     
     const resource_conf = conf.resources[resource_name]
