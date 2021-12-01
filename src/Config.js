@@ -32,9 +32,8 @@ export const get_Conf = () => {
     const resources = result.resources
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
-        
+        resource.relationships = resource.relationships || []
         for(let [tab_group_name, tab_group] of Object.entries(resource.tab_groups || {}) ){
-            resource.relationships = resource.relationships || []
             resource.relationships.push(Object.assign(tab_group, {name: tab_group_name, target: tab_group.resource}))
         }
         // link relationship to FK column
