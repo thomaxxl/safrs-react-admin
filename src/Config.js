@@ -33,6 +33,10 @@ export const get_Conf = () => {
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
         
+        for(let [tab_group_name, tab_group] of Object.entries(resource.tab_groups || {}) ){
+            resource.relationships = resource.relationships || []
+            resource.relationships.push(Object.assign(tab_group, {name: tab_group_name, target: tab_group.resource}))
+        }
         // link relationship to FK column
         if(!(resource.attributes instanceof Array || resource.relationships instanceof Array)){
             continue
@@ -50,7 +54,6 @@ export const get_Conf = () => {
             if(!(attr.constructor == Object)){
                 console.warn(`Invalid attribute ${attr}`)
                 continue
-                resource.attributes = Object.entries(resource.attributes).map(([attr_name, vals]) => Object.assign({name: attr_name}, vals))
             }
             for(let rel of resource.relationships || []){
                 for(let fk of rel.fks || []){
