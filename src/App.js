@@ -76,7 +76,6 @@ const AsyncResources = () => {
 
 
 const App = () => {
-    
     return (
         <AdminContext dataProvider={dataProvider}  customReducers={{ admin2: bcR }}  >
             <AsyncResources />

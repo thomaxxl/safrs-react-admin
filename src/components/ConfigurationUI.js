@@ -7,8 +7,7 @@ import { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ClearIcon from "@material-ui/icons/Clear";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
-
-import {reset_Conf} from "../Config"
+import {default_configs} from "../Config"
 import MonacoEditor from '@uiw/react-monacoeditor';
 import { TabbedShowLayout, Tab } from 'react-admin';
 import Box from '@mui/material/Box';
@@ -21,6 +20,8 @@ import Typography from '@material-ui/core/Typography';
 
 const yaml = require('js-yaml')
 
+let als_yaml_url = "/ui/admin/admin.yaml"
+//als_yaml_url = "http://localhost:5656/ui/admin/admin.yaml"
 
 const useStyles = makeStyles((theme) => ({
     widget : {
@@ -65,25 +66,37 @@ const DeleteConf = (conf_name) => {
 }
 
 
+const addConf = (conf) => {
+    const configs = JSON.parse(localStorage.getItem("raconfigs"));
+    if(!conf.api_root){
+        console.warn("Config has no api_root", conf);
+        return
+    }
+    configs[conf.api_root] = conf
+    localStorage.setItem("raconf", JSON.stringify(conf));
+    localStorage.setItem("raconfigs", JSON.stringify(configs));
+    window.location.reload();
+}
+
+
 const LoadYaml = (config_url) => {
     const saveYaml = (ystr) => {
-        console.log(yaml)
         try{
-            const jj = yaml.load(ystr)
-            const conf = JSON.stringify(jj)
-            localStorage.setItem("raconf", conf);
-            window.location.reload();
+            const conf = yaml.load(ystr)
+            addConf(conf)
         }
         catch(e){
-            console.warn(`Failed to process`, ystr)
+            console.warn(`Failed to load yaml`, ystr)
+            console.error(e)
         }
     }
 
     fetch(config_url)
     .then((response) => response.text())
     .then((yaml) => saveYaml(yaml))
-    .catch((err)=>alert(`Failed to download yaml from ${config_url}`))
+    .catch((err)=>console.warn(`Failed to download yaml from ${config_url}: ${err}`))
 }
+
 
 const ManageModal = () => {
     const [open, setOpen] = React.useState(false);
@@ -246,10 +259,24 @@ const ConfigurationUI = () => {
         setTaConf(text)
     }
 
+    const resetConf = () => {
+        const configs = {}
+        let defconf = {}
+        console.log("Resetting conf")
+        for(defconf of default_configs){
+            localStorage.setItem("raconf", JSON.stringify(defconf));
+            configs[defconf.api_root] = defconf
+        }
+        
+        localStorage.setItem("raconfigs", JSON.stringify(configs));
+        LoadYaml(als_yaml_url)
+        
+        return defconf
+    }
     
     const classes = useStyles();
 
-    let conf = localStorage.getItem("raconf") ||  JSON.stringify(reset_Conf())
+    let conf = localStorage.getItem("raconf") ||  JSON.stringify(resetConf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");
     const [bgColor, setBgColor] = useState("black");
     const [autosave, setAutosave] = useState(true);
@@ -264,7 +291,7 @@ const ConfigurationUI = () => {
                     <ConfSelect/>
                     <ManageModal/>
                     <Button className={classes.widget} onClick={()=> saveEdit("")} color="primary" >Clear</Button>
-                    <Button className={classes.widget} onClick={()=> saveEdit(JSON.stringify(reset_Conf(), null, 4))} color="primary" >Reset</Button>
+                    <Button className={classes.widget} onClick={()=> resetConf()} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
                     <Button className={classes.widget} onClick={()=> saveConfig()} color="primary" >Save</Button>
                     <FormControlLabel

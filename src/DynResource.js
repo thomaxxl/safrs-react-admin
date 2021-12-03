@@ -43,6 +43,7 @@ import { updateJsxAttribute } from "typescript";
 //import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
+const default_col_nr = 8;
 
 const searchFilters = [
     <TextInput source="q" label="Search" alwaysOn />
@@ -177,6 +178,13 @@ const DynPagination = (props) => (
 );
 
 
+const DetailPanel = ({attributes}) => {
+    return <Grid container spacing={3} margin={5} m={40}>
+                {attributes.map((attr) => <ShowRecordField source={attr.name}/> )}
+            </Grid>
+}
+
+
 export const gen_DynResourceList = (resource) => (props) => {
 
     const ButtonField = (props) => {
@@ -197,18 +205,14 @@ export const gen_DynResourceList = (resource) => (props) => {
     const attributes = resource.attributes
     const relationships = resource.relationships
     const fields = attr_fields(attributes, relationships);
+    const col_nr = resource.col_nr || default_col_nr
     
-    
-    const EditPanel = props => {
-        return <div><pre>{JSON.stringify(props, null, 4)}</pre></div>
-    }
-
     return <List filters={searchFilters}
                 pagination={<DynPagination perPage={resource.perPage}/>}
                 sort={resource.sort || ""}
                 {...props} >
-                <Datagrid rowClick="show" expand={<EditPanel />}>
-                    {fields}
+                <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
+                    {fields.slice(0, col_nr)}
                     <ButtonField resource={resource} {...props} />
                 </Datagrid>
             </List>
@@ -340,7 +344,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
 
-    const comp = related ? <RelatedInstance instance={related} /> : <pre>{JSON.stringify({resource : id}, null, 2)}</pre>
+    const comp = <RelatedInstance instance={related} />
     
     return <Tab label={relationship.name} key={relationship.name}>ccc
                {comp}
@@ -377,18 +381,23 @@ const DynRelationshipMany = (resource, id, relationship) => {
         return null
     }
 
+    /*
+        Render the datagrid, this is similar to the grid in gen_DynResourceList
+        todo: merge these into one component
+    */
     // ignore relationships pointing back to the parent resource
     const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource)
     const relationships = target_resource?.relationships
     const fields = attr_fields(attributes, relationships);
     relationship.source = resource
+    const col_nr = target_resource.col_nr || default_col_nr
     
     const fk = relationship.fks[0]
     
     return <Tab label={relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination perPage={10}/>}  >
-                        <Datagrid rowClick="show">
-                            {fields}
+                        <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
+                            {fields.slice(0,col_nr)}
                             <EditButton />
                         </Datagrid>
                     </ReferenceManyField>            
@@ -424,7 +433,7 @@ const RelatedInstance = ({instance}) => {
 
     const resource_name = type2resource(instance?.type)
     if (!instance || ! resource_name){
-        return <span>{JSON.stringify(instance)}</span>;
+        return <span>...</span>;
     }
     
     const resource_conf = conf.resources[resource_name]
@@ -433,7 +442,6 @@ const RelatedInstance = ({instance}) => {
     
     // ugly manual styling because adding to TabbedShowLayout didn't work
     const result = <div style={{left: "-16px", position: "relative"}}> 
-                    
                         <div style={{textAlign:"right", width:"100%"}} >
                             <Button
                                 title="edit"
