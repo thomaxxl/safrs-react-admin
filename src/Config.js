@@ -87,7 +87,7 @@ export const reset_Conf = (reload) => {
     return config
 }
 
-export const default_configs = [ config, als_config];
+export const default_configs = [als_config, config];
 
 export const conf = get_Conf()
 

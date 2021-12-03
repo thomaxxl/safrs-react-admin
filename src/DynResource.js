@@ -171,11 +171,11 @@ const attr_fields = (attributes, relationships) => {
 }
 
 
-const DynPagination = (props) => (
-    <Pagination rowsPerPageOptions={[10, 25, 50, 100]}
+const DynPagination = (props) => {
+    return <Pagination rowsPerPageOptions={[10, 25, 50, 100]}
                 perPage={props.perPage || 25 }
                 {...props} />
-);
+}
 
 
 const DetailPanel = ({attributes}) => {
@@ -207,8 +207,8 @@ export const gen_DynResourceList = (resource) => (props) => {
     const fields = attr_fields(attributes, relationships);
     const col_nr = resource.col_nr || default_col_nr
     
-    return <List filters={searchFilters}
-                pagination={<DynPagination perPage={resource.perPage}/>}
+    return <List filters={searchFilters} perPage={resource.perPage || 25}
+                pagination={<DynPagination/>}
                 sort={resource.sort || ""}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
@@ -385,8 +385,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
         Render the datagrid, this is similar to the grid in gen_DynResourceList
         todo: merge these into one component
     */
-    // ignore relationships pointing back to the parent resource
-    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource)
+    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource) // ignore relationships pointing back to the parent resource
     const relationships = target_resource?.relationships
     const fields = attr_fields(attributes, relationships);
     relationship.source = resource
@@ -395,8 +394,8 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const fk = relationship.fks[0]
     
     return <Tab label={relationship.name}>
-                    <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination perPage={10}/>}  >
-                        <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
+                    <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
+                        <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
                             {fields.slice(0,col_nr)}
                             <EditButton />
                         </Datagrid>
