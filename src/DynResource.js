@@ -313,7 +313,7 @@ const ShowField = ({ label, value }) => {
   
 
 const DynRelationshipOne = (resource, id, relationship) => {
-
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);

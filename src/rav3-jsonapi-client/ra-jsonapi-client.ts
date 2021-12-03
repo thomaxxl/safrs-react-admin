@@ -48,13 +48,15 @@ export const jsonapiClient = (
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
         // search is requested by react-admin
-        const search_cols = resource_conf.columns.filter((col : any) => col.search == true).map((col :any) => col.name);
+        const search_cols = resource_conf.attributes.filter((col : any) => col.search == true).map((col :any) => col.name);
         const sort = resource_conf.sort
-        query['filter'] = JSON.stringify(search_cols.map((col_name: string) => {return { 
+        const filter = search_cols.map((col_name: string) => {return { 
                               "name":col_name,
                               "op":"like",
-                              "val":`${params.filter.q}%`};}) // => startswith operator in sql
-            )
+                              "val":`${params.filter.q}%`};})
+        console.log(filter)
+        query['filter'] = JSON.stringify(filter) // => startswith operator in sql
+          
       }
       else{
         Object.keys(params.filter || {}).forEach((key) => {
@@ -86,7 +88,6 @@ export const jsonapiClient = (
           total = total || json.data.length;
           const lookup = new ResourceLookup(json);
           const jsonData = json.data.map((resource: any) =>{
-              //console.log("unwrapping", resource);
               return lookup.unwrapData(resource, includes)
             }
           );
@@ -178,7 +179,6 @@ export const jsonapiClient = (
 
       const query: {[k: string]: any} = {
         sort: JSON.stringify([field, order]),
-        
       };
       query[`filter[${fk}]`] = params.id
       query[`page[limit]`] = perPage
@@ -197,13 +197,14 @@ export const jsonapiClient = (
         if (json.meta && settings.total) {
           total = json.meta[settings.total];
         }
-        console.log(json.meta)
+        console.log(json)
         // Use the length of the data array as a fallback.
         total = total || json.data.length;
-        
-        
+        const jsonData = json.data.map((value: any) =>
+          Object.assign({ id: value.id, type: value.type }, value.attributes)
+        );
         return {
-          data: json.data,
+          data: jsonData,
           total: total
         };
       });
