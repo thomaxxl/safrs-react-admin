@@ -38,12 +38,20 @@ import { Pagination } from 'react-admin';
 import './style/DynStyle.css'
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { useNotify, useRedirect } from 'react-admin';
+import { makeStyles } from '@material-ui/core/styles';
+import { Switch, Route } from "react-router-dom";
+
+
 import { updateJsxAttribute } from "typescript";
 
 //import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
 const default_col_nr = 8;
+
+const useStyles = makeStyles({
+    join_attr: { color: '#3f51b5;' },
+});
 
 const searchFilters = [
     <TextInput source="q" label="Search" alwaysOn />
@@ -141,30 +149,20 @@ const JoinedField = ({attribute, join}) => {
 }
 
 
-const attr_fields = (attributes, relationships) => {
+const attr_fields = (attributes) => {
 
-    if(!attributes){
-        console.warn("No attributes")
+    if(!attributes || ! (attributes instanceof Array)){
+        console.warn("Invalid attributes", attributes)
         return []
     }
-    if(!relationships){
-        return []
-    }
-    const joins = relationships.filter(rel => rel.direction === "toone")
     const fields = attributes.map((attr) => {
-
-        if (AttrField.hidden){
-            return null;
-        }
-        for(let join of joins){
-            // check if the attr is a (toone) relationship FK
-            for(let fk of join.fks){
-                if(attr.name == fk){
-                    return <JoinedField key={attr.name} attribute={attr} join={join} label={attr.label? attr.label: attr.name}/>
-                }
+            if (attr.hidden){
+                return null;
             }
-        }
-        return <AttrField key={attr.name} attribute={attr} label={attr.label? attr.label: attr.name} style={attr.header_style} />
+            if(attr.relationship){
+                return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={attr.label? attr.label: attr.name}/>
+            }
+            return <AttrField key={attr.name} attribute={attr} label={attr.label? attr.label: attr.name} style={attr.header_style} />
         }
     )
     return fields
@@ -180,7 +178,7 @@ const DynPagination = (props) => {
 
 const DetailPanel = ({attributes}) => {
     return <Grid container spacing={3} margin={5} m={40}>
-                {attributes.map((attr) => <ShowRecordField source={attr.name}/> )}
+                {attributes.map((attr) => <ShowRecordField source={attr}/> )}
             </Grid>
 }
 
@@ -203,8 +201,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     }
     
     const attributes = resource.attributes
-    const relationships = resource.relationships
-    const fields = attr_fields(attributes, relationships);
+    const fields = attr_fields(attributes);
     const col_nr = resource.col_nr || default_col_nr
     
     return <List filters={searchFilters} perPage={resource.perPage || 25}
@@ -292,13 +289,24 @@ const ResourceTitle = ({ record }) => {
 
 
 const ShowRecordField = ({ source }) => {
-  const record = useRecordContext();
-  return record ? <ShowField label={source} value={record[source]}/> : null
+    const record = useRecordContext();
+    const classes = useStyles();
+    const attr_name = source.name
+    const label =  source.label || attr_name
+    let value = record[attr_name]
+    if(!record){
+        return null
+    }
+    if(!source.relationship){
+        return <ShowField label={label} value={value}/>
+    }
+    // todo: make the onClick handler open the right tab
+    const jf = <JoinedField key={source.name} attribute={source} join={source.relationship} />
+    return <ShowField label={source.label? source.label: source.name + " (R)"} value={jf} />
 };
 
 
 const ShowField = ({ label, value }) => {
-    
     return (
       <Grid item xs={3}>
         <Typography variant="body2" color="textSecondary" component="p">
@@ -309,7 +317,7 @@ const ShowField = ({ label, value }) => {
         </Typography>
       </Grid>
     )
-  };
+};
   
 
 const DynRelationshipOne = (resource, id, relationship) => {
@@ -319,7 +327,6 @@ const DynRelationshipOne = (resource, id, relationship) => {
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
     
-    console.log(resource, id, relationship)
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
@@ -344,11 +351,9 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
 
-    const comp = <RelatedInstance instance={related} />
-    
-    return <Tab label={relationship.name} key={relationship.name}>ccc
-               {comp}
-            </Tab>
+    return <Tab label={relationship.name} key={relationship.name}>
+                <RelatedInstance instance={related} />
+           </Tab>
 }
 
 const DynRelationshipMany = (resource, id, relationship) => {
@@ -386,8 +391,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
         todo: merge these into one component
     */
     const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource) // ignore relationships pointing back to the parent resource
-    const relationships = target_resource?.relationships
-    const fields = attr_fields(attributes, relationships);
+    const fields = attr_fields(attributes);
     relationship.source = resource
     const col_nr = target_resource.col_nr || default_col_nr
     
@@ -406,23 +410,26 @@ const DynRelationshipMany = (resource, id, relationship) => {
 
 const ShowInstance = ({attributes, relationships, resource_name, id}) => {
 
+
     const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
                    </Typography>
 
+    const tabs = <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
+                    {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
+                        DynRelationshipMany(resource_name, id, rel) : 
+                        DynRelationshipOne(resource_name, id, rel)) }
+                    </TabbedShowLayout>
+
     return <SimpleShowLayout>
                 {title}
                 <Grid container spacing={3} margin={5} m={40}>
-                    {attributes.map((attr) => <ShowRecordField source={attr.name}/> )}
+                    {attributes.map((attr) => <ShowRecordField source={attr}/> )}
                 </Grid>
                 
                 <hr style={{ margin: "30px 0px 30px" }}/>
 
-                <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
-                    {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
-                        DynRelationshipMany(resource_name, id, rel) : 
-                        DynRelationshipOne(resource_name, id, rel)) }
-                </TabbedShowLayout>
+                {tabs}
 
             </SimpleShowLayout>
 }

@@ -6,3 +6,8 @@
 .JoinedField:hover{
     color: black;
 }
+
+.fkField {
+    color: red;
+    border: 2px solid green;
+}
