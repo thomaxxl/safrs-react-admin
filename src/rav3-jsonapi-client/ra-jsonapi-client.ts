@@ -117,7 +117,7 @@ export const jsonapiClient = (
       }
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball`;
+      
       const url = `${apiUrl}/${resource}/${params.id}?include=${includes}`;
       
       return httpClient(url).then(({ json }) => {
@@ -185,7 +185,10 @@ export const jsonapiClient = (
       query[`page[offset]`] = (page - 1) * perPage
      
       const options = {};
-      const url = `${apiUrl}/${resource}?${stringify(query)}&include=%2Ball`
+      const resource_conf = conf["resources"][resource];
+      const rel_conf = resource_conf?.relationships || [];
+      const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
+      const url = `${apiUrl}/${resource}?${stringify(query)}&include=${includes}`
       
       return httpClient(url, options).then(({ headers, json }) => {
         if (!headers.has(countHeader)) {
@@ -200,9 +203,12 @@ export const jsonapiClient = (
         console.log(json)
         // Use the length of the data array as a fallback.
         total = total || json.data.length;
-        const jsonData = json.data.map((value: any) =>
-          Object.assign({ id: value.id, type: value.type }, value.attributes)
+        const lookup = new ResourceLookup(json);
+        const jsonData = json.data.map((resource: any) =>{
+          return lookup.unwrapData(resource, includes)
+          }
         );
+
         return {
           data: jsonData,
           total: total
