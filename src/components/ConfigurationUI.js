@@ -21,7 +21,9 @@ import Typography from '@material-ui/core/Typography';
 const yaml = require('js-yaml')
 
 let als_yaml_url = "/ui/admin/admin.yaml"
-als_yaml_url = "http://localhost:5656/ui/admin/admin.yaml"
+if(window.location.href.includes(":3000")){
+    als_yaml_url = "http://localhost:5656/ui/admin/admin.yaml"
+}
 
 const useStyles = makeStyles((theme) => ({
     widget : {
