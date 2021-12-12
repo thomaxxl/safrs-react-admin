@@ -47,7 +47,6 @@ import { updateJsxAttribute } from "typescript";
 //import {ExtComp} from './components/ExtComp';
 
 const conf = get_Conf();
-const default_col_nr = 8;
 
 const useStyles = makeStyles({
     join_attr: { color: '#3f51b5;' },
@@ -202,7 +201,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     const attributes = resource.attributes
     const fields = attr_fields(attributes);
-    const col_nr = resource.col_nr || default_col_nr
+    const col_nr = resource.max_list_columns 
     
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
@@ -393,7 +392,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource) // ignore relationships pointing back to the parent resource
     const fields = attr_fields(attributes);
     relationship.source = resource
-    const col_nr = target_resource.col_nr || default_col_nr
+    const col_nr = target_resource.col_nr
     
     const fk = relationship.fks[0]
     

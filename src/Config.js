@@ -66,7 +66,8 @@ export const get_Conf = () => {
                 resource.search_cols.push(attr);
             }
         }
-        //resource.attributes = resource.columns
+        resource.max_list_columns = resource.max_list_columns || result.max_list_columns || 8
+        
     }
     
     return result || reset_Conf()
