@@ -69,6 +69,7 @@ const DeleteConf = (conf_name) => {
 
 
 const addConf = (conf) => {
+    console.log(conf)
     const configs = JSON.parse(localStorage.getItem("raconfigs"));
     if(!conf.api_root){
         console.warn("Config has no api_root", conf);
@@ -82,10 +83,13 @@ const addConf = (conf) => {
 
 
 const LoadYaml = (config_url) => {
+    
     const saveYaml = (ystr) => {
+        
         try{
             const conf = yaml.load(ystr)
             addConf(conf)
+            
         }
         catch(e){
             console.warn(`Failed to load yaml`, ystr)
@@ -93,10 +97,10 @@ const LoadYaml = (config_url) => {
         }
     }
 
-    fetch(config_url)
+    fetch(config_url, {cache: "no-store"})
     .then((response) => response.text())
     .then((yaml) => saveYaml(yaml))
-    .catch((err)=>console.warn(`Failed to download yaml from ${config_url}: ${err}`))
+    .catch((err)=>alert(`Failed to download yaml from ${config_url}: ${err}`))
 }
 
 
@@ -128,7 +132,7 @@ const ManageModal = () => {
         textAlign: "left"
     }
 
-    const config_list = configs ? Object.entries(configs).map(([name, conf]) =><li>{name} <ClearIcon onClick={()=>DeleteConf(name)}/></li> ) : null
+    const config_list = configs ? Object.entries(configs).map(([name, conf]) => <li key={name}>{name} <ClearIcon key={name} onClick={()=>DeleteConf(name)}/></li> ) : <span/>
     const textFieldRef = useRef();
 
     return [
@@ -197,7 +201,7 @@ const ConfSelect = () => {
             defaultValue={current}
           >
             {
-                configs ? Object.entries(configs).map(([name, config]) => <MenuItem value={name}>{name}</MenuItem>) : null
+                configs ? Object.entries(configs).map(([name, config]) => <MenuItem value={name} key={name}>{name}</MenuItem>) : null
             }
           </Select>
         </FormControl>
@@ -264,12 +268,12 @@ const ConfigurationUI = () => {
     const resetConf = () => {
         const configs = {}
         let defconf = {}
-        console.log("Resetting conf")
-        for(defconf of default_configs){
-            localStorage.setItem("raconf", JSON.stringify(defconf));
-            configs[defconf.api_root] = defconf
-        }
         
+        for(defconf of default_configs){
+            /*localStorage.setItem("raconf", JSON.stringify(defconf));
+            configs[defconf.api_root] = defconf*/
+        }
+        localStorage.setItem("raconf", JSON.stringify({}));
         localStorage.setItem("raconfigs", JSON.stringify(configs));
         LoadYaml(als_yaml_url)
         
