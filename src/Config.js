@@ -33,8 +33,14 @@ export const get_Conf = () => {
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
         resource.relationships = resource.relationships || []
-        for(let [tab_group_name, tab_group] of Object.entries(resource.tab_groups || {}) ){
-            resource.relationships.push(Object.assign(tab_group, {name: tab_group_name, target: tab_group.resource}))
+        if(resource.tab_groups instanceof Array){
+            resource.relationships.concat(resource.tab_groups)
+        }
+        else {
+            // dict: deprecated soon
+            for(let [tab_group_name, tab_group] of Object.entries(resource.tab_groups || {}) ){
+                resource.relationships.push(Object.assign(tab_group, {name: tab_group_name, target: tab_group.resource}))
+            }
         }
         // link relationship to FK column
         if(!(resource.attributes instanceof Array || resource.relationships instanceof Array)){

@@ -50,7 +50,8 @@ const type2resource = (type) => {
 const adminReducerWrapper = (previousState, action) => {
     
     const result = adminReducer(previousState, action)
-    //console.log(action)
+    const validUntil = new Date(Date.now() + 1000)
+    
     if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
     }
@@ -65,6 +66,7 @@ const adminReducerWrapper = (previousState, action) => {
             if(!result['resources'][resource_name]){
                 result['resources'][resource_name] = {}
             }
+            instance.validUntil = validUntil
             result['resources'][resource_name][instance.id] = instance;
             inc_resources.add(resource_name)
         }
@@ -80,10 +82,12 @@ const adminReducerWrapper = (previousState, action) => {
             getList, getMany etc .. check action.type
         */
         let data = action.payload.data
+        action.payload.validUntil = validUntil
         if(Array.isArray(action.payload.included)){
             //data += action.payload.included
         }
         for(let instance of data){
+            instance.validUntil = validUntil
             if(!instance.relationships){
                 continue;
             }

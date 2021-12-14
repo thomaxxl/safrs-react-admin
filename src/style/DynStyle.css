@@ -11,3 +11,8 @@
     color: red;
     border: 2px solid green;
 }
+
+th > span {
+    font-weight: bold;
+    color: #444;
+}

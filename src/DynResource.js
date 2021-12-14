@@ -229,9 +229,11 @@ export const gen_DynResourceEdit = (resource) => {
             refresh();
         }
     
-        return <Edit {...props} onFailure={onFailure}>
+        return <Edit {...props} onFailure={onFailure} >
             <SimpleForm>
-                {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
+                <Grid container spacing={2} margin={2} m={40} style={{ width: "100%" }}>
+                    {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
+                </Grid>
             </SimpleForm>
         </Edit>
     }
@@ -251,9 +253,11 @@ const deleteField = (dataProvider, resource, record, refresh) => {
 
 const DynInput = ({attribute, resource}) => {
 
+    let result = <TextInput source={attribute.name} fullWidth />
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
         const search_cols = conf.resources[attribute.relationship.target].search_cols
         let input =  <AutocompleteInput optionText={''} key={attribute.name}/>
+        
         if(!search_cols){
             console.error("no searchable attributes configured");
         }
@@ -261,13 +265,17 @@ const DynInput = ({attribute, resource}) => {
             console.warn(`no searchable attributes configured for ${attribute.relationship.target}`);
         }
         else {
-            input = <AutocompleteInput optionText={search_cols[0].name} key={attribute.name}/>
+            input = <AutocompleteInput optionText={search_cols[0].name} key={attribute.name} />
         }
-        return <ReferenceInput source={attribute.name} label={`${attribute.relationship.name} (${attribute.name})`} reference={attribute.relationship.target}>
+        result = <ReferenceInput source={attribute.name} 
+                                 label={`${attribute.relationship.name} (${attribute.name})`}
+                                 reference={attribute.relationship.target}
+                                 fullWidth>
                     {input}
                 </ReferenceInput>
     }
-    return <TextInput source={attribute.name}/>
+    
+    return <Grid item xs={4} spacing={4} margin={5} >{result}</Grid>
 }
 
 
@@ -275,7 +283,9 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
     return <Create {...props}>
         <SimpleForm>
-            {resource.attributes.map((col) => <DynInput attribute={col} resource={resource} key={col.name}/> )}
+            <Grid container spacing={3} margin={5} m={400} style={{ width: "100%" }}>
+                {resource.attributes.map((col) => <DynInput attribute={col} resource={resource} key={col.name}/> )}
+            </Grid>
         </SimpleForm>
     </Create >
 };
@@ -350,7 +360,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
             })
     }, []);
 
-    return <Tab label={relationship.name} key={relationship.name}>
+    return <Tab label={relationship.label || relationship.name} key={relationship.name}>
                 <RelatedInstance instance={related} />
            </Tab>
 }
@@ -396,7 +406,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     
     const fk = relationship.fks[0]
     
-    return <Tab label={relationship.name}>
+    return <Tab label={relationship.label || relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                         <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
                             {fields.slice(0,col_nr)}

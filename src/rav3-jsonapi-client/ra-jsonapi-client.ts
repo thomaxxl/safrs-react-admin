@@ -6,6 +6,7 @@ import ResourceLookup from './resourceLookup';
 import {get_Conf} from '../Config'
 
 const conf : { [ key: string] : any } = get_Conf();
+const validUntil = 1000;
 /**
  * Based on
  * 
@@ -95,6 +96,7 @@ export const jsonapiClient = (
             data: jsonData,
             included: json.included,
             //included: json.included.map((item: any) => lookup.unwrapData(item, [])),
+            validUntil : new Date(Date.now() + validUntil),
             total: total
           };
         })
@@ -128,6 +130,7 @@ export const jsonapiClient = (
         return {
           data: {
             id,
+            validUntil : new Date(Date.now() + validUntil),
             ...attributes
           }
         };
@@ -161,6 +164,7 @@ export const jsonapiClient = (
 
         return {
           data: jsonData,
+          validUntil : new Date(Date.now() + validUntil),
           total: total
         };
       });
@@ -200,7 +204,6 @@ export const jsonapiClient = (
         if (json.meta && settings.total) {
           total = json.meta[settings.total];
         }
-        console.log(json)
         // Use the length of the data array as a fallback.
         total = total || json.data.length;
         const lookup = new ResourceLookup(json);

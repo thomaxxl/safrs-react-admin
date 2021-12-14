@@ -296,7 +296,7 @@ const ConfigurationUI = () => {
                 <div>
                     <ConfSelect/>
                     <ManageModal/>
-                    <Button className={classes.widget} onClick={()=> saveEdit("")} color="primary" >Clear</Button>
+                    <Button className={classes.widget} onClick={()=> saveEdit("{}")} color="primary" >Clear</Button>
                     <Button className={classes.widget} onClick={()=> resetConf()} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
                     <Button className={classes.widget} onClick={()=> saveConfig()} color="primary" >Save</Button>
