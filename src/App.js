@@ -6,7 +6,7 @@ import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
-import ConfigurationUI from './components/ConfigurationUI'
+import ConfigurationUI, {LoadYaml} from './components/ConfigurationUI'
 import {get_Conf} from './Config'
 import { Layout }  from './components/Layout';
 import { put, takeEvery } from 'redux-saga/effects';
@@ -76,6 +76,9 @@ const AsyncResources = () => {
 
 
 const App = () => {
+    if(!localStorage.getItem("raconf")){
+        LoadYaml(null)
+    }
     return (
         <AdminContext dataProvider={dataProvider}  customReducers={{ admin2: bcR }}  >
             <AsyncResources />

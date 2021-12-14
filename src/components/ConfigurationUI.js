@@ -82,7 +82,10 @@ const addConf = (conf) => {
 }
 
 
-const LoadYaml = (config_url) => {
+export const LoadYaml = (config_url) => {
+    if(config_url == null){
+        config_url = als_yaml_url
+    }
     
     const saveYaml = (ystr) => {
         
@@ -234,7 +237,6 @@ const saveConfig = () => {
 const ConfigurationUI = () => {
 
     const saveYaml = (ystr, ev) => {
-        //console.log(ystr)
         try{
             const jj = yaml.load(ystr)
             saveEdit(JSON.stringify(jj))
