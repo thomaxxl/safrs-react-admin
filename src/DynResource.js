@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo} from 'react';
 import { List,
     Datagrid,
     TextField,
+    DateField,
     EditButton,
     ShowButton
 } from "react-admin";
@@ -15,6 +16,7 @@ import {
   Show,
   SimpleForm,
   TextInput,
+  DateInput,
   SimpleShowLayout,
   TabbedShowLayoutTabs,
   ReferenceManyField,
@@ -73,9 +75,12 @@ const AttrField = ({attribute}) => {
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
         
-    const default_comp = <TextField source={attribute.name} key={attribute.name} style={style} />
+    let result = <TextField source={attribute.name} key={attribute.name} style={style} />
+    if(attribute.type == "DATE"){
+        result = <DateField source={attribute.name} key={attribute.name} style={style} />
+    }
     if(!component){
-        return default_comp
+        return result
     }
     // component is specified => render the specified component
     try{
@@ -83,13 +88,13 @@ const AttrField = ({attribute}) => {
         const Component = loadable(() => import(`./components/Custom.js`), {
                 resolveComponent: (components) => components[component],
         })
-        return <Component attribute={attribute}/>
+        result = <Component attribute={attribute}/>
     }
     catch(e){
         alert("Custom component error")
         console.error("Custom component error", e)
     }
-    return default_comp
+    return result
 }
 
 
@@ -254,6 +259,9 @@ const deleteField = (dataProvider, resource, record, refresh) => {
 const DynInput = ({attribute, resource}) => {
 
     let result = <TextInput source={attribute.name} fullWidth />
+    if(attribute.type == "DATE"){
+        result = <DateInput source={attribute.name} fullWidth />
+    }
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
         const search_cols = conf.resources[attribute.relationship.target].search_cols
         let input =  <AutocompleteInput optionText={''} key={attribute.name}/>
