@@ -16,3 +16,7 @@ th > span {
     font-weight: bold;
     color: #444;
 }
+
+.ext_class {
+    color: red;
+}

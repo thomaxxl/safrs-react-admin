@@ -55,6 +55,7 @@ export const get_Conf = () => {
         }
 
         resource.search_cols = []
+        resource.sort_attr_names = []
         result.resources[resource_name].name = resource_name
         let attributes = resource.attributes || []
 
@@ -74,7 +75,14 @@ export const get_Conf = () => {
             if(attr.search){
                 resource.search_cols.push(attr);
             }
+            if(attr.sort){
+                resource.sort_attr_names.push(attr.name)
+            }
         }
+        if(resource.sort_attr_names.length == 0){
+            resource.sort_attr_names = resource.attributes.slice(2).map(attr => attr.name)
+        }
+        resource.sort = resource.sort_attr_names.join(',')
         resource.max_list_columns = resource.max_list_columns || result.max_list_columns || 8
         
     }
