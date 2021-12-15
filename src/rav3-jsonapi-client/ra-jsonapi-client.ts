@@ -40,24 +40,24 @@ export const jsonapiClient = (
         'page[number]': page,
         'page[size]': perPage,
         'page[offset]': (page - 1) * perPage,
-        'page[limit]': perPage,
-        sort: sort ? sort : ''
+        'page[limit]': perPage
       };
 
+      if(sort){
+          query.sort = sort
+      }
 
       console.log(params)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
-        // search is requested by react-admin
-        const search_cols = resource_conf.attributes.filter((col : any) => col.search == true).map((col :any) => col.name);
-        const sort = resource_conf.sort
-        const filter = search_cols.map((col_name: string) => {return { 
-                              "name":col_name,
-                              "op":"ilike",
-                              "val":`${params.filter.q}%`};})
-        console.log(filter)
-        query['filter'] = JSON.stringify(filter) // => startswith operator in sql
-          
+          // search is requested by react-admin
+          const search_cols = resource_conf.attributes.filter((col : any) => col.search);
+          const filter = search_cols.map((col: any) => {return { 
+                                "name":col.name,
+                                "op": col.op? col.op : "ilike",
+                                "val": col.val ? col.val.format(params.filter.q) : `%${params.filter.q}%`
+                              };})
+            query['filter'] = JSON.stringify(filter) // => startswith operator in sql
       }
       else{
         Object.keys(params.filter || {}).forEach((key) => {

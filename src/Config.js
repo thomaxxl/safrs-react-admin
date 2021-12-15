@@ -77,14 +77,12 @@ export const get_Conf = () => {
             }
             if(attr.sort){
                 resource.sort_attr_names.push(attr.name)
+                resource.sort = resource.sort_attr_names.join(',')
             }
         }
-        if(resource.sort_attr_names.length == 0){
-            resource.sort_attr_names = resource.attributes.slice(2).map(attr => attr.name)
-        }
-        resource.sort = resource.sort_attr_names.join(',')
-        resource.max_list_columns = resource.max_list_columns || result.max_list_columns || 8
         
+        resource.max_list_columns = resource.max_list_columns || result.max_list_columns || 8
+        console.log(`Loaded config resource ${resource_name}`, resource)
     }
     
     return result || reset_Conf()
