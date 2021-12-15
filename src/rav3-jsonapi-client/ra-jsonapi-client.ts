@@ -53,7 +53,7 @@ export const jsonapiClient = (
         const sort = resource_conf.sort
         const filter = search_cols.map((col_name: string) => {return { 
                               "name":col_name,
-                              "op":"like",
+                              "op":"ilike",
                               "val":`${params.filter.q}%`};})
         console.log(filter)
         query['filter'] = JSON.stringify(filter) // => startswith operator in sql
