@@ -267,7 +267,7 @@ const DynInput = ({attribute, resource}) => {
     }
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
         const search_cols = conf.resources[attribute.relationship.target].search_cols
-        let input =  <AutocompleteInput optionText={''} key={attribute.name}/>
+        let optionText = ""
         
         if(!search_cols){
             console.error("no searchable attributes configured");
@@ -275,14 +275,17 @@ const DynInput = ({attribute, resource}) => {
         else if(search_cols.length == 0){
             console.warn(`no searchable attributes configured for ${attribute.relationship.target}`);
         }
-        else {
-            input = <AutocompleteInput optionText={search_cols[0].name} key={attribute.name} />
+        else{
+            optionText = search_cols[0].name
         }
-        result = <ReferenceInput source={attribute.name} 
+        console.log(attribute.name)
+        result = <ReferenceInput source={attribute.name}
+                                 defaultValue={attribute.name}
                                  label={`${attribute.relationship.name} (${attribute.name})`}
                                  reference={attribute.relationship.target}
+                                 resource={attribute.relationship.resource}
                                  fullWidth>
-                    {input}
+                    <AutocompleteInput optionText={optionText} key={attribute.name} />
                 </ReferenceInput>
     }
     
@@ -486,7 +489,7 @@ const RelatedInstance = ({instance}) => {
                                 label="Link"><KeyboardArrowRightIcon />View
                             </Button>
                         </div>
-                        <Grid container title="qsd">
+                        <Grid container title="qsd" spacing={3}>
                                 {attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )}
                         </Grid>
                     </div>

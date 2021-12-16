@@ -4,6 +4,7 @@ import merge from 'deepmerge';
 import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
 import {get_Conf} from '../Config'
+import { number } from 'prop-types';
 
 const conf : { [ key: string] : any } = get_Conf();
 const validUntil = 1000;
@@ -125,8 +126,19 @@ export const jsonapiClient = (
       return httpClient(url).then(({ json }) => {
 
         const { id, attributes, relationships, type } = json.data;
-        //const included = json.included;
+        
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
+
+        // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
+        const m_attrs = Object.assign({}, attributes)
+        for(let [k, v] of Object.entries(attributes)){
+          m_attrs[k] = v
+          if(typeof v === 'number'){
+            m_attrs[k] = v.toString();
+          }
+        }
+        Object.assign(attributes, m_attrs)
+        
         return {
           data: {
             id,
@@ -145,11 +157,13 @@ export const jsonapiClient = (
       /* const query = {
         filter: JSON.stringify({ id: params.ids })
       }; */
-      const query = 'filter[id]=' + JSON.stringify(params.ids);
+      
+      let query = 'filter[id]=' 
+      query += params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids); // fixme
       // const url = `${apiUrl}/${resource}?${stringify(query)}`;
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url).then(({ json }) => {
-        console.log('gtMany', json);
+        console.log('getMany', json);
         // When meta data and the 'total' setting is provided try
         // to get the total count.
         let total = 0;
@@ -174,8 +188,6 @@ export const jsonapiClient = (
       getManyReference
     ********************************************************************************************/
     getManyReference: (resource, params : any) => {
-      console.log('GMR', params)
-      console.log(resource, params.target)
       const fk = params.target
       
       const { page, perPage } = params.pagination;
@@ -242,16 +254,6 @@ export const jsonapiClient = (
       })
         .then(({ json }) => {
           const { id, attributes } = json.data;
-          /* const attributes = json.data;
-           delete attributes.id;
-          const updateData: any = {
-            any too keep compiler happy 
-           data: {
-              id: params.id,
-              type: resource,
-              attributes: attributes
-            }
-          }; */
           return {
             data: {
               id,
