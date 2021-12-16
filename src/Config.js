@@ -9,6 +9,29 @@ const init_Conf = () => {
     }
 }
 
+const getBrowserLocales = (options = {}) => {
+    const defaultOptions = {
+      languageCodeOnly: false,
+    };
+    const opt = {
+      ...defaultOptions,
+      ...options,
+    };
+    const browserLocales =
+      navigator.languages === undefined
+        ? [navigator.language]
+        : navigator.languages;
+    if (!browserLocales) {
+      return undefined;
+    }
+    return browserLocales.map(locale => {
+      const trimmedLocale = locale.trim();
+      return opt.languageCodeOnly
+        ? trimmedLocale.split(/-|_/)[0]
+        : trimmedLocale;
+    });
+  }
+
 export const get_Conf = () => {
 
     init_Conf();
@@ -81,10 +104,11 @@ export const get_Conf = () => {
             }
         }
         
-        resource.max_list_columns = resource.max_list_columns || result.max_list_columns || 8
+        resource.max_list_columns = resource.max_list_columns || result.settings?.max_list_columns || 8
         console.log(`Loaded config resource ${resource_name}`, resource)
     }
     
+    result.settings.locale = result.settings.locale || getBrowserLocales()[0] || "fr-FR"
     return result || reset_Conf()
 }
 

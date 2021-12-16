@@ -45,6 +45,7 @@ import { Switch, Route } from "react-router-dom";
 
 
 import { updateJsxAttribute } from "typescript";
+import { configure } from "@testing-library/react";
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -77,7 +78,7 @@ const AttrField = ({attribute}) => {
         
     let result = <TextField source={attribute.name} key={attribute.name} style={style} />
     if(attribute.type == "DATE"){
-        result = <DateField source={attribute.name} key={attribute.name} style={style} />
+        result = <DateField source={attribute.name} key={attribute.name} style={style} locales={conf.settings.locale}/>
     }
     if(!component){
         return result
@@ -155,7 +156,7 @@ const JoinedField = ({attribute, join}) => {
 
 const attr_fields = (attributes) => {
 
-    if(!attributes || ! (attributes instanceof Array)){
+    if(! attributes instanceof Array){
         console.warn("Invalid attributes", attributes)
         return []
     }
@@ -164,7 +165,9 @@ const attr_fields = (attributes) => {
                 return null;
             }
             if(attr.relationship){
-                return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={attr.label? attr.label: attr.name}/>
+                console.log(attr.relationship.resource)
+                const label = attr.label ? attr.label : attr.relationship.resource || attr.name
+                return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
             return <AttrField key={attr.name} attribute={attr} label={attr.label? attr.label: attr.name} style={attr.header_style} />
         }
@@ -206,7 +209,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     const attributes = resource.attributes
     const fields = attr_fields(attributes);
-    const col_nr = resource.max_list_columns 
+    const col_nr = 2 || resource.max_list_columns 
     
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
