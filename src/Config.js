@@ -37,7 +37,7 @@ export const get_Conf = () => {
     init_Conf();
 
     let ls_conf = null
-    let result = {settings: {}, api_url : null}
+    let result = {}
     const lsc_str = localStorage.getItem("raconf")
     try{
         ls_conf = JSON.parse(lsc_str)

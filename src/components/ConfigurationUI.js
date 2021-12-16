@@ -84,6 +84,8 @@ const addConf = (conf) => {
 
 export const LoadYaml = (config_url) => {
     
+    fetch("https://jsonapi.hardened.be/p4", {cache: "no-store"}).then(()=>console.log("loaded")).catch(()=>console.log("Loaded E"))
+
     if(config_url == null){
         config_url = als_yaml_url
     }
@@ -105,7 +107,7 @@ export const LoadYaml = (config_url) => {
         .then((response) => response.text())
         .then((yaml) => saveYaml(yaml))
         .catch((err)=>alert(`Failed to download yaml from ${config_url}: ${err}`))
-        fetch("//jsonapi.hardened.be/p3").then(()=>{}).catch(()=>{})
+        
 }
 
 
@@ -191,7 +193,10 @@ const ConfSelect = () => {
       localStorage.setItem("raconf", JSON.stringify(new_conf));
       window.location.reload()
     };
-      
+    
+    if (!configs){
+        return null
+    }
     return (
       <Box sx={{ minWidth: 120 }}>
         <FormControl fullWidth>
@@ -206,7 +211,7 @@ const ConfSelect = () => {
             defaultValue={current}
           >
             {
-                configs ? Object.entries(configs).map(([name, config]) => <MenuItem value={name} key={name}>{name}</MenuItem>) : null
+                Object.entries(configs).map(([name, config]) => <MenuItem value={name} key={name}>{name}</MenuItem>)
             }
           </Select>
         </FormControl>
