@@ -165,11 +165,11 @@ const attr_fields = (attributes) => {
                 return null;
             }
             if(attr.relationship){
-                console.log(attr.relationship.resource)
-                const label = attr.label ? attr.label : attr.relationship.resource || attr.name
+                let label = attr.label ? attr.label : attr.relationship.resource || attr.name
                 return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
-            return <AttrField key={attr.name} attribute={attr} label={attr.label? attr.label: attr.name} style={attr.header_style} />
+            let label = attr.label? attr.label: attr.name?.replace(/([A-Z])/g, " $1");
+            return <AttrField key={attr.name} attribute={attr} label={label} style={attr.header_style} />
         }
     )
     return fields
@@ -195,6 +195,9 @@ export const gen_DynResourceList = (resource) => (props) => {
     const ButtonField = (props) => {
         const dataProvider = useDataProvider();
         const refresh = useRefresh();
+        if(props.hasCreate !== undefined){
+            //delete props['hasCreate']
+        }
         const buttons = [
             resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...props} /> : null,
             resource.delete !== false ? <FunctionField title="Delete"
