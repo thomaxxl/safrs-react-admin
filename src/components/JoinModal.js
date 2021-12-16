@@ -25,7 +25,7 @@ export default function JoinModal({label, content, resource_name}) {
   const handleClose = (e) => {e.stopPropagation();setOpen(false);}
 
   return (
-    <div>
+    <span>
       <span onClick={handleOpen} className="JoinedField" title={resource_name}>{label} </span>
       <Modal
         open={open}
@@ -42,6 +42,6 @@ export default function JoinModal({label, content, resource_name}) {
           </Typography>
         </Box>
       </Modal>
-    </div>
+    </span>
   );
 }

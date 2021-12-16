@@ -105,7 +105,7 @@ export const get_Conf = () => {
         }
         
         resource.max_list_columns = resource.max_list_columns || result.settings?.max_list_columns || 8
-        console.log(`Loaded config resource ${resource_name}`, resource)
+        console.debug(`Loaded config resource ${resource_name}`, resource)
     }
     
     if(result.settings){

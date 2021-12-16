@@ -8,6 +8,23 @@ import { number } from 'prop-types';
 
 const conf : { [ key: string] : any } = get_Conf();
 const validUntil = 1000;
+
+
+const prepareAttributes = (attributes : any, resource : any) => {
+
+    // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
+    const resource_attr_rels = conf.resources[resource].attributes?.map( (attr : any) => attr.relationship ? attr.name : null)    
+    const m_attrs = Object.assign({}, attributes)
+    for(let [k, v] of Object.entries(attributes)){
+      m_attrs[k] = v
+      if(typeof v === 'number' && resource_attr_rels.find((n: string) => n == k)){
+        m_attrs[k] = v.toString();
+      }
+    }
+    return m_attrs
+
+}
+
 /**
  * Based on
  * 
@@ -35,7 +52,7 @@ export const jsonapiClient = (
       const { page, perPage } = params.pagination;
       
       const resource_conf : any = conf.resources[resource_name];
-      const sort : string = resource_conf.sort
+      const sort : string = resource_conf.sort?.fields
       // Create query with pagination params.
       const query : {[k: string]: any} = {
         'page[number]': page,
@@ -96,7 +113,6 @@ export const jsonapiClient = (
           return {
             data: jsonData,
             included: json.included,
-            //included: json.included.map((item: any) => lookup.unwrapData(item, [])),
             validUntil : new Date(Date.now() + validUntil),
             total: total
           };
@@ -120,24 +136,13 @@ export const jsonapiClient = (
       }
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      
       const url = `${apiUrl}/${resource}/${params.id}?include=${includes}`;
       
       return httpClient(url).then(({ json }) => {
 
-        const { id, attributes, relationships, type } = json.data;
-        
+        let { id, attributes, relationships, type } = json.data;
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
-
-        // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
-        const m_attrs = Object.assign({}, attributes)
-        for(let [k, v] of Object.entries(attributes)){
-          m_attrs[k] = v
-          if(typeof v === 'number'){
-            m_attrs[k] = v.toString();
-          }
-        }
-        Object.assign(attributes, m_attrs)
+        attributes = prepareAttributes(attributes, resource)
         
         return {
           data: {
@@ -173,7 +178,7 @@ export const jsonapiClient = (
         // Use the length of the data array as a fallback.
         total = total || json.data.length; //  { id: any; attributes: any; }
         const jsonData = json.data.map((value: any) =>
-          Object.assign({ id: value.id, type: value.type }, value.attributes)
+          Object.assign({ id: value.id, type: value.type }, prepareAttributes(value.attributes, resource))
         );
 
         return {

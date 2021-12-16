@@ -185,7 +185,7 @@ const DynPagination = (props) => {
 
 const DetailPanel = ({attributes}) => {
     return <Grid container spacing={3} margin={5} m={40}>
-                {attributes.map((attr) => <ShowRecordField source={attr}/> )}
+                {attributes.map((attr) => <ShowRecordField source={attr} key={attr.name}/> )}
             </Grid>
 }
 
@@ -195,18 +195,24 @@ export const gen_DynResourceList = (resource) => (props) => {
     const ButtonField = (props) => {
         const dataProvider = useDataProvider();
         const refresh = useRefresh();
-        if(props.hasCreate !== undefined){
-            //delete props['hasCreate']
+        let filtered_props = {}
+        for(let [k, v] of Object.entries(props)){
+            //filtered_props[k] = v
+            // filter "hasCreate" etc, this causes console warnings
+            // if(! k.startsWith('has') && ! k == "syncWithLocation"){
+            if(! k.startsWith('has')){
+                //filtered_props[k] = v
+            }
         }
-        const buttons = [
-            resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...props} /> : null,
-            resource.delete !== false ? <FunctionField title="Delete"
-                    onClick={(e)=> {e.stopPropagation()}}
-                    key={`${resource.name}_delete`}
-                    render={record => <Button> <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/> </Button>}
-                    {...props} /> : null,
-            <ShowButton title="Show" label="" {...props} />
-        ]
+        const buttons = <span>
+                {resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...props} /> : null}
+                {resource.delete !== false ? <FunctionField title="Delete"
+                        onClick={(e)=> {e.stopPropagation()}}
+                        key={`${resource.name}_delete`}
+                        render={record => <Button> <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/> </Button>}
+                        {...filtered_props} /> : null}
+                <ShowButton title="Show" label="" {...filtered_props} />
+            </span>
         return buttons
     }
     
@@ -216,7 +222,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
-                sort={resource.sort || ""}
+                sort={resource.sort_attr_names ? resource.sort_attr_names[0] : ""}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
@@ -450,7 +456,7 @@ const ShowInstance = ({attributes, relationships, resource_name, id}) => {
     return <SimpleShowLayout>
                 {title}
                 <Grid container spacing={3} margin={5} m={40}>
-                    {attributes.map((attr) => <ShowRecordField source={attr}/> )}
+                    {attributes.map((attr) => <ShowRecordField key={attr.name} source={attr}/> )}
                 </Grid>
                 
                 <hr style={{ margin: "30px 0px 30px" }}/>
