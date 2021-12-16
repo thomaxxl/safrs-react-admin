@@ -21,6 +21,7 @@ const onMenuClick = (evt) => {
 export const Menu = (props) => {
     const resources = useSelector(getResources);
     const open = true;
+    
     return (
         <RAMenu {...props}>
             {resources.map(resource => (

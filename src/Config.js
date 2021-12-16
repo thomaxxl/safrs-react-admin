@@ -37,7 +37,7 @@ export const get_Conf = () => {
     init_Conf();
 
     let ls_conf = null
-    let result = {}
+    let result = {settings: {}, api_url : null}
     const lsc_str = localStorage.getItem("raconf")
     try{
         ls_conf = JSON.parse(lsc_str)
@@ -108,7 +108,9 @@ export const get_Conf = () => {
         console.log(`Loaded config resource ${resource_name}`, resource)
     }
     
-    result.settings.locale = result.settings.locale || getBrowserLocales()[0] || "fr-FR"
+    if(result.settings){
+        result.settings.locale = result.settings.locale || getBrowserLocales()[0] || "fr-FR"
+    }
     return result || reset_Conf()
 }
 
