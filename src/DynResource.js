@@ -209,7 +209,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     const attributes = resource.attributes
     const fields = attr_fields(attributes);
-    const col_nr = 2 || resource.max_list_columns 
+    const col_nr = resource.max_list_columns 
     
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
