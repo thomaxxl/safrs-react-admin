@@ -88,6 +88,9 @@ export const jsonapiClient = (
         const prefix = params.sort.order === 'ASC' ? '' : '-';
         query.sort = `${prefix}${params.sort.field}`;
       }
+      if(!query.sort){
+        query.sort = "id"
+      }
       const rel_conf = conf.resources[resource_name].relationships || []
       const includes: string[] = rel_conf.map((rel : any) => rel.name);
       query['include'] = includes.join(',');
