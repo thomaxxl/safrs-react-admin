@@ -66,6 +66,7 @@ export const jsonapiClient = (
       }
 
       console.log(params)
+      console.log(resource_conf)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
           // search is requested by react-admin
@@ -89,7 +90,7 @@ export const jsonapiClient = (
         query.sort = `${prefix}${params.sort.field}`;
       }
       if(!query.sort){
-        query.sort = "id"
+        query.sort = resource_conf.sort || "id"
       }
       const rel_conf = conf.resources[resource_name].relationships || []
       const includes: string[] = rel_conf.map((rel : any) => rel.name);
