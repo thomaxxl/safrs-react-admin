@@ -123,9 +123,9 @@ const JoinedField = ({attribute, join}) => {
     }
     const rel_name = join.name;
     const target_resource = join.target
-    
     const fk = join.fks.join('_')
     const user_key = conf.resources[join.target]?.user_key
+    const user_component = conf.resources[join.target]?.user_component
     const id = record ? record[fk] : null
     
     const { data, loading, error } = useQueryWithStore({ 
@@ -137,9 +137,8 @@ const JoinedField = ({attribute, join}) => {
     if(!record){
         return null
     }
-    let item = data || record[rel_name]
     
-    const user_component = conf.resources[join.target]?.user_component
+    let item = data || record[rel_name]
     let label = item?.id || id
     
     if(item && user_component){
@@ -167,11 +166,11 @@ const attr_fields = (attributes) => {
             if (attr.hidden){
                 return null;
             }
-            if(attr.relationship){
+            if(attr.relationship?.direction == "toone"){
                 let label = attr.label ? attr.label : attr.relationship.resource || attr.name
                 return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
-            let label = attr.label? attr.label: attr.name?.replace(/([A-Z])/g, " $1");
+            let label = attr.label? attr.label: attr.name?.replace(/([A-Z])/g, " $1") // split camelcase
             return <AttrField key={attr.name} attribute={attr} label={label} style={attr.header_style} />
         }
     )
