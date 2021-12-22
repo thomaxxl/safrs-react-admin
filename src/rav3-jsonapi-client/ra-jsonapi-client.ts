@@ -197,15 +197,29 @@ export const jsonapiClient = (
       getManyReference
     ********************************************************************************************/
     getManyReference: (resource, params : any) => {
-      const fk = params.target
-      
+      const fks = params.target.split('_')
+      const ids = params.id.split('_')
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
       const query: {[k: string]: any} = {
         sort: JSON.stringify([field, order]),
       };
-      query[`filter[${fk}]`] = params.id
+
+      if(ids.length == fks.length){
+        for(let i = 0; i<fks.length; i++){
+          let fk = fks[i]
+          let id = ids[i]
+          console.log('fk', fk, params.id)
+          query[`filter[${fk}]`] = id
+        }
+      }
+      else{
+        // fk probably contains an underscore
+        // todo: how to fix???
+        console.warn("Wrong FK length ", ids, fks)
+        query[`filter[${fks[0]}]`] = params.ids[0]
+      }
       query[`page[limit]`] = perPage
       query[`page[offset]`] = (page - 1) * perPage
      

@@ -123,7 +123,7 @@ const JoinedField = ({attribute, join}) => {
     const rel_name = join.name;
     const target_resource = join.target
     
-    const fk = join.fks[0]
+    const fk = join.fks.join('_')
     const user_key = conf.resources[join.target]?.user_key
     
     const { data, loading, error } = useQueryWithStore({ 
@@ -384,6 +384,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
     }, []);
 
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
+        
                 <RelatedInstance instance={related} />
            </Tab>
 }
@@ -427,8 +428,8 @@ const DynRelationshipMany = (resource, id, relationship) => {
     relationship.source = resource
     const col_nr = target_resource.col_nr
     
-    const fk = relationship.fks[0]
-    
+    const fk = relationship.fks.join('_')
+    console.log(fk)
     return <Tab label={relationship.label || relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                         <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
