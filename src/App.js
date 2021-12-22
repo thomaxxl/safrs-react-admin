@@ -17,10 +17,9 @@ import { createHashHistory } from 'history';
 import SettingsIcon from '@material-ui/icons/Settings';
 import authProvider from './authprovider';
 import LoginPage from './pages/LoginPage';
+import { cacheDataProviderProxy } from 'react-admin'; 
 
 const history = createHashHistory();
-
-
 
 const bcR =  (previousState = 0, { type, payload }) => {
 
@@ -34,8 +33,8 @@ const bcR =  (previousState = 0, { type, payload }) => {
 
 const conf = get_Conf();
 //const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
-const dataProvider = jsonapiClient(conf.api_root, {});
-//const authProvider = () => Promise.resolve();
+const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}), 2000); // 2000ms caching
+
 
 const AsyncResources = () => {
     const [resources, setResources] = useState(false);

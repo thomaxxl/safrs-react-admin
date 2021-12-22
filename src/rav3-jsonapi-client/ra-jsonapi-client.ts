@@ -7,7 +7,7 @@ import {get_Conf} from '../Config'
 import { number } from 'prop-types';
 
 const conf : { [ key: string] : any } = get_Conf();
-const validUntil = 1000;
+const duration = 5000;
 
 
 const prepareAttributes = (attributes : any, resource : any) => {
@@ -114,10 +114,12 @@ export const jsonapiClient = (
               return lookup.unwrapData(resource, includes)
             }
           );
+          const validUntil = new Date();
+          validUntil.setTime(validUntil.getTime() + duration);
           return {
             data: jsonData,
             included: json.included,
-            validUntil : new Date(Date.now() + validUntil),
+            validUntil : validUntil,
             total: total
           };
         })
@@ -151,11 +153,12 @@ export const jsonapiClient = (
         let { id, attributes, relationships, type } = json.data;
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
         attributes = prepareAttributes(attributes, resource)
-        
+        const validUntil = new Date();
+        validUntil.setTime(validUntil.getTime() + duration);
         return {
           data: {
             id,
-            validUntil : new Date(Date.now() + validUntil),
+            validUntil : validUntil,
             ...attributes
           }
         };
@@ -188,10 +191,11 @@ export const jsonapiClient = (
         const jsonData = json.data.map((value: any) =>
           Object.assign({ id: value.id, type: value.type }, prepareAttributes(value.attributes, resource))
         );
-
+        const validUntil = new Date();
+        validUntil.setTime(validUntil.getTime() + duration);
         return {
           data: jsonData,
-          validUntil : new Date(Date.now() + validUntil),
+          validUntil : validUntil,
           total: total
         };
       });

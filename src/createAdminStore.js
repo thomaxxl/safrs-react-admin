@@ -50,7 +50,9 @@ const type2resource = (type) => {
 const adminReducerWrapper = (previousState, action) => {
     
     const result = adminReducer(previousState, action)
-    const validUntil = new Date(Date.now() + 1000)
+    const duration = 90
+    const validUntil = new Date();
+    validUntil.setTime(validUntil.getTime() + duration);
     
     if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
