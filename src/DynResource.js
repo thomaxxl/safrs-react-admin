@@ -326,17 +326,22 @@ const ShowRecordField = ({ source }) => {
     const attr_name = source.name
     const label =  source.label || attr_name
     let value = record[attr_name]
-    if(!record){
-        return null
-    }
-    if(!source.relationship){
+
+    return <ShowAttrField attr={source} value={value} />
+};
+
+
+const ShowAttrField = ({attr, value}) => {
+    const attr_name = attr.name
+    const label =  attr.label || attr_name
+
+    if(!attr.relationship){
         return <ShowField label={label} value={value}/>
     }
     // todo: make the onClick handler open the right tab
-    const jf = <JoinedField key={source.name} attribute={source} join={source.relationship} />
-    return <ShowField label={source.label? source.label: source.name + " (R)"} value={jf} />
-};
-
+    const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
+    return <ShowField label={attr.label? attr.label: attr.name + " (R)"} value={jf} />
+}
 
 const ShowField = ({ label, value }) => {
     return (
@@ -471,6 +476,9 @@ const ShowInstance = ({attributes, relationships, resource_name, id}) => {
 const RelatedInstance = ({instance}) => {
 
     const resource_name = type2resource(instance?.type)
+    if (!instance){
+        return <span></span>;
+    }
     if (!instance || ! resource_name){
         return <span>...</span>;
     }
@@ -499,8 +507,10 @@ const RelatedInstance = ({instance}) => {
                                 label="Link"><KeyboardArrowRightIcon />View
                             </Button>
                         </div>
-                        <Grid container title="qsd" spacing={3}>
-                                {attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )}
+                        <Grid container spacing={3}>
+                                { //{attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )}
+                                attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )
+                                }
                         </Grid>
                     </div>
    

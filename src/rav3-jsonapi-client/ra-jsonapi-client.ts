@@ -132,7 +132,11 @@ export const jsonapiClient = (
       getOne
     ********************************************************************************************/
     getOne: (resource: any, params: { id: any }) => {
-      //const url = `${apiUrl}/${resource}/${params.id}?include=%2Ball&page[limit]=50`;
+      
+      if(params.id === null || params.id === undefined){
+          console.debug(`params.id is '${params.id}'`)
+          return new Promise(()=>{ data: {}})
+      }
       const resource_conf = conf["resources"][resource];
       if(!resource_conf){
         console.warn(`Invalid resource ${resource}`)

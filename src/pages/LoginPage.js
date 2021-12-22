@@ -58,8 +58,9 @@ export function LoginPage(props) {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Typography>
-            Abracadabra: Username is 'admin' and Password is 'p'
+          <Typography component="h5" variant="h5">
+            <br/>
+            Username: <b>admin</b> <br/> Password: <b>p</b>
           </Typography>
           <form className={classes.form} noValidate onSubmit={submit}>
             <TextField
@@ -103,6 +104,9 @@ export function LoginPage(props) {
             </Button>
 
           </form>
+          <Typography>
+            <i>This demo login page doesn't provide any security</i>
+          </Typography>
         </div>
       </Container>
     </MuiThemeProvider>

@@ -15,6 +15,8 @@ import createAdminStore from './createAdminStore';
 import { Provider } from 'react-redux';
 import { createHashHistory } from 'history';
 import SettingsIcon from '@material-ui/icons/Settings';
+import authProvider from './authprovider';
+import LoginPage from './pages/LoginPage';
 
 const history = createHashHistory();
 
@@ -33,7 +35,7 @@ const bcR =  (previousState = 0, { type, payload }) => {
 const conf = get_Conf();
 //const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
 const dataProvider = jsonapiClient(conf.api_root, {});
-const authProvider = () => Promise.resolve();
+//const authProvider = () => Promise.resolve();
 
 const AsyncResources = () => {
     const [resources, setResources] = useState(false);
@@ -62,7 +64,7 @@ const AsyncResources = () => {
             history,
         })}
     >
-        <AdminUI layout={Layout}>
+        <AdminUI layout={Layout} loginPage={LoginPage}>
             
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
             <Resource name="Configuration" show={ConfigurationUI} list={ConfigurationUI} options={{ label: 'Configuration' }} icon={SettingsIcon}/>
@@ -80,7 +82,7 @@ const App = () => {
         LoadYaml(null)
     }
     return (
-        <AdminContext dataProvider={dataProvider}  customReducers={{ admin2: bcR }}  >
+        <AdminContext loginPage={LoginPage} dataProvider={dataProvider}  customReducers={{ admin2: bcR }} authProvider={authProvider} >
             <AsyncResources />
         </AdminContext>
     );
