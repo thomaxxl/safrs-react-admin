@@ -7,8 +7,7 @@ import {get_Conf} from '../Config'
 import { number } from 'prop-types';
 
 const conf : { [ key: string] : any } = get_Conf();
-const duration = 5000;
-
+const duration = 2000;
 
 const prepareAttributes = (attributes : any, resource : any) => {
 

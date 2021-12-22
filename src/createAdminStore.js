@@ -50,7 +50,7 @@ const type2resource = (type) => {
 const adminReducerWrapper = (previousState, action) => {
     
     const result = adminReducer(previousState, action)
-    const duration = 90
+    const duration = 2000
     const validUntil = new Date();
     validUntil.setTime(validUntil.getTime() + duration);
     
