@@ -116,6 +116,7 @@ const load_custom_component = (component_name, item) => {
 
 
 const JoinedField = ({attribute, join}) => {
+    
     const record = useRecordContext();
     if(record?.attributes){
         Object.assign(record, record.attributes)
@@ -125,11 +126,12 @@ const JoinedField = ({attribute, join}) => {
     
     const fk = join.fks.join('_')
     const user_key = conf.resources[join.target]?.user_key
+    const id = record ? record[fk] : null
     
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource,
-        payload: { id: record ? record[fk] : null }
+        payload: { id: id }
     });
 
     if(!record){
@@ -138,7 +140,7 @@ const JoinedField = ({attribute, join}) => {
     let item = data || record[rel_name]
     
     const user_component = conf.resources[join.target]?.user_component
-    let label = item?.id
+    let label = item?.id || id
     
     if(item && user_component){
         // user_component: custom component
@@ -150,6 +152,7 @@ const JoinedField = ({attribute, join}) => {
     }
     
     const content = <RelatedInstance instance={item} resource_name={join.target}/>
+    
     return <JoinModal label={label} key={attribute.name} content={content} resource_name={join.target}/>
 }
 
