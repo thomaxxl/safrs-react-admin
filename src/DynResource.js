@@ -21,7 +21,8 @@ import {
   TabbedShowLayoutTabs,
   ReferenceManyField,
   useRecordContext,
-  Link
+  Link,
+  Confirm
 } from "react-admin";
 import { Typography } from '@material-ui/core';
 import { useRefresh } from 'react-admin';
@@ -52,7 +53,9 @@ import { configure } from "@testing-library/react";
 const conf = get_Conf();
 
 const useStyles = makeStyles({
-    join_attr: { color: '#3f51b5;' },
+    join_attr: {color: '#3f51b5;'},
+    delete_icon : {fill: "#3f51b5"},
+    edit_grid : { width: "100%" }
 });
 
 const searchFilters = [
@@ -192,31 +195,39 @@ const DetailPanel = ({attributes}) => {
 
 
 const deleteField = (dataProvider, resource, record, refresh) => {
-
-    console.log('Delete', record)
-    if(!window.confirm(`Delete record? (id: "${record.id}")`)){
-        return
-    }
-    dataProvider.delete(resource, record).then(()=>{
-        refresh();
-        }
-    ).catch((e)=> alert('error'))
+    /*
+        resource: name of the resource
+    */
+    dataProvider.delete(resource, record)
+        .then(()=>refresh())
+        .catch((e)=> alert('error'))
 }
 
 
 const DeleteButton = (props) => {
 
+    const [open, setOpen] = useState(false);
     const dataProvider = useDataProvider();
     const refresh = useRefresh();
     const record = useRecordContext();
-        
-    return <FunctionField title="Delete"
-                onClick={(e)=> {deleteField(dataProvider, props.resource, record, refresh); e.stopPropagation()}}
+    const classes = useStyles();
+
+    return <span>
+            <FunctionField title="Delete"
+                onClick={(e)=> {setOpen(true); e.stopPropagation()}}
                 key={`${props.resource.name}_delete`}
                 render={record => <Button> 
-                                    <DeleteIcon style={{fill: "#3f51b5"}}/>
+                                    <DeleteIcon className={classes.delete_icon} />
                                 </Button>}
                 {...props} />
+            <Confirm
+                    isOpen={open}
+                    title={`Delete "${props.resource}, id ${record.id}"`}
+                    content={`Are you sure you want to delete this record?`}
+                    onConfirm={() => {deleteField(dataProvider, props.resource, record, refresh);setOpen(false)}}
+                    onClose={()=>{setOpen(false);}}
+                />
+            </span>
 }
 
 export const gen_DynResourceList = (resource) => (props) => {
@@ -262,6 +273,7 @@ export const gen_DynResourceEdit = (resource) => {
         const notify = useNotify();
         const refresh = useRefresh();
         const redirect = useRedirect();
+        const classes = useStyles();
 
         const onFailure = (error) => {
             redirect('edit', props.basePath, props.id);
@@ -270,7 +282,7 @@ export const gen_DynResourceEdit = (resource) => {
     
         return <Edit {...props} onFailure={onFailure} >
             <SimpleForm>
-                <Grid container spacing={2} margin={2} m={40} style={{ width: "100%" }}>
+                <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
                     {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
                 </Grid>
             </SimpleForm>
@@ -444,7 +456,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const col_nr = target_resource.col_nr
     
     const fk = relationship.fks.join('_')
-    return <Tab label={relationship.label || relationship.name}>
+    return <Tab label={relationship.label || relationship.name} key={relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                         <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
                             {fields.slice(0,col_nr)}
@@ -483,11 +495,11 @@ const ShowInstance = ({attributes, relationships, resource_name, id}) => {
 
 const RelatedInstance = ({instance}) => {
 
-    const resource_name = type2resource(instance?.type)
-    if (!instance){
+    if (!instance?.type){
         return <span></span>;
     }
-    if (!instance || ! resource_name){
+    const resource_name = type2resource(instance?.type)
+    if (!resource_name){
         return <span>...</span>;
     }
     

@@ -24,6 +24,22 @@ const prepareAttributes = (attributes : any, resource : any) => {
 
 }
 
+const prepareQueryFilter = (query: any, ids : any, fks : any) => {
+  if(ids.length == fks.length){
+    for(let i = 0; i<fks.length; i++){
+      let fk = fks[i]
+      let id = ids[i]
+      query[`filter[${fk}]`] = id
+    }
+  }
+  else{
+    // fk probably contains an underscore
+    // todo: how to fix???
+    console.warn("Wrong FK length ", ids, fks)
+    query[`filter[${fks[0]}]`] = ids && ids.length ? ids[0] : ""
+  }
+}
+
 /**
  * Based on
  * 
@@ -167,12 +183,20 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getMany
     ********************************************************************************************/
-    getMany: (resource, params) => {
+    getMany: (resource, params: any) => {
       resource = capitalize(resource);
       /* const query = {
         filter: JSON.stringify({ id: params.ids })
       }; */
-      
+      console.log('GM:',resource, params)
+      //const fks = params.target.split('_')
+      /*const query: {[k: string]: any} = {};
+
+      for(let ja_id of params.ids){
+          const ids = ja_id.split('_')
+          //prepareQueryFilter(query, ids, fks);
+      }*/
+
       let query = 'filter[id]=' 
       query += params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids); // fixme
       // const url = `${apiUrl}/${resource}?${stringify(query)}`;
@@ -204,8 +228,7 @@ export const jsonapiClient = (
       getManyReference
     ********************************************************************************************/
     getManyReference: (resource, params : any) => {
-      const fks = params.target.split('_')
-      const ids = params.id.split('_')
+      
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
@@ -213,20 +236,10 @@ export const jsonapiClient = (
         sort: JSON.stringify([field, order]),
       };
 
-      if(ids.length == fks.length){
-        for(let i = 0; i<fks.length; i++){
-          let fk = fks[i]
-          let id = ids[i]
-          console.log('fk', fk, params.id)
-          query[`filter[${fk}]`] = id
-        }
-      }
-      else{
-        // fk probably contains an underscore
-        // todo: how to fix???
-        console.warn("Wrong FK length ", ids, fks)
-        query[`filter[${fks[0]}]`] = params.ids[0]
-      }
+      const fks = params.target.split('_')
+      const ids = params.id.split('_')
+      prepareQueryFilter(query, ids, fks);
+      
       query[`page[limit]`] = perPage
       query[`page[offset]`] = (page - 1) * perPage
      
