@@ -191,11 +191,37 @@ const DetailPanel = ({attributes}) => {
 }
 
 
+const deleteField = (dataProvider, resource, record, refresh) => {
+
+    console.log('Delete', record)
+    if(!window.confirm(`Delete record? (id: "${record.id}")`)){
+        return
+    }
+    dataProvider.delete(resource, record).then(()=>{
+        refresh();
+        }
+    ).catch((e)=> alert('error'))
+}
+
+
+const DeleteButton = (props) => {
+
+    const dataProvider = useDataProvider();
+    const refresh = useRefresh();
+    const record = useRecordContext();
+        
+    return <FunctionField title="Delete"
+                onClick={(e)=> {deleteField(dataProvider, props.resource, record, refresh); e.stopPropagation()}}
+                key={`${props.resource.name}_delete`}
+                render={record => <Button> 
+                                    <DeleteIcon style={{fill: "#3f51b5"}}/>
+                                </Button>}
+                {...props} />
+}
+
 export const gen_DynResourceList = (resource) => (props) => {
 
     const ButtonField = (props) => {
-        const dataProvider = useDataProvider();
-        const refresh = useRefresh();
         let filtered_props = {}
         for(let [k, v] of Object.entries(props)){
             //filtered_props[k] = v
@@ -207,11 +233,7 @@ export const gen_DynResourceList = (resource) => (props) => {
         }
         const buttons = <span>
                 {resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...filtered_props} /> : null}
-                {resource.delete !== false ? <FunctionField title="Delete"
-                        onClick={(e)=> {e.stopPropagation()}}
-                        key={`${resource.name}_delete`}
-                        render={record => <Button> <DeleteIcon style={{fill: "#3f51b5"}} onClick={(item)=>deleteField(dataProvider, props.resource, record, refresh)}/> </Button>}
-                        {...filtered_props} /> : null}
+                {resource.delete !== false ? <DeleteButton {...filtered_props} /> : null}
                 <ShowButton title="Show" label="" {...filtered_props} />
             </span>
         return buttons
@@ -258,16 +280,6 @@ export const gen_DynResourceEdit = (resource) => {
 }
 
 
-const deleteField = (dataProvider, resource, record, refresh) => {
-
-    console.log('Delete', record)
-    dataProvider.delete(resource, record).then(()=>{
-        refresh();
-        }
-    ).catch((e)=> alert('error'))
-}
-
-
 const DynInput = ({attribute, resource}) => {
 
     let result = <TextInput source={attribute.name} fullWidth />
@@ -287,7 +299,6 @@ const DynInput = ({attribute, resource}) => {
         else{
             optionText = search_cols[0].name
         }
-        console.log(attribute.name)
         result = <ReferenceInput source={attribute.name}
                                  defaultValue={attribute.name}
                                  label={`${attribute.relationship.name} (${attribute.name})`}
