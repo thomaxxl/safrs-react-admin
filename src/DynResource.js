@@ -433,7 +433,6 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const col_nr = target_resource.col_nr
     
     const fk = relationship.fks.join('_')
-    console.log(fk)
     return <Tab label={relationship.label || relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                         <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
@@ -446,7 +445,6 @@ const DynRelationshipMany = (resource, id, relationship) => {
 
 
 const ShowInstance = ({attributes, relationships, resource_name, id}) => {
-
 
     const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
