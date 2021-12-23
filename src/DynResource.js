@@ -315,7 +315,6 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
 
 const ResourceTitle = ({ record }) => {
-
     return <span>{record ? `${record.type ? record.type +" " : ""} #${record.id} ` : ''}</span>;
 };
 
