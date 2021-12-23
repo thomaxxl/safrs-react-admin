@@ -85,7 +85,7 @@ export const jsonapiClient = (
 
       // Add sort parameter, first check the default configured sorting, then the customized sort
       if (params.sort && params.sort.field) {
-        const prefix = params.sort.order === 'ASC' ? '' : '-';
+        const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
         query.sort = `${prefix}${params.sort.field}`;
       }
       if(!query.sort){
@@ -96,7 +96,7 @@ export const jsonapiClient = (
       query['include'] = includes.join(',');
 
       const url = `${apiUrl}/${resource}?${stringify(query)}`;
-
+      console.log(query)
       return httpClient(url)
         .then(({ json }) => {
           // const lookup = new ResourceLookup(json.data);

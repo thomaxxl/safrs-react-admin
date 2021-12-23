@@ -76,7 +76,7 @@ const AttrField = ({attribute}) => {
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
         
-    let result = <TextField source={attribute.name} key={attribute.name} style={style} />
+    let result = null
     if(attribute.type == "DATE"){
         result = <DateField source={attribute.name} key={attribute.name} style={style} locales={conf.settings.locale}/>
     }
@@ -156,12 +156,13 @@ const JoinedField = ({attribute, join}) => {
 }
 
 
-const attr_fields = (attributes) => {
+const attr_fields = (attributes, props) => {
 
     if(! attributes instanceof Array){
         console.warn("Invalid attributes", attributes)
         return []
     }
+    console.log(props)
     const fields = attributes.map((attr) => {
             if (attr.hidden){
                 return null;
@@ -171,7 +172,11 @@ const attr_fields = (attributes) => {
                 return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
             let label = attr.label? attr.label: attr.name?.replace(/([A-Z])/g, " $1") // split camelcase
-            return <AttrField key={attr.name} attribute={attr} label={label} style={attr.header_style} />
+            const attribute = attr
+            //return <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} />
+            const dAttr = AttrField({attribute: attr})
+            
+            return dAttr ? dAttr : <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} />
         }
     )
     return fields
@@ -203,11 +208,11 @@ export const gen_DynResourceList = (resource) => (props) => {
             // filter "hasCreate" etc, this causes console warnings
             // if(! k.startsWith('has') && ! k == "syncWithLocation"){
             if(! k.startsWith('has')){
-                //filtered_props[k] = v
+                filtered_props[k] = v
             }
         }
         const buttons = <span>
-                {resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...props} /> : null}
+                {resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...filtered_props} /> : null}
                 {resource.delete !== false ? <FunctionField title="Delete"
                         onClick={(e)=> {e.stopPropagation()}}
                         key={`${resource.name}_delete`}
@@ -219,12 +224,11 @@ export const gen_DynResourceList = (resource) => (props) => {
     }
     
     const attributes = resource.attributes
-    const fields = attr_fields(attributes);
+    const fields = attr_fields(attributes, props);
     const col_nr = resource.max_list_columns 
-    
+    console.log(resource.sort_attr_names ? resource.sort_attr_names[0] : "")
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
-                sort={resource.sort_attr_names ? resource.sort_attr_names[0] : ""}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
