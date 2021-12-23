@@ -71,21 +71,20 @@ const type2resource = (type) => {
 }
 
 
-const AttrField = ({attribute}) => {
+const AttrField = ({attribute, ...props}) => {
     
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
         
-    let result = null
+    let result = <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} label={attribute.label || attribute.name} {...props}/>
     if(attribute.type == "DATE"){
-        result = <DateField source={attribute.name} key={attribute.name} style={style} locales={conf.settings.locale}/>
+        result = <DateField source={attribute.name} key={attribute.name} style={style} locales={conf.settings.locale} {...props}/>
     }
     if(!component){
         return result
     }
     // component is specified => render the specified component
     try{
-        //const Component = loadable(() => import(`./components/Custom.js`), {
         const Component = loadable(() => import(`./components/Custom.js`), {
                 resolveComponent: (components) => components[component],
         })
@@ -156,27 +155,22 @@ const JoinedField = ({attribute, join}) => {
 }
 
 
-const attr_fields = (attributes, props) => {
+const attr_fields = (attributes, ...props) => {
 
     if(! attributes instanceof Array){
         console.warn("Invalid attributes", attributes)
         return []
     }
-    console.log(props)
+    
     const fields = attributes.map((attr) => {
             if (attr.hidden){
                 return null;
             }
             if(attr.relationship?.direction == "toone"){
-                let label = attr.label ? attr.label : attr.relationship.resource || attr.name
+                let label = attr.label || attr.relationship.resource || attr.name
                 return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
-            let label = attr.label? attr.label: attr.name?.replace(/([A-Z])/g, " $1") // split camelcase
-            const attribute = attr
-            //return <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} />
-            const dAttr = AttrField({attribute: attr})
-            
-            return dAttr ? dAttr : <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} />
+            return AttrField({attribute: attr, ...props})
         }
     )
     return fields
@@ -224,7 +218,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     }
     
     const attributes = resource.attributes
-    const fields = attr_fields(attributes, props);
+    const fields = attr_fields(attributes);
     const col_nr = resource.max_list_columns 
     console.log(resource.sort_attr_names ? resource.sort_attr_names[0] : "")
     return <List filters={searchFilters} perPage={resource.perPage || 25}
