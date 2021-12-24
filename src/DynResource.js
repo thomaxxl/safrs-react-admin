@@ -212,6 +212,7 @@ const DeleteButton = (props) => {
     const record = useRecordContext();
     const classes = useStyles();
 
+    
     return <span>
             <FunctionField title="Delete"
                 onClick={(e)=> {setOpen(true); e.stopPropagation()}}
@@ -237,7 +238,7 @@ export const gen_DynResourceList = (resource) => (props) => {
         for(let [k, v] of Object.entries(props)){
             //filtered_props[k] = v
             // filter "hasCreate" etc, this causes console warnings
-            // if(! k.startsWith('has') && ! k == "syncWithLocation"){
+            //if(! k.startsWith('has') && ! k == "syncWithLocation"){
             if(! k.startsWith('has')){
                 filtered_props[k] = v
             }
@@ -253,9 +254,11 @@ export const gen_DynResourceList = (resource) => (props) => {
     const attributes = resource.attributes
     const fields = attr_fields(attributes);
     const col_nr = resource.max_list_columns 
-    console.log(resource.sort_attr_names ? resource.sort_attr_names[0] : "")
+    const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
+
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
+                sort={{field: sort}}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
@@ -389,6 +392,8 @@ const DynRelationshipOne = (resource, id, relationship) => {
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
+                console.log(data)
+                console.log(data[relationship.name])
                 const rel_resource = type2resource(data[relationship.name]?.data.type)
                 const rel_id = data[relationship.name]?.data.id
                 return { rel_resource: rel_resource, rel_id: rel_id }
@@ -396,7 +401,8 @@ const DynRelationshipOne = (resource, id, relationship) => {
             .then(({rel_resource, rel_id}) => {
                 console.log(rel_resource, rel_id)
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
-                {console.log(data)
+                {
+                    console.log(data)
                     return setRelated(data)
                 }
                 )
@@ -405,13 +411,15 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 
             })
             .catch(error => {
+                alert('e')
                 setError(error);
                 setLoading(false);
             })
     }, []);
 
+    console.log(related)
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
-        
+                vvvvvvvvvvvvvv
                 <RelatedInstance instance={related} />
            </Tab>
 }

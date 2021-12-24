@@ -67,7 +67,7 @@ export const jsonapiClient = (
       const { page, perPage } = params.pagination;
       
       const resource_conf : any = conf.resources[resource_name];
-      const sort : string = resource_conf.sort?.fields
+      const sort : string = resource_conf.sort
       // Create query with pagination params.
       const query : {[k: string]: any} = {
         'page[number]': page,
@@ -101,12 +101,13 @@ export const jsonapiClient = (
 
       // Add sort parameter, first check the default configured sorting, then the customized sort
       if (params.sort && params.sort.field) {
-        const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
-        query.sort = `${prefix}${params.sort.field}`;
+          const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
+          query.sort = `${prefix}${params.sort.field}`;
       }
       if(!query.sort){
-        query.sort = resource_conf.sort || "id"
+          query.sort = resource_conf.sort || "id"
       }
+      console.log(query)
       const rel_conf = conf.resources[resource_name].relationships || []
       const includes: string[] = rel_conf.map((rel : any) => rel.name);
       query['include'] = includes.join(',');
@@ -185,21 +186,9 @@ export const jsonapiClient = (
     ********************************************************************************************/
     getMany: (resource, params: any) => {
       resource = capitalize(resource);
-      /* const query = {
-        filter: JSON.stringify({ id: params.ids })
-      }; */
-      console.log('GM:',resource, params)
-      //const fks = params.target.split('_')
-      /*const query: {[k: string]: any} = {};
-
-      for(let ja_id of params.ids){
-          const ids = ja_id.split('_')
-          //prepareQueryFilter(query, ids, fks);
-      }*/
-
+      console.log('getMany:',resource, params)
       let query = 'filter[id]=' 
       query += params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids); // fixme
-      // const url = `${apiUrl}/${resource}?${stringify(query)}`;
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url).then(({ json }) => {
         console.log('getMany', json);
@@ -232,10 +221,13 @@ export const jsonapiClient = (
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
-      const query: {[k: string]: any} = {
-        sort: JSON.stringify([field, order]),
-      };
+      const query: {[k: string]: any} = { };
 
+      if (params.sort && params.sort.field) {
+        const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
+        query.sort = `${prefix}${params.sort.field}`;
+      }
+      
       const fks = params.target.split('_')
       const ids = params.id.split('_')
       prepareQueryFilter(query, ids, fks);

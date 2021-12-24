@@ -103,7 +103,7 @@ export const get_Conf = () => {
                 resource.sort = resource.sort_attr_names.join(',')
             }
             if(!attr.label){
-                attr.label = attr.name?.replace(/([A-Z])/g, " $1") // split camelcase
+                attr.label = attr.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
             }
         }
         
