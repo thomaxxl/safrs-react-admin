@@ -228,8 +228,18 @@ export const jsonapiClient = (
         query.sort = `${prefix}${params.sort.field}`;
       }
       
-      const fks = params.target.split('_')
-      const ids = params.id.split('_')
+      console.log(params)
+      let fks = params.target.split('_')
+      //const ids = fks.length > 1 ? params.id.split('_') : params.id
+      let ids = params.id
+
+      if(ids.length != fks.length){
+          console.log(resource, params)
+          console.warn("Wrong FK length ", ids, fks)
+          fks = [params.target]
+          ids = [params.id]
+      }
+      
       prepareQueryFilter(query, ids, fks);
       
       query[`page[limit]`] = perPage
@@ -240,7 +250,7 @@ export const jsonapiClient = (
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
       const url = `${apiUrl}/${resource}?${stringify(query)}&include=${includes}`
-      
+      console.log(query)
       return httpClient(url, options).then(({ headers, json }) => {
         if (!headers.has(countHeader)) {
           console.debug(

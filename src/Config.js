@@ -99,7 +99,12 @@ export const get_Conf = () => {
                 resource.search_cols.push(attr);
             }
             if(attr.sort){
-                resource.sort_attr_names.push(attr.name)
+                if(attr.sort == "DESC"){
+                    resource.sort_attr_names.push('-' + attr.name)
+                }
+                else{
+                    resource.sort_attr_names.push(attr.name)
+                }
                 resource.sort = resource.sort_attr_names.join(',')
             }
             if(!attr.label){

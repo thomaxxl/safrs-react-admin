@@ -360,6 +360,9 @@ const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
     const label =  attr.label || attr_name
 
+    if(typeof value === 'object'){
+        return <ShowField label={label} value={JSON.stringify(value)}/>
+    }
     if(!attr.relationship){
         return <ShowField label={label} value={value}/>
     }
@@ -392,14 +395,19 @@ const DynRelationshipOne = (resource, id, relationship) => {
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
             .then(({ data }) => {
-                console.log(data)
-                console.log(data[relationship.name])
-                const rel_resource = type2resource(data[relationship.name]?.data.type)
-                const rel_id = data[relationship.name]?.data.id
+                const rel_resource = type2resource(data[relationship.name]?.data?.type)
+                const rel_id = data[relationship.name]?.data?.id
+                if(!rel_resource){
+                    console.log(data)
+                    console.warn(`Related resource not found ${resource}.${relationship.name}`)
+                }
                 return { rel_resource: rel_resource, rel_id: rel_id }
             })
             .then(({rel_resource, rel_id}) => {
-                console.log(rel_resource, rel_id)
+                if(!rel_resource){
+                    setLoading(false);
+                    return {}
+                }
                 dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
                 {
                     console.log(data)
@@ -408,18 +416,15 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 )
                 .then(()=>console.log(related))
                 setLoading(false);
-                
             })
             .catch(error => {
-                alert('e')
+                console.error(error)
                 setError(error);
                 setLoading(false);
             })
     }, []);
 
-    console.log(related)
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
-                vvvvvvvvvvvvvv
                 <RelatedInstance instance={related} />
            </Tab>
 }
@@ -460,10 +465,9 @@ const DynRelationshipMany = (resource, id, relationship) => {
     */
     const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource) // ignore relationships pointing back to the parent resource
     const fields = attr_fields(attributes);
-    relationship.source = resource
     const col_nr = target_resource.col_nr
-    
     const fk = relationship.fks.join('_')
+
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
                     <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                         <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
