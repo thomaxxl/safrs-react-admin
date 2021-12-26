@@ -231,7 +231,7 @@ export const jsonapiClient = (
       console.log(params)
       let fks = params.target.split('_')
       //const ids = fks.length > 1 ? params.id.split('_') : params.id
-      let ids = params.id
+      let ids = params.id.split('_')
 
       if(ids.length != fks.length){
           console.log(resource, params)
