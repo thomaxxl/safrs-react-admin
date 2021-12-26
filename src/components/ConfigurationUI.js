@@ -83,9 +83,6 @@ const addConf = (conf) => {
 
 
 export const LoadYaml = (config_url) => {
-    
-    fetch("https://jsonapi.hardened.be/p4", {cache: "no-store"}).then(()=>console.log("loaded")).catch(()=>console.log("Loaded E"))
-
     if(config_url == null){
         config_url = als_yaml_url
     }
@@ -104,10 +101,9 @@ export const LoadYaml = (config_url) => {
     }
 
     fetch(config_url, {cache: "no-store"})
-        .then((response) => response.text())
-        .then((yaml) => saveYaml(yaml))
-        .catch((err)=>alert(`Failed to download yaml from ${config_url}: ${err}`))
-        
+    .then((response) => response.text())
+    .then((yaml) => saveYaml(yaml))
+    .catch((err)=>console.error(`Failed to download yaml from ${config_url}: ${err}`))
 }
 
 
@@ -193,10 +189,7 @@ const ConfSelect = () => {
       localStorage.setItem("raconf", JSON.stringify(new_conf));
       window.location.reload()
     };
-    
-    if (!configs){
-        return null
-    }
+      
     return (
       <Box sx={{ minWidth: 120 }}>
         <FormControl fullWidth>
@@ -211,7 +204,7 @@ const ConfSelect = () => {
             defaultValue={current}
           >
             {
-                Object.entries(configs).map(([name, config]) => <MenuItem value={name} key={name}>{name}</MenuItem>)
+                configs ? Object.entries(configs).map(([name, config]) => <MenuItem value={name} key={name}>{name}</MenuItem>) : null
             }
           </Select>
         </FormControl>
@@ -240,6 +233,20 @@ const saveConfig = () => {
     window.location.reload()
 }
 
+export const resetConf = () => {
+    const configs = {}
+    let defconf = {}
+    
+    for(defconf of default_configs){
+        /*localStorage.setItem("raconf", JSON.stringify(defconf));
+        configs[defconf.api_root] = defconf*/
+    }
+    localStorage.setItem("raconf", JSON.stringify({}));
+    localStorage.setItem("raconfigs", JSON.stringify(configs));
+    LoadYaml(als_yaml_url)
+    
+    return defconf
+}
 
 const ConfigurationUI = () => {
 
@@ -274,21 +281,6 @@ const ConfigurationUI = () => {
         setTaConf(text)
     }
 
-    const resetConf = () => {
-        const configs = {}
-        let defconf = {}
-        
-        for(defconf of default_configs){
-            /*localStorage.setItem("raconf", JSON.stringify(defconf));
-            configs[defconf.api_root] = defconf*/
-        }
-        localStorage.setItem("raconf", JSON.stringify({}));
-        localStorage.setItem("raconfigs", JSON.stringify(configs));
-        LoadYaml(als_yaml_url)
-        
-        return defconf
-    }
-    
     const classes = useStyles();
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(resetConf())

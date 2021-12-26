@@ -7,7 +7,9 @@ import { useState} from 'react';
 import Script from "react-load-script";
 import {get_Conf} from '../Config.js'
 import { withStyles } from '@material-ui/core/styles';
-
+import Button from '@material-ui/core/Button';
+import {Link} from "react-router-dom";
+import { resetConf } from "./ConfigurationUI";
 
 //import universal from 'react-universal-component'
 
@@ -44,17 +46,27 @@ const Demo = ({ready}) => {
 const Home = () => {
     const config = get_Conf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
+    const [initialized, setInitialized] = useState(false)
 	
+    if(!initialized && !config.settings){
+        resetConf()
+        setInitialized(true)
+    }
+    const init = config.settings ? null : <Link to={{ pathname: "/configuration" }}>
+                                            <Button variant="contained" color="link"> Initialize Configuration</Button>
+                                        </Link>
     return <Card>
-            <Title title="Home" />
-            <CardContent>
-                    <Script
-                        url={config.settings?.HomeJS}
-                        onError={(e) => {setScriptLoaded(false);console.error(e)}}
-                        onLoad={()=>setScriptLoaded(true)}
-                    />
-                    <Demo ready={scriptLoaded} />
-            </CardContent>
+                <Title title="Home" />
+                <CardContent>
+                        <Script
+                            url={config.settings?.HomeJS}
+                            onError={(e) => {setScriptLoaded(false);console.error(e)}}
+                            onLoad={()=>setScriptLoaded(true)}
+                        />
+                        <Demo ready={scriptLoaded} />
+                        {init}
+                </CardContent>
+                
             </Card>
 }
 
