@@ -80,7 +80,7 @@ export const jsonapiClient = (
           query.sort = sort
       }
 
-      console.log(params)
+      console.debug(params)
       console.log(resource_conf)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
@@ -107,9 +107,10 @@ export const jsonapiClient = (
       if(!query.sort){
           query.sort = resource_conf.sort || "id"
       }
-      console.log(query)
+      console.debug(query)
       const rel_conf = conf.resources[resource_name].relationships || []
-      const includes: string[] = rel_conf.map((rel : any) => rel.name);
+      // we only need "toone" rels in getList so we can show the join/user key
+      const includes: string[] = rel_conf.filter((rel : any) => rel.direction != 'tomany').map((rel : any) => rel.name);
       query['include'] = includes.join(',');
 
       const url = `${apiUrl}/${resource}?${stringify(query)}`;

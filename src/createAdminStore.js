@@ -111,7 +111,7 @@ const adminReducerWrapper = (previousState, action) => {
 
     }
     
-    result.loading = 0
+    result.loading = 0 // todo!!
     return result;
 }
 

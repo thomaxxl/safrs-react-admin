@@ -359,10 +359,7 @@ const ShowRecordField = ({ source }) => {
 const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
     const label =  attr.label || attr_name
-
-    if(typeof value === 'object'){
-        return <ShowField label={label} value={JSON.stringify(value)}/>
-    }
+    
     if(!attr.relationship){
         return <ShowField label={label} value={value}/>
     }
@@ -372,6 +369,17 @@ const ShowAttrField = ({attr, value}) => {
 }
 
 const ShowField = ({ label, value }) => {
+    if(value && !React.isValidElement(value) && typeof value == "object"){
+        try{
+            console.log(`Converting value :${value}`)
+            value=JSON.stringify(value)
+        }
+        catch(err){
+            console.log(`Invalid element value :${value}`)
+            console.warn(err)
+            value = <i>Value Error</i>
+        }
+    }
     return (
       <Grid item xs={3}>
         <Typography variant="body2" color="textSecondary" component="p">
@@ -383,7 +391,7 @@ const ShowField = ({ label, value }) => {
       </Grid>
     )
 };
-  
+
 
 const DynRelationshipOne = (resource, id, relationship) => {
     
@@ -541,7 +549,7 @@ const RelatedInstance = ({instance}) => {
                         </div>
                         <Grid container spacing={3}>
                                 { //{attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )}
-                                attributes.map((attr) => <ShowField label={attr.name} key={attr.name} value={instance.attributes[attr.name]}/> )
+                                attributes.map((attr) => <ShowAttrField key={attr.name} attr={attr} value={instance.attributes[attr.name]}/> )
                                 }
                         </Grid>
                     </div>
