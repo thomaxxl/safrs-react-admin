@@ -258,7 +258,7 @@ export const gen_DynResourceList = (resource) => (props) => {
 
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
-                sort={{field: sort}}
+                sort={{field: sort, order: 'ASC'}}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
