@@ -315,7 +315,6 @@ const DynInput = ({attribute, resource}) => {
             optionText = search_cols[0].name
         }
         result = <ReferenceInput source={attribute.name}
-                                 defaultValue={attribute.name}
                                  label={`${attribute.relationship.name} (${attribute.name})`}
                                  reference={attribute.relationship.target}
                                  resource={attribute.relationship.resource}

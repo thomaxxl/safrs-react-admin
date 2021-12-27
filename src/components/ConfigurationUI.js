@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { useRef, Component } from 'react'
 import { TextareaAutosize, TextField } from '@material-ui/core';
 import Checkbox from "@material-ui/core/Checkbox";
@@ -17,6 +18,7 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Modal from '@material-ui/core/Modal';
 import Typography from '@material-ui/core/Typography';
+import { useNotify } from 'react-admin';
 
 const yaml = require('js-yaml')
 
@@ -73,26 +75,46 @@ const addConf = (conf) => {
     const configs = JSON.parse(localStorage.getItem("raconfigs"));
     if(!conf.api_root){
         console.warn("Config has no api_root", conf);
-        return
+        return false
     }
     configs[conf.api_root] = conf
     localStorage.setItem("raconf", JSON.stringify(conf));
     localStorage.setItem("raconfigs", JSON.stringify(configs));
     window.location.reload();
+    return true
 }
 
 
-export const LoadYaml = (config_url) => {
+export const LoadYaml = (config_url, notify) => {
+    
     if(config_url == null){
         config_url = als_yaml_url
     }
     
+    const saveConf = (conf_str) => {
+        // first try to parse as json, if this doesn't work, try yaml
+        try{
+            const conf = JSON.parse(conf_str)
+            if(typeof r !== 'object'){
+                saveYaml(conf_str)
+                return
+            }
+            if( ! addConf(conf) && notify){
+                notify('Failed to load config', 'warning')
+            }
+        }
+        catch(e){
+            saveYaml(conf_str)
+        }
+    }
+
     const saveYaml = (ystr) => {
         
         try{
             const conf = yaml.load(ystr)
-            addConf(conf)
-            
+            if( ! addConf(conf) && notify){
+                notify('Failed to load config', 'warning')
+            }
         }
         catch(e){
             console.warn(`Failed to load yaml`, ystr)
@@ -101,9 +123,10 @@ export const LoadYaml = (config_url) => {
     }
 
     fetch(config_url, {cache: "no-store"})
-    .then((response) => response.text())
-    .then((yaml) => saveYaml(yaml))
-    .catch((err)=>console.error(`Failed to download yaml from ${config_url}: ${err}`))
+        .then((response) => response.text())
+        .then((conf_str) => saveConf(conf_str))
+        .catch((err)=>console.error(`Failed to load yaml from ${config_url}: ${err}`))
+    
 }
 
 
@@ -137,7 +160,7 @@ const ManageModal = () => {
 
     const config_list = configs ? Object.entries(configs).map(([name, conf]) => <li key={name}>{name} <ClearIcon key={name} onClick={()=>DeleteConf(name)}/></li> ) : <span/>
     const textFieldRef = useRef();
-
+    const notify = useNotify();
     return [
         <Button className={classes.widget} onClick={()=> handleOpen()} color="primary" >Manage</Button>,
         <Modal
@@ -160,7 +183,7 @@ const ManageModal = () => {
                 </Typography>
                 <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                     <TextField label="Config URL" style={{ margin: 16, width: "100%" }} inputRef={textFieldRef}/>
-                    <Button className={classes.widget} onClick={(evt)=> LoadYaml(textFieldRef.current.value)} color="primary" >Load</Button>
+                    <Button className={classes.widget} onClick={(evt)=> LoadYaml(textFieldRef.current.value, notify) } color="primary" >Load</Button>
                 </Typography>
             </Box>
         </Modal>

@@ -1,19 +1,19 @@
 {
   "files": {
-    "static/js/0.79eee1a8.chunk.js": "/admin-app/static/js/0.79eee1a8.chunk.js",
-    "static/js/0.79eee1a8.chunk.js.map": "/admin-app/static/js/0.79eee1a8.chunk.js.map",
+    "static/js/0.80255c6e.chunk.js": "/admin-app/static/js/0.80255c6e.chunk.js",
+    "static/js/0.80255c6e.chunk.js.map": "/admin-app/static/js/0.80255c6e.chunk.js.map",
     "static/js/1.e5c1f745.chunk.js": "/admin-app/static/js/1.e5c1f745.chunk.js",
     "static/js/1.e5c1f745.chunk.js.map": "/admin-app/static/js/1.e5c1f745.chunk.js.map",
     "static/js/2.4311947b.chunk.js": "/admin-app/static/js/2.4311947b.chunk.js",
     "static/js/2.4311947b.chunk.js.map": "/admin-app/static/js/2.4311947b.chunk.js.map",
     "main.css": "/admin-app/static/css/main.e22d04f9.chunk.css",
-    "main.js": "/admin-app/static/js/main.1c6e528c.chunk.js",
-    "main.js.map": "/admin-app/static/js/main.1c6e528c.chunk.js.map",
-    "runtime-main.js": "/admin-app/static/js/runtime-main.7424f023.js",
-    "runtime-main.js.map": "/admin-app/static/js/runtime-main.7424f023.js.map",
+    "main.js": "/admin-app/static/js/main.eb53880e.chunk.js",
+    "main.js.map": "/admin-app/static/js/main.eb53880e.chunk.js.map",
+    "runtime-main.js": "/admin-app/static/js/runtime-main.54d8b910.js",
+    "runtime-main.js.map": "/admin-app/static/js/runtime-main.54d8b910.js.map",
     "static/css/5.c1dc66b4.chunk.css": "/admin-app/static/css/5.c1dc66b4.chunk.css",
-    "static/js/5.a40e9abe.chunk.js": "/admin-app/static/js/5.a40e9abe.chunk.js",
-    "static/js/5.a40e9abe.chunk.js.map": "/admin-app/static/js/5.a40e9abe.chunk.js.map",
+    "static/js/5.a199d1ca.chunk.js": "/admin-app/static/js/5.a199d1ca.chunk.js",
+    "static/js/5.a199d1ca.chunk.js.map": "/admin-app/static/js/5.a199d1ca.chunk.js.map",
     "static/js/6.9363d7f9.chunk.js": "/admin-app/static/js/6.9363d7f9.chunk.js",
     "static/js/6.9363d7f9.chunk.js.map": "/admin-app/static/js/6.9363d7f9.chunk.js.map",
     "static/js/7.990dfc12.chunk.js": "/admin-app/static/js/7.990dfc12.chunk.js",
@@ -175,15 +175,15 @@
     "index.html": "/admin-app/index.html",
     "static/css/5.c1dc66b4.chunk.css.map": "/admin-app/static/css/5.c1dc66b4.chunk.css.map",
     "static/css/main.e22d04f9.chunk.css.map": "/admin-app/static/css/main.e22d04f9.chunk.css.map",
-    "static/js/5.a40e9abe.chunk.js.LICENSE.txt": "/admin-app/static/js/5.a40e9abe.chunk.js.LICENSE.txt",
+    "static/js/5.a199d1ca.chunk.js.LICENSE.txt": "/admin-app/static/js/5.a199d1ca.chunk.js.LICENSE.txt",
     "static/js/76.f269fc54.chunk.js.LICENSE.txt": "/admin-app/static/js/76.f269fc54.chunk.js.LICENSE.txt",
     "static/media/codicon.css": "/admin-app/static/media/codicon.aeb98e0b.ttf"
   },
   "entrypoints": [
-    "static/js/runtime-main.7424f023.js",
+    "static/js/runtime-main.54d8b910.js",
     "static/css/5.c1dc66b4.chunk.css",
-    "static/js/5.a40e9abe.chunk.js",
+    "static/js/5.a199d1ca.chunk.js",
     "static/css/main.e22d04f9.chunk.css",
-    "static/js/main.1c6e528c.chunk.js"
+    "static/js/main.eb53880e.chunk.js"
   ]
 }
