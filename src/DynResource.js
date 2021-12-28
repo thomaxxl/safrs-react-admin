@@ -43,6 +43,7 @@ import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { useNotify, useRedirect } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
 import { Switch, Route } from "react-router-dom";
+import DynInput from "./components/DynInput.js";
 
 
 import { updateJsxAttribute } from "typescript";
@@ -74,12 +75,53 @@ const type2resource = (type) => {
 }
 
 
+const get_Component = (name) => {
+    try{
+        const Component = loadable(() => import(`./components/Custom.js`), {
+                resolveComponent: (components) => components[name],
+        })
+        return Component
+    }
+    catch(e){
+        alert("Custom component error")
+        console.error("Custom component error", e)
+    }
+    return null
+}
+
+
+const TruncatedTextField = (props) => {
+    
+    const record = props.record // "record" is a prop received from the Datagrid
+    const source = props.source
+    if(!record || !source){
+        return <span></span>
+    }
+    let value = record[source];
+    if(value && !React.isValidElement(value) && typeof value == "object"){
+        try{
+            console.log(`Converting value :${value}`)
+            value=JSON.stringify(value)
+        }
+        catch(err){
+            console.log(`Invalid element value :${value}`)
+            console.warn(err)
+            value = "Value Error"
+        }
+    }
+    if(!value || value.length < 256 || !value.slice || !value.slice instanceof Function){
+        return <span>{value}</span>
+    }
+    return <span>{value.slice(0, 256) + "..." }</span>;
+  };
+
 const AttrField = ({attribute, ...props}) => {
     
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
         
-    let result = <TextField source={attribute.name} key={attribute.name} sortBy={attribute.name} label={attribute.label || attribute.name} {...props}/>
+    let result = <TruncatedTextField source={attribute.name} key={attribute.name} sortBy={attribute.name} label={attribute.label || attribute.name} {...props}/>
+    
     if(attribute.type == "DATE"){
         result = <DateField source={attribute.name} key={attribute.name} style={style} locales={conf.settings.locale} {...props}/>
     }
@@ -295,40 +337,13 @@ export const gen_DynResourceEdit = (resource) => {
 }
 
 
-const DynInput = ({attribute, resource}) => {
-
-    let result = <TextInput source={attribute.name} fullWidth />
-    if(attribute.type == "DATE"){
-        result = <DateInput source={attribute.name} fullWidth />
-    }
-    if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
-        const search_cols = conf.resources[attribute.relationship.target].search_cols
-        let optionText = ""
-        
-        if(!search_cols){
-            console.error("no searchable attributes configured");
-        }
-        else if(search_cols.length == 0){
-            console.warn(`no searchable attributes configured for ${attribute.relationship.target}`);
-        }
-        else{
-            optionText = search_cols[0].name
-        }
-        result = <ReferenceInput source={attribute.name}
-                                 label={`${attribute.relationship.name} (${attribute.name})`}
-                                 reference={attribute.relationship.target}
-                                 resource={attribute.relationship.resource}
-                                 fullWidth>
-                    <AutocompleteInput optionText={optionText} key={attribute.name} />
-                </ReferenceInput>
-    }
-    
-    return <Grid item xs={4} spacing={4} margin={5} >{result}</Grid>
-}
-
-
 export const gen_DynResourceCreate = (resource) => (props) => {
 
+    if(resource.create){
+        const CreateComp = get_Component(resource.create)
+        console.log({resource})
+        return <CreateComp resource_name={resource.name} {...props}></CreateComp>
+    }
     return <Create {...props}>
         <SimpleForm>
             <Grid container spacing={3} margin={5} m={400} style={{ width: "100%" }}>
