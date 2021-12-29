@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Suspense } from 'react';
 import { connect } from 'react-redux';
 import { useRef, Component } from 'react'
 import { TextareaAutosize, TextField } from '@material-ui/core';
@@ -9,7 +10,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import ClearIcon from "@material-ui/icons/Clear";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import {default_configs} from "../Config"
-import MonacoEditor from '@uiw/react-monacoeditor';
 import { TabbedShowLayout, Tab } from 'react-admin';
 import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
@@ -267,7 +267,6 @@ export const resetConf = () => {
     localStorage.setItem("raconf", JSON.stringify({}));
     localStorage.setItem("raconfigs", JSON.stringify(configs));
     LoadYaml(als_yaml_url)
-    
     return defconf
 }
 
@@ -311,10 +310,13 @@ const ConfigurationUI = () => {
     const [bgColor, setBgColor] = useState("black");
     const [autosave, setAutosave] = useState(true);
     const [api_root, setApiroot] = useState(JSON.parse(conf)?.api_root);
-    
+    const [editor, setEditor] = useState(false)
+
     const handleAutoSaveChange = (event) => {
         setAutosave(event.target.checked);
     };
+
+    const Editor = React.lazy(() => import('@uiw/react-monacoeditor'))
     
     return <div>
                 <div>
@@ -332,16 +334,18 @@ const ConfigurationUI = () => {
                 <div>
                     <TabbedShowLayout>
                         <Tab label="yaml">
-                            <MonacoEditor
-                                language="yaml"
-                                value={yaml.dump(JSON.parse(taConf))}
-                                options={{
-                                    theme: 'vs-dark',
-                                }}
-                                height="1000px"
-                                style = {{ borderLeft: `8px solid ${bgColor}`}}
-                                onChange={(ystr, ev) => saveYaml(ystr, ev)}
-                            />
+                            <Suspense fallback={<div>Loading...</div>}>
+                                <Editor
+                                    language="yaml"
+                                    value={yaml.dump(JSON.parse(taConf))}
+                                    options={{
+                                        theme: 'vs-dark',
+                                    }}
+                                    height="1000px"
+                                    style = {{ borderLeft: `8px solid ${bgColor}`}}
+                                    onChange={(ystr, ev) => saveYaml(ystr, ev)}
+                                />
+                            </Suspense>
                         </Tab>
                         <Tab label="json">
                         <TextareaAutosize

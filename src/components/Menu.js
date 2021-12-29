@@ -1,18 +1,56 @@
 import { useSelector } from 'react-redux';
+import {forwardRef} from 'react'
+import { makeStyles } from '@material-ui/core/styles';
 import { DashboardMenuItem, Menu as RAMenu, MenuItemLink, getResources } from 'react-admin';
+import { AppBar, UserMenu, useTranslate } from 'react-admin';
 import DefaultIcon from '@material-ui/icons/ViewList';
+import SettingsIcon from '@material-ui/icons/Settings';
+import InfoIcon from '@material-ui/icons/Info';
+import { Typography } from '@material-ui/core';
+import preval from 'preval.macro'
 
-/*
-export const MenuA = (props) => (
-    <RAMenu {...props}>
-        <DashboardMenuItem />
-        <MenuItemLink to="/wxxx" primaryText="Posts" leftIcon={<BookIcon />}/>
-        <MenuItemLink to="/comments" primaryText="Comments" leftIcon={<ChatBubbleIcon />}/>
-        <MenuItemLink to="/users" primaryText="Users" leftIcon={<PeopleIcon />}/>
-        <MenuItemLink to="/custom-route" primaryText="Miscellaneous" leftIcon={<LabelIcon />}/>
-    </RAMenu>
+
+const useStyles = makeStyles({
+    title: {},
+    spacer : {flex: 1},
+    menu: {border: "1px solid red", color: "red"}
+});
+
+const ConfigurationMenu = forwardRef((props, ref) => {
+    const translate = useTranslate();
+    return (
+        <MenuItemLink
+            ref={ref}
+            to="/configuration"
+            primaryText={translate('Settings' )}
+            leftIcon={<SettingsIcon />}
+            onClick={props.onClick}
+            sidebarIsOpen
+        />
+    );
+});
+
+const CustomUserMenu = (props) => (
+    <UserMenu {...props} >
+        <ConfigurationMenu />
+        <MenuItemLink primaryText={preval`module.exports = new Date().toString().split(' ').slice(1,3).join('');`} to="/#/info" leftIcon={<InfoIcon />}/>
+    </UserMenu>
 );
-*/
+
+export const CustomAppBar = (props) => {
+    const classes = useStyles();
+    return (
+        <AppBar {...props} elevation={1} userMenu={<CustomUserMenu className={classes.menu} />}>
+            <Typography
+                variant="h6"
+                color="inherit"
+                className={classes.title}
+                id="react-admin-title"
+            />
+            <span className={classes.spacer} />
+        </AppBar>
+    );
+};
 
 const onMenuClick = (evt) => {
     //console.log(`Menu Click`, evt);

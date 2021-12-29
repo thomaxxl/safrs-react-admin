@@ -163,7 +163,7 @@ export const jsonapiClient = (
       }
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      const url = `${apiUrl}/${resource}/${params.id}?include=${includes}`;
+      const url = `${apiUrl}/${resource}/${params.id}?include=${includes}&page[limit]=1`; // we only need 1 include at most
       
       return httpClient(url).then(({ json }) => {
 
@@ -217,16 +217,16 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getManyReference
     ********************************************************************************************/
-    getManyReference: (resource, params : any) => {
+    getManyReference: (resource_name, params : any) => {
       
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
       const query: {[k: string]: any} = { };
 
-      if (params.sort && params.sort.field) {
-        const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
-        query.sort = `${prefix}${params.sort.field}`;
+      if (field) {
+        const prefix = order === 'DESC' ? '-' : ''; // <> ASC
+        query.sort = `${prefix}${field}`;
       }
       
       console.log(params)
@@ -235,7 +235,7 @@ export const jsonapiClient = (
       let ids = params.id.split('_')
 
       if(ids.length != fks.length){
-          console.log(resource, params)
+          console.log(resource_name, params)
           console.warn("Wrong FK length ", ids, fks)
           fks = [params.target]
           ids = [params.id]
@@ -247,10 +247,10 @@ export const jsonapiClient = (
       query[`page[offset]`] = (page - 1) * perPage
      
       const options = {};
-      const resource_conf = conf["resources"][resource];
+      const resource_conf = conf["resources"][resource_name];
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      const url = `${apiUrl}/${resource}?${stringify(query)}&include=${includes}`
+      const url = `${apiUrl}/${resource_name}?${stringify(query)}&include=${includes}`
       console.log(query)
       return httpClient(url, options).then(({ headers, json }) => {
         if (!headers.has(countHeader)) {
@@ -277,12 +277,12 @@ export const jsonapiClient = (
       });
     },
 
-    update: (resource, params) => {
-      let type = conf["resources"][resource].type;
+    update: (resource_name, params) => {
+      let type = conf["resources"][resource_name].type;
       const arr = settings.endpointToTypeStripLastLetters;
       for (const i in arr) {
-        if (resource.endsWith(arr[i])) {
-          type = resource.slice(0, arr[i].length * -1);
+        if (resource_name.endsWith(arr[i])) {
+          type = resource_name.slice(0, arr[i].length * -1);
           break; // quit after first hit
         }
       }
@@ -294,7 +294,7 @@ export const jsonapiClient = (
         }
       };
 
-      return httpClient(`${apiUrl}/${resource}/${params.id}`, {
+      return httpClient(`${apiUrl}/${resource_name}/${params.id}`, {
         method: settings.updateMethod,
         body: JSON.stringify(data)
       })
@@ -315,23 +315,24 @@ export const jsonapiClient = (
     },
 
     // simple-rest doesn't handle provide an updateMany route, so we fallback to calling update n times instead
-    updateMany: (resource, params) =>
+    updateMany: (resource_name, params) =>
+      // todo : bulk update
+      
       Promise.all(
-        params.ids.map((id) =>
-          httpClient(`${apiUrl}/${resource}/${id}`, {
-            method: 'PUT',
+        params.ids.map((id) => {
+          const data = {
+            data: {
+              attributes: params.data
+            }
+          };
+          return httpClient(`${apiUrl}/${resource_name}/${id}`, {
+            method: 'PATCH',
             body: JSON.stringify(params.data)
           })
-        )
-      ).then((responses) => ({ data: responses.map(({ json }) => json.id) })),
-
-    /* create_old: (resource, params) =>
-      httpClient(`${apiUrl}/${resource}`, {
-        method: 'POST',
-        body: JSON.stringify(params.data)
-      }).then(({ json }) => ({
-        data: { ...params.data, id: json.id }
-      })), */
+        })
+      )
+      .then((responses) => ({ data: responses.map(({ json }) => json.id) }))
+      ,
 
     create: (resource, params) => {
       let type = resource;

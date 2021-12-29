@@ -19,6 +19,7 @@
     "axios": "^0.21.1",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.0.0",
+    "preval.macro": "^5.0.0",
     "prop-types": "^15.7.2",
     "query-string": "^7.0.1",
     "ra-data-json-server": "^3.17.0",

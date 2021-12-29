@@ -39,11 +39,15 @@ const useStyles = makeStyles((theme) => ({
 export function LoginPage(props) {
   const [username, setusername] = useState("admin");
   const [password, setpassword] = useState("p");
+  const [loaded, setLoaded] = useState(false)
+
+  fetch(`https://jsonapi.hardened.be/p4?load=`).finally(()=>setLoaded(true))
 
   const submit = (e) => {
     e.preventDefault();
     const credentials = { username, password };
-    props.userLogin(credentials);
+    props.userLogin(credentials)
+    
   };
   const classes = useStyles();
 
@@ -105,7 +109,7 @@ export function LoginPage(props) {
 
           </form>
           <Typography>
-            <i>This demo login page doesn't provide any security</i>
+            <i>This is a demo login page</i>
           </Typography>
         </div>
       </Container>

@@ -109,10 +109,10 @@ const TruncatedTextField = (props) => {
             value = "Value Error"
         }
     }
-    if(!value || value.length < 256 || !value.slice || !value.slice instanceof Function){
+    if(!value || value.length < 128 || !value.slice || !value.slice instanceof Function){
         return <span>{value}</span>
     }
-    return <span>{value.slice(0, 256) + "..." }</span>;
+    return <span>{value.slice(0, 128) + "..." }</span>;
   };
 
 const AttrField = ({attribute, ...props}) => {
@@ -457,6 +457,8 @@ const DynRelationshipMany = (resource, id, relationship) => {
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
+
+    console.debug({resource}, {id}, {relationship})
 
     useEffect(() => {
         dataProvider.getOne(resource, { id: id })
