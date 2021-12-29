@@ -295,7 +295,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     
     const attributes = resource.attributes
     const fields = attr_fields(attributes);
-    const col_nr = resource.max_list_columns 
+    const col_nr = resource.max_list_columns
     const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
 
     return <List filters={searchFilters} perPage={resource.perPage || 25}
@@ -458,17 +458,17 @@ const DynRelationshipOne = (resource, id, relationship) => {
            </Tab>
 }
 
-const DynRelationshipMany = (resource, id, relationship) => {
+const DynRelationshipMany = (resource_name, id, relationship) => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
 
-    console.debug({resource}, {id}, {relationship})
+    console.debug({resource_name}, {id}, {relationship})
 
     useEffect(() => {
-        dataProvider.getOne(resource, { id: id })
+        dataProvider.getOne(resource_name, { id: id })
             .then(({ data }) => {
                 setRelated(data.relationships);
                 setLoading(false);
@@ -481,7 +481,7 @@ const DynRelationshipMany = (resource, id, relationship) => {
 
     const target_resource = conf.resources[relationship.target]
     if(!target_resource){
-        console.warn(`${resource}: No resource conf for ${target_resource}`)
+        console.warn(`${resource_name}: No resource conf for ${target_resource}`)
         return null
     }
 
@@ -494,9 +494,9 @@ const DynRelationshipMany = (resource, id, relationship) => {
         Render the datagrid, this is similar to the grid in gen_DynResourceList
         todo: merge these into one component
     */
-    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource) // ignore relationships pointing back to the parent resource
+    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource_name) // ignore relationships pointing back to the parent resource
     const fields = attr_fields(attributes);
-    const col_nr = target_resource.col_nr
+    const col_nr = target_resource.max_list_columns
     const fk = relationship.fks.join('_')
 
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
