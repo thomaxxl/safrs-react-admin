@@ -72,7 +72,7 @@ const type2resource = (type) => {
     }
     console.warn(`No resource for type "${type}`)
     return conf[type]
-}
+};
 
 
 const get_Component = (name) => {
@@ -87,7 +87,7 @@ const get_Component = (name) => {
         console.error("Custom component error", e)
     }
     return null
-}
+};
 
 
 const TruncatedTextField = (props) => {
@@ -113,7 +113,7 @@ const TruncatedTextField = (props) => {
         return <span>{value}</span>
     }
     return <span>{value.slice(0, 128) + "..." }</span>;
-  };
+};
 
 const AttrField = ({attribute, ...props}) => {
     
@@ -140,7 +140,7 @@ const AttrField = ({attribute, ...props}) => {
         console.error("Custom component error", e)
     }
     return result
-}
+};
 
 
 const load_custom_component = (component_name, item) => {
@@ -156,17 +156,18 @@ const load_custom_component = (component_name, item) => {
         console.error("Custom component error", e)
     }
     return null
-}
+};
 
 
 const JoinedField = ({attribute, join}) => {
     
     const record = useRecordContext();
+    
     if(record?.attributes){
         Object.assign(record, record.attributes)
     }
     const rel_name = join.name;
-    const target_resource = join.target
+    const target_resource_name = join.target
     const fk = join.fks.join('_')
     const user_key = conf.resources[join.target]?.user_key
     const user_component = conf.resources[join.target]?.user_component
@@ -174,9 +175,17 @@ const JoinedField = ({attribute, join}) => {
     
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
-        resource: target_resource,
+        resource: target_resource_name,
         payload: { id: id }
-    });
+    })
+
+    if (loading) {
+        return null
+    }
+
+    if(error){
+        return <i>error</i>
+    }
 
     if(!record){
         return null
@@ -189,14 +198,20 @@ const JoinedField = ({attribute, join}) => {
         // user_component: custom component
         label = load_custom_component(user_component, item)
     }
-    else if(item?.attributes && user_key){
-        const target_col = attribute.relationship.target_resource.attributes.filter((col) => col.name == user_key)
-        label = <span>{item.attributes[user_key] || item.id}</span>
+    else if(user_key && item?.attributes){
+        label = item.attributes[user_key]
+    }
+    else if(user_key in item){
+        // useQueryWithStore doesn't have api format, todo: fix this
+        label = item[user_key]
+        item.attributes = Object.assign({}, item)
+        item.type = conf.resources[target_resource_name]?.type
     }
     
-    const content = <RelatedInstance instance={item} resource_name={join.target}/>
-    
-    return <JoinModal label={label} key={attribute.name} content={content} resource_name={join.target}/>
+    const content = <RelatedInstance instance={item} resource_name={target_resource_name}/>
+    const result = <JoinModal label={label} key={attribute.name} content={content} resource_name={target_resource_name}/>
+
+    return result
 }
 
 
@@ -500,12 +515,12 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
     const fk = relationship.fks.join('_')
 
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
-                    <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
-                        <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
-                            {fields.slice(0,col_nr)}
-                            <EditButton />
-                        </Datagrid>
-                    </ReferenceManyField>            
+                <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
+                    <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
+                        {fields.slice(0,col_nr)}
+                        <EditButton />
+                    </Datagrid>
+                </ReferenceManyField>            
             </Tab>
 }
 

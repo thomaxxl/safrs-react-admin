@@ -108,8 +108,9 @@ export const get_Conf = () => {
                 resource.sort = resource.sort_attr_names.join(',')
             }
             if(!attr.label){
-                attr.label = attr.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
+                attr.label = attr.relationship?.resource || attr.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
             }
+            attr.resource = resource
         }
         
         resource.max_list_columns = resource.max_list_columns || result.settings?.max_list_columns || 8

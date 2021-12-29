@@ -18,7 +18,8 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Modal from '@material-ui/core/Modal';
 import Typography from '@material-ui/core/Typography';
-import { useNotify } from 'react-admin';
+import {useNotify } from 'react-admin';
+import {Loading } from 'react-admin';
 
 const yaml = require('js-yaml')
 
@@ -334,7 +335,7 @@ const ConfigurationUI = () => {
                 <div>
                     <TabbedShowLayout>
                         <Tab label="yaml">
-                            <Suspense fallback={<div>Loading...</div>}>
+                            <Suspense fallback={<Loading/>}>
                                 <Editor
                                     language="yaml"
                                     value={yaml.dump(JSON.parse(taConf))}
