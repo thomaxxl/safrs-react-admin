@@ -321,11 +321,18 @@ export const gen_DynResourceEdit = (resource) => {
         const classes = useStyles();
 
         const onFailure = (error) => {
+            notify(`Error Saving Changes`,  { type: 'warning' })
             redirect('edit', props.basePath, props.id);
             refresh();
         }
+
+        const onSuccess = () => {
+            notify(`Changes Saved`);
+            redirect('show', props.basePath, props.id);
+            refresh();
+        }
     
-        return <Edit {...props} onFailure={onFailure} >
+        return <Edit {...props} onFailure={onFailure} onSuccess={onSuccess}  mutationMode="pessimistic">
             <SimpleForm>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
                     {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
