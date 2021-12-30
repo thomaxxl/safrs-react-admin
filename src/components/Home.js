@@ -36,7 +36,6 @@ const Content = () => <div>
     </div>
 
 const Demo = ({ready}) => {
-    return null
     const [content, setContent] = useState(false);
     if (ready && !content && window.getContent) {
         setContent(window.getContent())
