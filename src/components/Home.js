@@ -8,7 +8,9 @@ import Script from "react-load-script";
 import {get_Conf} from '../Config.js'
 import { withStyles } from '@material-ui/core/styles';
 
-
+const styles = {
+    home: {fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'},
+};
 //import universal from 'react-universal-component'
 
 //const UniversalComponent = universal(props => import(`https://automat-c2.rccu-brussels.lan/imager/comp.js`))
@@ -42,7 +44,9 @@ const Demo = ({ready, cb}) => {
     return content ? <div dangerouslySetInnerHTML={{__html: content }} /> : <Content/>
 }
 
-const Home = () => {
+const Home = (props) => {
+    console.log(props)
+    const { classes } = props;
     const config = get_Conf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
     
@@ -54,11 +58,11 @@ const Home = () => {
                         onError={(e) => {setScriptLoaded(true);console.error(e)}}
                         onLoad={()=>setScriptLoaded(true)}
                     />
-                    <span style={{fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'}}>
+                    <span className={classes.home}>
                         <Demo  ready={scriptLoaded} />
                     </span>
             </CardContent>
             </Card>
 }
 
-export default Home;
+export default withStyles(styles)(Home);
