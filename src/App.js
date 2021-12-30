@@ -63,7 +63,7 @@ const AsyncResources = () => {
             history,
         })}
     >
-        <AdminUI layout={Layout} loginPage={LoginPage}>
+        <AdminUI layout={Layout} loginPage={LoginPage} disableTelemetry>
             
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
             <Resource name="Configuration" show={ConfigurationUI} list={ConfigurationUI} options={{ label: 'Configuration' }} icon={SettingsIcon}/>
