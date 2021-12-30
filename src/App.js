@@ -81,7 +81,7 @@ const App = () => {
         LoadYaml(null)
     }
     return (
-        <AdminContext loginPage={LoginPage} dataProvider={dataProvider}  customReducers={{ admin2: bcR }} authProvider={authProvider} >
+        <AdminContext loginPage={LoginPage} dataProvider={dataProvider}  customReducers={{ admin2: bcR }} authProvider={authProvider} disableTelemetry>
             <AsyncResources />
         </AdminContext>
     );
