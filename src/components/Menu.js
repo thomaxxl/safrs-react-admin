@@ -77,7 +77,6 @@ export const Menu = (props) => {
                     sidebarIsOpen={open}
                 />
             ))}
-            <DashboardMenuItem to={'/Configuration'}/>
         </RAMenu>
     );
 };

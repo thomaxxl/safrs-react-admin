@@ -2,7 +2,6 @@ import * as React from "react";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import { Title } from 'react-admin';
-import { useNotify, useRedirect } from 'react-admin';
 import { useState} from 'react';
 import Script from "react-load-script";
 import {get_Conf} from '../Config.js'
@@ -35,17 +34,17 @@ const Content = () => <div >
     </p>
 </div>
 
-const Demo = ({ready, cb}) => {
+const Demo = ({ready, config}) => {
 
     const [content, setContent] = useState(false);
     if (ready && content === false && window.getContent) {
-        setContent(window.getContent())
+        setContent(window.getContent(config))
     }
     return content ? <div dangerouslySetInnerHTML={{__html: content }} /> : <Content/>
 }
 
 const Home = (props) => {
-    console.log(props)
+    document.title = ""
     const { classes } = props;
     const config = get_Conf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -59,7 +58,7 @@ const Home = (props) => {
                         onLoad={()=>setScriptLoaded(true)}
                     />
                     <span className={classes.home}>
-                        <Demo  ready={scriptLoaded} />
+                        <Demo  ready={scriptLoaded} config={config}/>
                     </span>
             </CardContent>
             </Card>

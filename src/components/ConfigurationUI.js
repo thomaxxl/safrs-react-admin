@@ -130,8 +130,9 @@ export const LoadYaml = (config_url, notify) => {
             notify("Loaded configuration")
         })
         .catch((err)=>{
-                if(notify)
-                    {notify("Failed to load yaml", { type : 'warning' })}
+                if(notify){
+                        notify("Failed to load yaml", { type : 'warning' })
+                }
                 console.error(`Failed to load yaml from ${config_url}: ${err}`)
         })
     
@@ -281,6 +282,9 @@ export const resetConf = (notify) => {
 
 const ConfigurationUI = () => {
 
+    const classes = useStyles();
+    const notify = useNotify();
+
     const saveYaml = (ystr, ev) => {
         try{
             const jj = yaml.load(ystr)
@@ -289,6 +293,7 @@ const ConfigurationUI = () => {
         }
         catch(e){
             console.warn(`Failed to process`, ystr)
+            notify(`${e}`, { type: "warning"})
             setBgColor("red");
         }
     }
@@ -311,9 +316,6 @@ const ConfigurationUI = () => {
         }
         setTaConf(text)
     }
-
-    const classes = useStyles();
-    const notify = useNotify();
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(resetConf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");

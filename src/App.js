@@ -7,6 +7,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
 import ConfigurationUI, {LoadYaml} from './components/ConfigurationUI'
+import Dashboard from './pages/Dashboard';
 import {get_Conf} from './Config'
 import { Layout }  from './components/Layout';
 import { put, takeEvery } from 'redux-saga/effects';
@@ -15,6 +16,7 @@ import createAdminStore from './createAdminStore';
 import { Provider } from 'react-redux';
 import { createHashHistory } from 'history';
 import SettingsIcon from '@material-ui/icons/Settings';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import authProvider from './authprovider';
 import LoginPage from './pages/LoginPage';
 import { cacheDataProviderProxy } from 'react-admin'; 
@@ -68,6 +70,7 @@ const AsyncResources = () => {
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
             <Resource name="Configuration" show={ConfigurationUI} list={ConfigurationUI} options={{ label: 'Configuration' }} icon={SettingsIcon}/>
             {resources.map(resource => <DynResource name={resource.name} key={resource.name} />)}
+            <Resource name="Dashboard" show={Dashboard} list={Dashboard} options={{ label: 'Dashboard' }} icon={DashboardIcon}/>
 
         </AdminUI>
         </Provider>
