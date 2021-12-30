@@ -125,8 +125,15 @@ export const LoadYaml = (config_url, notify) => {
 
     fetch(config_url, {cache: "no-store"})
         .then((response) => response.text())
-        .then((conf_str) => saveConf(conf_str))
-        .catch((err)=>console.error(`Failed to load yaml from ${config_url}: ${err}`))
+        .then((conf_str) => {
+            saveConf(conf_str)
+            notify("Loaded configuration")
+        })
+        .catch((err)=>{
+                if(notify)
+                    {notify("Failed to load yaml", { type : 'warning' })}
+                console.error(`Failed to load yaml from ${config_url}: ${err}`)
+        })
     
 }
 
@@ -257,7 +264,8 @@ const saveConfig = () => {
     window.location.reload()
 }
 
-export const resetConf = () => {
+export const resetConf = (notify) => {
+    
     const configs = {}
     let defconf = {}
     
@@ -267,7 +275,7 @@ export const resetConf = () => {
     }
     localStorage.setItem("raconf", JSON.stringify({}));
     localStorage.setItem("raconfigs", JSON.stringify(configs));
-    LoadYaml(als_yaml_url)
+    LoadYaml(als_yaml_url, notify)
     return defconf
 }
 
@@ -305,6 +313,7 @@ const ConfigurationUI = () => {
     }
 
     const classes = useStyles();
+    const notify = useNotify();
 
     let conf = localStorage.getItem("raconf") ||  JSON.stringify(resetConf())
     const [taConf, setTaConf] = useState(conf ? JSON.stringify(JSON.parse(conf), null, 4) : "");
@@ -324,7 +333,7 @@ const ConfigurationUI = () => {
                     <ConfSelect/>
                     <ManageModal/>
                     <Button className={classes.widget} onClick={()=> saveEdit("{}")} color="primary" >Clear</Button>
-                    <Button className={classes.widget} onClick={()=> resetConf()} color="primary" >Reset</Button>
+                    <Button className={classes.widget} onClick={()=> resetConf(notify)} color="primary" >Reset</Button>
                     <Button className={classes.widget} onClick={()=> window.location.reload()} color="primary" >Apply</Button>
                     <Button className={classes.widget} onClick={()=> saveConfig()} color="primary" >Save</Button>
                     <FormControlLabel
