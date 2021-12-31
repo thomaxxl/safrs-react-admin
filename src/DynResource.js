@@ -44,6 +44,7 @@ import { useNotify, useRedirect } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
 import { Switch, Route } from "react-router-dom";
 import DynInput from "./components/DynInput.js";
+import {useHistory} from "react-router-dom";
 
 
 import { updateJsxAttribute } from "typescript";
@@ -327,6 +328,7 @@ export const gen_DynResourceEdit = (resource) => {
         const refresh = useRefresh();
         const redirect = useRedirect();
         const classes = useStyles();
+        const history = useHistory();
 
         const onFailure = (error) => {
             notify(`Error Saving Changes`,  { type: 'warning' })
@@ -336,7 +338,8 @@ export const gen_DynResourceEdit = (resource) => {
 
         const onSuccess = () => {
             notify(`Changes Saved`);
-            redirect('show', props.basePath, props.id);
+            //redirect('show', props.basePath, props.id);
+            history.goBack()
             refresh();
         }
     
