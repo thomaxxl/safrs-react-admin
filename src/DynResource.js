@@ -355,12 +355,25 @@ export const gen_DynResourceEdit = (resource) => {
 
 export const gen_DynResourceCreate = (resource) => (props) => {
 
+    const refresh = useRefresh();
+    const redirect = useRedirect();
+    const classes = useStyles();
+    const history = useHistory();
+    const notify = useNotify();
+
     if(resource.create){
         const CreateComp = get_Component(resource.create)
         console.log({resource})
         return <CreateComp resource_name={resource.name} {...props}></CreateComp>
     }
-    return <Create {...props}>
+
+    const onSuccess = () => {
+        notify(`Changes Saved`);
+        history.goBack()
+        refresh();
+    }
+
+    return <Create {...props} onSuccess={onSuccess}>
         <SimpleForm>
             <Grid container spacing={3} margin={5} m={400} style={{ width: "100%" }}>
                 {resource.attributes.map((col) => <DynInput attribute={col} resource={resource} key={col.name}/> )}
