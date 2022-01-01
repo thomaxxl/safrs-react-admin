@@ -10,7 +10,6 @@ const conf : { [ key: string] : any } = get_Conf();
 const duration = 2000;
 
 const prepareAttributes = (attributes : any, resource : any) => {
-
     // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
     const resource_attr_rels = conf.resources[resource].attributes?.map( (attr : any) => attr.relationship ? attr.name : null)    
     const m_attrs = Object.assign({}, attributes)
@@ -21,7 +20,6 @@ const prepareAttributes = (attributes : any, resource : any) => {
       }
     }
     return m_attrs
-
 }
 
 const prepareQueryFilter = (query: any, ids : any, fks : any) => {
@@ -35,7 +33,7 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
   else{
     // fk probably contains an underscore
     // todo: how to fix???
-    console.warn("Wrong FK length ", ids, fks)
+    console.warn("Wrong FK length.. ", ids, fks)
     query[`filter[${fks[0]}]`] = ids && ids.length ? ids[0] : ""
   }
 }

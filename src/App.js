@@ -69,8 +69,11 @@ const AsyncResources = () => {
             
             <Resource name="Home" show={Home} list={Home} options={{ label: 'Home' }} icon={HomeIcon}/>
             <Resource name="Configuration" show={ConfigurationUI} list={ConfigurationUI} options={{ label: 'Configuration' }} icon={SettingsIcon}/>
-            {resources.map(resource => <DynResource name={resource.name} key={resource.name} />)}
-            <Resource name="Dashboard" show={Dashboard} list={Dashboard} options={{ label: 'Dashboard' }} icon={DashboardIcon}/>
+            {
+                resources.map(resource => <DynResource name={resource.name} key={resource.name} />)
+                // <Resource name="Dashboard" show={Dashboard} list={Dashboard} options={{ label: 'Dashboard' }} icon={DashboardIcon}/>
+            }
+            
 
         </AdminUI>
         </Provider>
