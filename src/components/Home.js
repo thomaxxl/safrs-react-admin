@@ -6,6 +6,9 @@ import { useState} from 'react';
 import Script from "react-load-script";
 import {get_Conf} from '../Config.js'
 import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import {Link} from "react-router-dom";
+import { resetConf } from "./ConfigurationUI";
 
 const styles = {
     home: {fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'},
@@ -48,6 +51,15 @@ const Home = (props) => {
     const { classes } = props;
     const config = get_Conf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
+    const [initialized, setInitialized] = useState(false)
+	
+    if(!initialized && !config.settings){
+        resetConf()
+        setInitialized(true)
+    }
+    const init = config.settings ? null : <Link to={{ pathname: "/configuration" }}>
+                                            <Button variant="contained" color="link"> Initialize Configuration</Button>
+                                        </Link>
     
     return <Card>
             <Title title="Home" />
@@ -60,6 +72,8 @@ const Home = (props) => {
                     <span className={classes.home}>
                         <Demo  ready={scriptLoaded} config={config}/>
                     </span>
+                    {init}
+
             </CardContent>
             </Card>
 }
