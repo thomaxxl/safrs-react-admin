@@ -45,8 +45,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Switch, Route } from "react-router-dom";
 import DynInput from "./components/DynInput.js";
 import {useHistory} from "react-router-dom";
-
-
 import { updateJsxAttribute } from "typescript";
 import { configure } from "@testing-library/react";
 
@@ -283,7 +281,6 @@ const DeleteButton = (props) => {
 
 export const gen_DynResourceList = (resource) => (props) => {
 
-    document.title = resource.label || resource.name
     const ButtonField = (props) => {
         let filtered_props = {}
         for(let [k, v] of Object.entries(props)){
@@ -306,6 +303,7 @@ export const gen_DynResourceList = (resource) => (props) => {
     const fields = attr_fields(attributes);
     const col_nr = resource.max_list_columns
     const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
+    document.title = resource.label || resource.name
 
     return <List filters={searchFilters} perPage={resource.perPage || 25}
                 pagination={<DynPagination/>}
@@ -606,13 +604,16 @@ export const DynResource = (props) => {
     window.addEventListener("storage", ()=>window.location.reload())
     const [, updateState] = React.useState();
     const [resource_conf, setConf] = useState(conf.resources[props.name])
-
-    // Crud components:
     const List= useMemo(()=> gen_DynResourceList(resource_conf), [resource_conf])
     const Create = useMemo(()=> gen_DynResourceCreate(resource_conf), [resource_conf])
     const Edit = useMemo(()=> gen_DynResourceEdit(resource_conf), [resource_conf])
     const Show = useMemo(()=> gen_DynResourceShow(resource_conf), [resource_conf])
-
-    return <Resource key={props.name} {...props} list={List} edit={Edit} create={Create} show={Show} options={{ label: resource_conf.label || props.name }}/>
+    let options = {}
+    if(resource_conf.label && resource_conf.label != resource_conf.name){
+        //adding a label works, but causes a full rerender of the component which may not be desirable
+        options={label: resource_conf.label}
+        return <Resource key={props.name} list={List} edit={Edit} create={Create} show={Show} options={options} {...props}/>
+    }
+    return <Resource key={props.name} list={List} edit={Edit} create={Create} show={Show} {...props}/>
 }
 
