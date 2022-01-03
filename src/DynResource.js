@@ -435,50 +435,65 @@ const ShowField = ({ label, value }) => {
     )
 };
 
-
 const DynRelationshipOne = (resource, id, relationship) => {
     
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
+    const { loaded, error, data } = useQueryWithStore({
+        type: 'getOne',
+            resource: resource,
+            payload: { id: id }
+        })
+    let tab_content = " - "
+    if (!loaded) { 
+        tab_content = <Loading key={relationship.name}/>; 
+    }
+    else if (error) { 
+        tab_content = <Error key={relationship.name}/>; 
+    }
+    else if(data[relationship.name]?.data === null){
+        tab_content = "Empty"
+    }
+    else if(data && data[relationship.name]?.type && data[relationship.name].type === relationship?.target_resource?.type){
+        tab_content = <RelatedInstance instance={data[relationship.name]} />
+    }
+    else if(data[relationship.name]?.data){
+        // todo: might be obsolote, tbd
+        // todo: fix the data provider so we can simplify this conditional and use <RelatedInstance> instead
+        const rel_resource = type2resource(data[relationship.name].data?.type)
+        const rel_id = data[relationship.name]?.data?.id
+        if(!rel_resource){
+            console.log(data)
+            console.warn(`Related resource not found ${resource}.${relationship.name}`)
+        }
+        else{
+            tab_content = <LoadingRelatedInstance rel_resource={rel_resource} rel_id={rel_id}/>
+        }
+    }
     
-    useEffect(() => {
-        dataProvider.getOne(resource, { id: id })
-            .then(({ data }) => {
-                const rel_resource = type2resource(data[relationship.name]?.data?.type)
-                const rel_id = data[relationship.name]?.data?.id
-                if(!rel_resource){
-                    console.log(data)
-                    console.warn(`Related resource not found ${resource}.${relationship.name}`)
-                }
-                return { rel_resource: rel_resource, rel_id: rel_id }
-            })
-            .then(({rel_resource, rel_id}) => {
-                if(!rel_resource){
-                    setLoading(false);
-                    return {}
-                }
-                dataProvider.getOne(rel_resource, { id: rel_id }).then(({data}) =>
-                {
-                    console.log(data)
-                    return setRelated(data)
-                }
-                )
-                .then(()=>console.log(related))
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error(error)
-                setError(error);
-                setLoading(false);
-            })
-    }, []);
-
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
-                <RelatedInstance instance={related} />
+                {tab_content}
            </Tab>
 }
+
+const LoadingRelatedInstance = ({rel_resource, rel_id}) =>{
+    // obsolete?
+    console.log('LoadingRelatedInstance', {rel_resource}, {rel_id})
+    const { loaded, error, data } = useQueryWithStore({
+        type: 'getOne',
+            resource: rel_resource,
+            payload: { id: rel_id }
+    })
+    if (!loaded) { 
+        return <Loading />; 
+    }
+    if (error) { 
+        return <Error />; 
+    }
+    return <RelatedInstance instance={data} />
+}
+
 
 const DynRelationshipMany = (resource_name, id, relationship) => {
 

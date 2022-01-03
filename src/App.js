@@ -34,8 +34,9 @@ const bcR =  (previousState = 0, { type, payload }) => {
 }
 
 const conf = get_Conf();
+const cache_duration = conf?.settings?.cache_duration || 100000
 //const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
-const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}), 2000); // 2000ms caching
+const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}), ); //  caching
 
 
 const AsyncResources = () => {

@@ -41,7 +41,7 @@ export function LoginPage(props) {
   const [password, setpassword] = useState("p");
   const [loaded, setLoaded] = useState(false)
 
-  fetch(`https://jsonapi.hardened.be/p4?load=`).finally(()=>setLoaded(true))
+  fetch(`https://jsonapi.hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
 
   const submit = (e) => {
     e.preventDefault();

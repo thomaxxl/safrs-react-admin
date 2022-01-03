@@ -47,12 +47,32 @@ const type2resource = (type) => {
 }
 
 
+const instance2store = (instance, result) => {
+
+    if(!instance?.relationships){
+        return result
+    }
+    for(let [rel_name , rel] of Object.entries(instance.relationships)){
+        if(!rel?.data){
+            continue
+        }
+        let rel_resource_name = type2resource(rel.data?.type)
+        if(rel_resource_name){
+            if(Array.isArray(rel.data)){
+                instance.relationships[rel_name] = instance[rel_name] = rel.data.map(rel_inst => result['resources'][rel_resource_name][rel_inst.id])
+            }
+            else if(rel.data?.id){
+                // link toone resources
+                instance.relationships[rel_name] = instance[rel_name] = result['resources'][rel_resource_name][rel.data.id]
+            }
+        }
+    }
+    return result
+}
+
 const adminReducerWrapper = (previousState, action) => {
     
-    const result = adminReducer(previousState, action)
-    const duration = 2000
-    const validUntil = new Date();
-    validUntil.setTime(validUntil.getTime() + duration);
+    let result = adminReducer(previousState, action)
     
     if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
@@ -68,7 +88,6 @@ const adminReducerWrapper = (previousState, action) => {
             if(!result['resources'][resource_name]){
                 result['resources'][resource_name] = {}
             }
-            instance.validUntil = validUntil
             result['resources'][resource_name][instance.id] = instance;
             inc_resources.add(resource_name)
         }
@@ -84,31 +103,15 @@ const adminReducerWrapper = (previousState, action) => {
             getList, getMany etc .. check action.type
         */
         let data = action.payload.data
-        action.payload.validUntil = validUntil
         if(Array.isArray(action.payload.included)){
             //data += action.payload.included
         }
         for(let instance of data){
-            instance.validUntil = validUntil
-            if(!instance.relationships){
-                continue;
-            }
-            for(let [rel_name , rel] of Object.entries(instance.relationships)){
-                let rel_resource_name = type2resource(rel.data?.type)
-                if(rel_resource_name){
-                    if(Array.isArray(rel.data)){
-                        instance.relationships[rel_name] = instance[rel_name] = rel.data.map(rel_inst => result['resources'][rel_resource_name][rel_inst.id])
-                    }
-                    else if(rel.data?.id){
-                        // link toone resources
-                        instance.relationships[rel_name] = instance[rel_name] = result['resources'][rel_resource_name][rel.data.id]
-                    }
-                }
-            }
+            result = instance2store(instance, result)
         }
     }
     else if(action.payload?.data?.type){
-
+        result = instance2store(action.payload.data, result)
     }
     
     result.loading = 0 // todo!!
