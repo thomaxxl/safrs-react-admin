@@ -60,6 +60,7 @@ export const jsonapiClient = (
      * getList
      *******************************************************************************************/
     getList: (resource, params) => {
+      console.log(params)
       /*todo: rename resource to resource_name*/
       const resource_name = resource;
       const { page, perPage } = params.pagination;

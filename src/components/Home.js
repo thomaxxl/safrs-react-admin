@@ -9,6 +9,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import {resetConf} from "./ConfigurationUI";
 import CustomizedAccordions from "./ValH"
+import { useDataProvider } from 'react-admin';
 
 import {
   BrowserRouter as Router,
@@ -64,8 +65,23 @@ const Home = (props) => {
     const config = get_Conf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const [initialized, setInitialized] = useState(false)
+    const [resourcesLoaded, setResourcesLoaded] = useState([])
+    const dataProvider = useDataProvider();
 	let query = useQuery();
 
+    for(let [resource_name, resource] of Object.entries(config.resources)){
+        console.log(`prefetch ${resource_name}`)
+        dataProvider.getList(resource.name, 
+            {
+                pagination: { page: 1, perPage: resource.perPage || 25 },
+                sort: { field: resource.sort?.field , order: resource.sort?.order || 'ASC' },
+                filter : {}
+            })
+            .then(()=>{
+            resourcesLoaded.push(resource.name)
+            setResourcesLoaded(resourcesLoaded)
+        })
+    }
     if(query.get("content")){
         return <CustomizedAccordions/>
     }
