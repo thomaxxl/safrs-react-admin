@@ -29,6 +29,7 @@ import { useRefresh } from 'react-admin';
 import { useDataProvider } from 'react-admin';
 import { FunctionField } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
+import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import EditIcon from "@material-ui/icons/Edit";
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import {get_Conf} from './Config.js'
@@ -47,6 +48,7 @@ import DynInput from "./components/DynInput.js";
 import {useHistory} from "react-router-dom";
 import { updateJsxAttribute } from "typescript";
 import { configure } from "@testing-library/react";
+import Tooltip from '@mui/material/Tooltip';
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -55,7 +57,8 @@ const conf = get_Conf();
 const useStyles = makeStyles({
     join_attr: {color: '#3f51b5;'},
     delete_icon : {fill: "#3f51b5"},
-    edit_grid : { width: "100%" }
+    edit_grid : { width: "100%" },
+    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"}
 });
 
 const searchFilters = [
@@ -205,6 +208,22 @@ const JoinedField = ({attribute, join}) => {
     return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={join.target}/>
 }
 
+const RelLabel = ({text}) => {
+    // Relationship column header label
+    const classes = useStyles()
+
+    let label = <Tooltip title={text + " Relationship"} placement="top-start" arrow>
+                    <span style={{ display: "inline-flex"}}>
+                            {text}
+                            <DensityMediumIcon 
+                                className={classes.rel_icon} style={{width: "0.7rem", height: "0.7rem", paddingTop: "0.5rem"}} 
+                            />
+                            
+                    </span>
+                </Tooltip>
+    return label
+}
+
 
 const attr_fields = (attributes, ...props) => {
 
@@ -218,7 +237,8 @@ const attr_fields = (attributes, ...props) => {
                 return null;
             }
             if(attr.relationship?.direction == "toone"){
-                let label = attr.label || attr.relationship.resource || attr.name
+                const label_text = attr.label || attr.relationship.resource || attr.name
+                const label = <RelLabel text={label_text} />
                 return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
             }
             return AttrField({attribute: attr, ...props})
@@ -399,17 +419,69 @@ const ShowRecordField = ({ source }) => {
 };
 
 
+const InfoPopover = ({label, content}) => {
+    const [anchorEl, setAnchorEl] = React.useState(null);
+  
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+  
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
+    const showInfo = (event) => {
+        setAnchorEl(event.currentTarget);   
+    }
+  
+    const open = Boolean(anchorEl);
+    const id = open ? 'simple-popover' : undefined;
+  
+    if(!content){
+        return label
+    }
+    return (
+      <div>
+        <span onClick={handleClick} onMouseOver={showInfo}>
+          {label}
+        </span>
+        <Popover
+          id={id}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+        >
+          <Typography sx={{ p: 2 }}>{content}</Typography>
+        </Popover>
+      </div>
+    );
+}
+
 const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
-    const label =  attr.label || attr_name
-    
-    if(!attr.relationship){
-        return <ShowField label={label} value={value}/>
+    const classes = useStyles();
+    let label =  <InfoPopover label={attr.label || attr_name} content={attr.info}/>
+    let field = <ShowField label={label} value={value}/>
+    if(attr.relationship){
+        // todo: make the onClick handler open the right tab
+        const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
+        const rel_label = <span style={{ display: "inline-flex"}}>
+                                {label}
+                                <DensityMediumIcon 
+                                    className={classes.rel_icon} style={{width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem"}}
+                                />
+                                
+                    </span>
+        field = <ShowField label={rel_label} value={jf} />       
     }
-    // todo: make the onClick handler open the right tab
-    const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
-    return <ShowField label={attr.label? attr.label: attr.name + " (R)"} value={jf} />
+    return field
+    //return <Tooltip title={" field"} placement="top-start" arrow>{field}</Tooltip>
 }
+    
 
 const ShowField = ({ label, value }) => {
     if(value && !React.isValidElement(value) && typeof value == "object"){
@@ -531,7 +603,7 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
         Render the datagrid, this is similar to the grid in gen_DynResourceList
         todo: merge these into one component
     */
-    const attributes = target_resource.attributes.filter(col => col.relationship?.target !== resource_name) // ignore relationships pointing back to the parent resource
+    let attributes = target_resource.attributes.filter(attr => attr.relationship?.target !== resource_name) // ignore relationships pointing back to the parent resource
     const fields = attr_fields(attributes);
     const col_nr = target_resource.max_list_columns
     const fk = relationship.fks.join('_')

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { useRef, Component } from 'react'
 import { TextareaAutosize, TextField } from '@material-ui/core';
@@ -293,7 +293,7 @@ const ConfigurationUI = () => {
         }
         catch(e){
             console.warn(`Failed to process`, ystr)
-            notify(`${e}`, { type: "warning"})
+            //notify(`${e}`, { type: "warning"})
             setBgColor("red");
         }
     }
@@ -328,7 +328,7 @@ const ConfigurationUI = () => {
         setAutosave(event.target.checked);
     };
 
-    const Editor = React.lazy(() => import('@uiw/react-monacoeditor'))
+    const Editor = useMemo(()=> React.lazy(() => import('@uiw/react-monacoeditor')), ["monaco"])
     
     return <div>
                 <div>
@@ -374,13 +374,4 @@ const ConfigurationUI = () => {
             </div>
 }
 
-
-/*const ta = <TextareaAutosize
-variant="outlined"
-minRows={3}
-className={classes.textInput}
-style={{ backgroundColor : bgColor }}
-value= {taConf}
-onChange={(evt)=>saveEdit(evt.target.value)}
-/>*/
 export default ConfigurationUI

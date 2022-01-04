@@ -64,32 +64,36 @@ export default function CustomizedAccordions() {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
-        <AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
-          <Typography>Collapsible Group Item #2</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-            malesuada lacus ex, sit amet blandit leo lobortis eget. Lorem ipsum dolor
-            sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-            sit amet blandit leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-        <AccordionSummary aria-controls="panel3d-content" id="panel3d-header">
-          <Typography>Collapsible Group Item #3</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-            malesuada lacus ex, sit amet blandit leo lobortis eget. Lorem ipsum dolor
-            sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-            sit amet blandit leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
+      <div >
+        <h2>Welcome to API Logic Server - PA</h2>
+      </div>
+      <h3><a   rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/blob/main/README.md/" target="_blank">API Logic Server</a>
+      creates <i>customizable</i> systems, instantly from your
+      <a  href="https://github.com/valhuber/ApiLogicServer/wiki/Sample-Database" target="_blank">database:</a>
+      </h3>
+      <h4>1. Automatic Admin App</h4>
+      <ul>
+         <li>For instant collaboration and Back Office data maintenance</li>
+         <li>Rich functionality: multi-page, multi-table</li>
+         <li><a  href="https://github.com/valhuber/ApiLogicServer/wiki/Admin-Tour/" target="_blank">Explore</a> this Admin App,
+              and how to <a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Working-with-the-Admin-App" target="_blank">customize it</a></li>
+      </ul>
+      <h4>2. API, with <a  href="/api" target="_blank">oas/Swagger</a></h4>
+      <ul>
+         <li>For custom app dev, integration</li>
+         <li>Rich functionality: endpoint for each table, with filtering, pagination, related data</li>
+         <li><a rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki#customize-the-api-with-expose_servicespy-add-rpcs-services" target="_blank">Customizable</a>: add your own endpoints</li>
+      </ul>
+      <h4>3. Business Logic, for <span title="Often nearly half the app -- automation required"><span>backend processing</span> </span></h4>
+      <ul>
+         <li>Spreadsheet-like rules for multi-table derivations and constraints</li>
+         <li>Extensible with Python events for email, messages, etc</li>
+         <li><a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Logic:-Rules-plus-Python" target="_blank">Explore</a>
+             how logic can meaningfully improve
+             <a  rel="nofollow" href="https://github.com/valhuber/LogicBank/wiki/by-code" title="Rules are 40X more concise than code, and address over 95% of database logic" target="_blank">conciseness</a>
+             and quality</li>
+      </ul>
+
     </div>
   );
 }
