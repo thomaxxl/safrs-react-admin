@@ -3,6 +3,7 @@ import React from "react";
 import { useState, useEffect, useMemo} from 'react';
 import { List,
     Datagrid,
+    EditableDatagrid ,
     TextField,
     DateField,
     EditButton,
@@ -49,6 +50,7 @@ import {useHistory} from "react-router-dom";
 import { updateJsxAttribute } from "typescript";
 import { configure } from "@testing-library/react";
 import Tooltip from '@mui/material/Tooltip';
+import { AttachmentRounded } from "@mui/icons-material";
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -329,10 +331,10 @@ export const gen_DynResourceList = (resource) => (props) => {
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
                 {...props} >
-                <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
+                <EditableDatagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
                     <ButtonField resource={resource} {...props} />
-                </Datagrid>
+                </EditableDatagrid>
             </List>
 };
 
@@ -604,6 +606,8 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
         todo: merge these into one component
     */
     let attributes = target_resource.attributes.filter(attr => attr.relationship?.target !== resource_name) // ignore relationships pointing back to the parent resource
+    attributes = relationship.attributes ? attributes.filter(attr => relationship.attributes.find(r_attr=> r_attr.name == attr.name)) : attributes
+    
     const fields = attr_fields(attributes);
     const col_nr = target_resource.max_list_columns
     const fk = relationship.fks.join('_')
