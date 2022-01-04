@@ -3,12 +3,12 @@ import React from "react";
 import { useState, useEffect, useMemo} from 'react';
 import { List,
     Datagrid,
-    EditableDatagrid ,
     TextField,
     DateField,
     EditButton,
     ShowButton
 } from "react-admin";
+
 import Grid from '@material-ui/core/Grid';
 import { Resource, TabbedShowLayout, Tab } from 'react-admin';
 import {
@@ -23,7 +23,7 @@ import {
   ReferenceManyField,
   useRecordContext,
   Link,
-  Confirm
+  Confirm,
 } from "react-admin";
 import { Typography } from '@material-ui/core';
 import { useRefresh } from 'react-admin';
@@ -45,12 +45,11 @@ import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { useNotify, useRedirect } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
 import { Switch, Route } from "react-router-dom";
-import DynInput from "./components/DynInput.js";
 import {useHistory} from "react-router-dom";
 import { updateJsxAttribute } from "typescript";
 import { configure } from "@testing-library/react";
 import Tooltip from '@mui/material/Tooltip';
-import { AttachmentRounded } from "@mui/icons-material";
+import AttrForm from "./components/AttrForm.js";
 
 //import {ExtComp} from './components/ExtComp';
 
@@ -331,10 +330,10 @@ export const gen_DynResourceList = (resource) => (props) => {
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
                 {...props} >
-                <EditableDatagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
+                <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
                     <ButtonField resource={resource} {...props} />
-                </EditableDatagrid>
+                </Datagrid>
             </List>
 };
 
@@ -364,24 +363,21 @@ export const gen_DynResourceEdit = (resource) => {
         }
     
         return <Edit {...props} onFailure={onFailure} onSuccess={onSuccess}  mutationMode="pessimistic">
-            <SimpleForm>
-                <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                    {attributes.map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
-                </Grid>
-            </SimpleForm>
+            <AttrForm attributes={attributes} />
         </Edit>
     }
     return Result;
 }
 
 
+
 export const gen_DynResourceCreate = (resource) => (props) => {
 
     const refresh = useRefresh();
     const redirect = useRedirect();
-    const classes = useStyles();
     const history = useHistory();
     const notify = useNotify();
+    const attributes = resource.attributes
 
     if(resource.create){
         const CreateComp = get_Component(resource.create)
@@ -396,12 +392,8 @@ export const gen_DynResourceCreate = (resource) => (props) => {
     }
 
     return <Create {...props} onSuccess={onSuccess}>
-        <SimpleForm>
-            <Grid container spacing={3} margin={5} m={400} style={{ width: "100%" }}>
-                {resource.attributes.map((col) => <DynInput attribute={col} resource={resource} key={col.name}/> )}
-            </Grid>
-        </SimpleForm>
-    </Create >
+                <AttrForm attributes={attributes} />
+            </Create >
 };
 
 
