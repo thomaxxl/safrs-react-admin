@@ -94,7 +94,7 @@ export default function CustomizedAccordions() {
       <Typography><br></br>
       1.&nbsp;
           <a href="https://github.com/valhuber/ApiLogicServer/wiki/Admin-Tour/" target="_blank">Automatic Admin App</a>
-          &nbsp;, you are running it now
+          , you are running it now
       <ul>
          <li>For instant collaboration and Back Office data maintenance</li>
          <li>Rich functionality: multi-page, multi-table, automatic joins</li>
