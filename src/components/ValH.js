@@ -64,7 +64,7 @@ export default function CustomizedAccordions() {
         <AccordionDetails>
           <Typography>
           <ul>
-            <li><i>Automation: </i>create executable systems with this single command...
+            <li><i>Automated: </i>create executable systems with this single command...
               <pre>
               &nbsp;&nbsp;&nbsp;ApiLogicServer <strong>create-and-run</strong> \<br></br>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--project_name=ApiLogicProject \  # customize with Python and your IDE<br></br>
