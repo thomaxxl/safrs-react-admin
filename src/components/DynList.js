@@ -94,8 +94,7 @@ const InfoModal = ({label, resource}) => {
     const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
   
-    return (
-      <span>
+    return <>
         <span onClick={handleOpen} title={`${resource.name} Info`}>{label} </span>
         <Modal
           open={open}
@@ -104,14 +103,12 @@ const InfoModal = ({label, resource}) => {
           aria-describedby="modal-modal-description"
         >
           <Box sx={style}>
-          <HelpOutlineIcon />
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
               {resource.info}
             </Typography>
           </Box>
         </Modal>
-      </span>
-    );
+      </>
 }
 
 const ListActions = ({resource}) => {
