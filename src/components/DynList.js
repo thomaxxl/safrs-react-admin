@@ -27,7 +27,10 @@ import {InfoPopover} from '../util'
 import { Modal, Box  } from "@material-ui/core";
 
 const useStyles = makeStyles({
-    icon : {color: '#3f51b5'}
+    icon : {color: '#ccc',
+            '&:hover' : {color: '#3f51b5'}
+            },
+    delete_icon : {color: '#3f51b5'}
 });
 
 const searchFilters = [
@@ -93,7 +96,7 @@ const InfoModal = ({label, resource}) => {
   
     return (
       <span>
-        <span onClick={handleOpen} className="JoinedField" title={`${resource.name} Info`}>{label} </span>
+        <span onClick={handleOpen} title={`${resource.name} Info`}>{label} </span>
         <Modal
           open={open}
           onClose={handleClose}
@@ -122,9 +125,10 @@ const ListActions = ({resource}) => {
 
     return <TopToolbar>
                 <FilterButton/>
+                {info_btn}
                 <CreateButton/>
                 <ExportButton/>
-                {info_btn}
+                
             </TopToolbar>
 }
 
