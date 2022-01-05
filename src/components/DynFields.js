@@ -8,20 +8,20 @@ import {
     FunctionField } from 'react-admin';
 import Grid from '@material-ui/core/Grid';
 import { Typography } from '@material-ui/core';
-    
+
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useState, useEffect, useMemo} from 'react';
 import Tooltip from '@mui/material/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
-import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
 import { get_Conf } from '../Config';
 import JoinModal from './JoinModal'
 import { load_custom_component } from '../util';
 import { RelatedInstance } from "./DynInstance";
 import loadable from '@loadable/component'
+import {InfoPopover} from '../util'
 
 const conf = get_Conf();
 
@@ -50,48 +50,6 @@ const RelLabel = ({text}) => {
     return label
 }
 
-
-const InfoPopover = ({label, content}) => {
-    const [anchorEl, setAnchorEl] = React.useState(null);
-  
-    const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
-    };
-  
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
-
-    const showInfo = (event) => {
-        setAnchorEl(event.currentTarget);   
-    }
-  
-    const open = Boolean(anchorEl);
-    const id = open ? 'simple-popover' : undefined;
-  
-    if(!content){
-        return label
-    }
-    return (
-      <div>
-        <span onClick={handleClick} onMouseOver={showInfo}>
-          {label}
-        </span>
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-          }}
-        >
-          <Typography sx={{ p: 2 }}>{content}</Typography>
-        </Popover>
-      </div>
-    );
-}
 
 
 const ShowField = ({ label, value }) => {

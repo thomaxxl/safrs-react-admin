@@ -1,3 +1,5 @@
+import React from "react";
+import { Typography } from '@material-ui/core';
 import { 
     Datagrid,
     TextField,
@@ -19,15 +21,13 @@ import { DynPagination } from "../util.js";
 import { makeStyles } from '@material-ui/core/styles';
 import DeleteIcon from "@material-ui/icons/Delete";
 import { DetailPanel } from "./DynInstance.js";
-import { ListActions, FilterButton } from 'react-admin';
-import IconEvent from '@material-ui/icons/Event';
-
+import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import {InfoPopover} from '../util'
+import { Modal, Box  } from "@material-ui/core";
 
 const useStyles = makeStyles({
-    join_attr: {color: '#3f51b5;'},
-    delete_icon : {fill: "#3f51b5"},
-    edit_grid : { width: "100%" },
-    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"}
+    icon : {color: '#3f51b5'}
 });
 
 const searchFilters = [
@@ -51,7 +51,6 @@ const DeleteButton = (props) => {
     const refresh = useRefresh();
     const record = useRecordContext();
     const classes = useStyles();
-
     
     return <span>
             <FunctionField title="Delete"
@@ -71,20 +70,63 @@ const DeleteButton = (props) => {
             </span>
 }
 
-const ListActions = (props) => (
-    <TopToolbar>
-        <FilterButton/>
-        <CreateButton/>
-        <ExportButton/>
-        {/* Add your custom actions */}
-        <Button
-            onClick={() => { alert('Your custom action'); }}
-            label="Show calendar"
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: "75%",
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    textAlign: "left"
+  };
+  
+  
+  
+const InfoModal = ({label, resource}) => {
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
+    const handleClose = (e) => {e.stopPropagation();setOpen(false);}
+  
+    return (
+      <span>
+        <span onClick={handleOpen} className="JoinedField" title={`${resource.name} Info`}>{label} </span>
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
         >
-            <IconEvent/>
-        </Button>
-    </TopToolbar>
-);
+          <Box sx={style}>
+          <HelpOutlineIcon />
+            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+              {resource.info}
+            </Typography>
+          </Box>
+        </Modal>
+      </span>
+    );
+}
+
+const ListActions = ({resource}) => {
+    
+    const classes = useStyles();
+    let info_btn;
+    if(resource.info){
+        const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
+        info_btn= <InfoModal label={label} resource={resource}/>
+    }
+
+    return <TopToolbar>
+                <FilterButton/>
+                <CreateButton/>
+                <ExportButton/>
+                {info_btn}
+            </TopToolbar>
+}
 
 
 const gen_DynResourceList = (resource) => (props) => {
@@ -114,6 +156,7 @@ const gen_DynResourceList = (resource) => (props) => {
     document.title = resource.label || resource.name
 
     return <List filters={searchFilters} perPage={resource.perPage || 25}
+                actions={<ListActions resource={resource}/>}
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
                 {...props} >

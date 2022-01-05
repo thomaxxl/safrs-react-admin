@@ -1,6 +1,9 @@
+import React from "react";
+import { Typography } from '@material-ui/core';
 import { get_Conf } from "./Config";
 import {Pagination }  from 'react-admin'
 import loadable from '@loadable/component'
+import Popover from '@material-ui/core/Popover';
 
 const conf = get_Conf();
 
@@ -38,3 +41,44 @@ export const load_custom_component = (component_name, item) => {
 }
 
 
+export const InfoPopover = ({label, content}) => {
+    const [anchorEl, setAnchorEl] = React.useState(null);
+  
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+  
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
+    const showInfo = (event) => {
+        setAnchorEl(event.currentTarget);   
+    }
+  
+    const open = Boolean(anchorEl);
+    const id = open ? 'simple-popover' : undefined;
+  
+    if(!content){
+        return label
+    }
+    return (
+      <div>
+        <span onClick={handleClick} onMouseOver={showInfo}>
+          {label}
+        </span>
+        <Popover
+          id={id}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+        >
+          <Typography sx={{ p: 2 }}>{content}</Typography>
+        </Popover>
+      </div>
+    );
+}
