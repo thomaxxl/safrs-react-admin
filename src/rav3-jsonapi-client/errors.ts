@@ -1,4 +1,4 @@
-import { HttpError } from 'react-admin';
+import { HttpError, useNotify } from 'react-admin';
 
 export class NotImplementedError extends Error {
   constructor(message: string) {
@@ -33,9 +33,10 @@ export const safrsErrorHandler: HttpErrorHandler = (
     detail: string;
     code: string;
   }
+  
   const errors: { errors: err[] } = httpError.body; // JSON.parse(httpError.body.stringify);
   if (errors?.errors.length > 0) {
-    alert("Error "+ errors.errors[0].title)
+    alert("Data error "+ errors.errors[0].title)
     return new SafrsHttpError(
       errors.errors[0].title,
       httpError.status,

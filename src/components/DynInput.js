@@ -25,6 +25,7 @@ import Grid from '@material-ui/core/Grid';
 import AttrForm from './AttrForm.js'
 import {get_Conf} from '../Config.js'
 import QuickPreviewButton from './QuickPreviewButton.js'
+import { NumberInput }  from 'react-admin';
 
 const conf = get_Conf();
 
@@ -155,13 +156,17 @@ const DynInput = ({attribute, resource, xs}) => {
 
     const input_props = {validate : attribute.required ? required() : false}
     const [selected_ref, setSelected_ref] = useState(false)
-
     const grid_wrap = (el) => <Grid item xs={xs | 4} spacing={4} margin={5} >{el}</Grid>
-
+    const attr_type = attribute.type?.toLowerCase()
     let result = grid_wrap(<TextInput source={attribute.name} fullWidth  {...input_props}/>)
-    if(attribute.type == "DATE"){
+
+    if(attr_type == "DATE"){
         result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
     }
+    if(attr_type == "number"){
+        result = grid_wrap(<NumberInput source={attribute.name} fullWidth={false}  {...input_props}/>)
+    }
+
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
         const search_cols = conf.resources[attribute.relationship.target].search_cols
         let optionText = ""
