@@ -24,10 +24,11 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Grid from '@material-ui/core/Grid';
 import AttrForm from './AttrForm.js'
 import {get_Conf} from '../Config.js'
+import QuickPreviewButton from './QuickPreviewButton.js'
 
 const conf = get_Conf();
 
-function QuickCreateButton({ onChange, resource_name }) {
+function QuickCreateButton({ onChange, resource_name, cb_set_id }) {
     
     const [showDialog, setShowDialog] = useState(false);
     const [create, { loading }] = useCreate(resource_name);
@@ -50,9 +51,10 @@ function QuickCreateButton({ onChange, resource_name }) {
             {
                 onSuccess: ({ data }) => {
                     setShowDialog(false);
-                    // Update the comment form to target the newly created post
+                    // Update the form to target the newly created item
                     // Updating the ReferenceInput value will force it to reload the available posts
-                    form.change('post_id', data.id);
+                    form.change('id', data.id);
+                    cb_set_id(data.id)
                     onChange();
                 },
                 onFailure: ({ error }) => {
@@ -69,6 +71,7 @@ function QuickCreateButton({ onChange, resource_name }) {
             </Button>
             <Dialog
                 fullWidth
+                maxWidth="md"
                 open={showDialog}
                 onClose={handleCloseClick}
                 aria-label={title}
@@ -85,7 +88,7 @@ function QuickCreateButton({ onChange, resource_name }) {
                     }) => (
                         <>
                             <DialogContent>
-                            <Grid container spacing={2} margin={2} m={40}>
+                                <Grid container spacing={2} margin={2} m={40}>
                                 {attributes.filter(attr => !attr.relationship).map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
                                 </Grid>
                                 <Grid container spacing={2} margin={2} m={40} xs={4}>
@@ -127,31 +130,37 @@ const useStyles = makeStyles({
 
 const spySubscription = { values: true };
 
-const PostReferenceInput = (props) => {
+const DynReferenceInput = (props) => {
     const classes = useStyles();
     const [version, setVersion] = useState(0);
     const { values } = useFormState({ subscription: spySubscription });
-    const handleChange = useCallback(() => setVersion(version + 1), [version]);
-
-    return (
-        <div className={classes.root}>
-            <ReferenceInput key={version} {...props}>
-                <AutocompleteInput optionText={props.optionText} key={props.source} />
-            </ReferenceInput>
-
-            <QuickCreateButton onChange={handleChange} resource_name={props.reference}/>
-            {/*!!values.post_id && <PostQuickPreviewButton id={values.post_id} />*/}
-        </div>
-    );
+    const [selected, setSelected] = useState(props.selected)
+    const handleChange = useCallback((event) => setVersion(version + 1), [version]);
+    
+    console.log({selected})
+    return <>
+            <Grid item xs={4} spacing={4} margin={5} >
+                <ReferenceInput key={version} {...props}>
+                    <AutocompleteInput  optionText={props.optionText} key={props.source} onChange={(evt) => setSelected(evt.target.value)} />
+                </ReferenceInput>
+            </Grid>
+            <Grid item xs={2} spacing={4} margin={5} >
+                <QuickCreateButton onChange={handleChange} resource_name={props.reference} cb_set_id={props.cb_set_id}/>
+                {selected && <QuickPreviewButton id={props.selected} resource_name={props.reference}/> }
+            </Grid>
+        </>
 };
 
 const DynInput = ({attribute, resource, xs}) => {
 
     const input_props = {validate : attribute.required ? required() : false}
+    const [selected_ref, setSelected_ref] = useState(false)
 
-    let result = <TextInput source={attribute.name} fullWidth  {...input_props}/>
+    const grid_wrap = (el) => <Grid item xs={xs | 4} spacing={4} margin={5} >{el}</Grid>
+
+    let result = grid_wrap(<TextInput source={attribute.name} fullWidth  {...input_props}/>)
     if(attribute.type == "DATE"){
-        result = <DateInput source={attribute.name} fullWidth />
+        result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
     }
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
         const search_cols = conf.resources[attribute.relationship.target].search_cols
@@ -166,26 +175,33 @@ const DynInput = ({attribute, resource, xs}) => {
         else{
             optionText = search_cols[0].name
         }
-        result = <ReferenceInput source={attribute.name}
+        /*result = <ReferenceInput source={attribute.name}
                                  label={`${attribute.relationship.name} (${attribute.name})`}
                                  reference={attribute.relationship.target}
                                  resource={attribute.relationship.resource}
                                  fullWidth>
-                    <AutocompleteInput optionText={optionText} key={attribute.name} />
-                </ReferenceInput>
-        result = <PostReferenceInput 
+                    <AutocompleteInput optionText={optionText} key={attribute.name} id={0}/>
+                </ReferenceInput>*/
+        const ri_props = {}
+        if(selected_ref){
+            ri_props['defaultValue'] = selected_ref
+        }
+        result = <DynReferenceInput 
                     source={attribute.name}
                     label={`${attribute.relationship.name} (${attribute.name})`}
                     reference={attribute.relationship.target}
                     resource={attribute.relationship.resource}
                     fullWidth
                     optionText={optionText}
-                    >
+                    cb_set_id={(v)=>{setSelected_ref(v)} }
+                    allowEmpty={!attribute.required}
+                    selected={selected_ref}
+                    {...ri_props}
+                    />
                     
-                    </PostReferenceInput>
     }
     
-    return <Grid item xs={xs | 4} spacing={4} margin={5} >{result}</Grid>
+    return result
 }
 
 export default DynInput

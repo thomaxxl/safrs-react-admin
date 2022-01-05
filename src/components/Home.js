@@ -8,7 +8,7 @@ import {get_Conf} from '../Config.js'
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import {resetConf} from "./ConfigurationUI";
-import CustomizedAccordions from "./ValH"
+import ALSDesc from "./ValH"
 import { useDataProvider } from 'react-admin';
 
 import {
@@ -27,28 +27,7 @@ const styles = {
     home: {fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'},
 };
 //import universal from 'react-universal-component'
-
 //const UniversalComponent = universal(props => import(`https://automat-c2.rccu-brussels.lan/imager/comp.js`))
-
-const Content = () => <div >
-    <h2>APILogicServer</h2>
-    <p>
-        Creates API endpoints exposing database tables and relationships.
-        <br/>
-        Provides a ReactJS frontend that connects to the API.
-        <br/><br/>
-        This stack is easily extendible:
-        <br/>
-        <ul>
-        <li>Business logic can be implemented using</li>
-        <ul>
-            <li>Python database logic rule engine (constraint enforcement, triggers, multi-table derivations)</li>
-            <li>Custom API hooks and endpoints</li>
-        </ul>
-        <li>Custom ReactJS components can be added to the webapp</li>
-        </ul>
-    </p>
-</div>
 
 const Demo = ({ready, config}) => {
 
@@ -56,7 +35,7 @@ const Demo = ({ready, config}) => {
     if (ready && content === false && window.getContent) {
         setContent(window.getContent(config))
     }
-    return content ? <div dangerouslySetInnerHTML={{__html: content }} /> : <Content/>
+    return content ? <div dangerouslySetInnerHTML={{__html: content }} /> : <ALSDesc/>
 }
 
 const Home = (props) => {
@@ -67,7 +46,7 @@ const Home = (props) => {
     const [initialized, setInitialized] = useState(false)
     const [resourcesLoaded, setResourcesLoaded] = useState([])
     const dataProvider = useDataProvider();
-	let query = useQuery();
+	//let query = useQuery();
 
     for(let [resource_name, resource] of Object.entries(config.resources)){
         console.log(`prefetch ${resource_name}`)
@@ -81,9 +60,6 @@ const Home = (props) => {
             resourcesLoaded.push(resource.name)
             setResourcesLoaded(resourcesLoaded)
         })
-    }
-    if(query.get("content")){
-        return <CustomizedAccordions/>
     }
     if(!initialized && !config.settings){
         resetConf()

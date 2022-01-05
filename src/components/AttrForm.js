@@ -15,10 +15,10 @@ const AttrForm = ({attributes, ...props}) => {
     const classes = useStyles();
     return <SimpleForm {...props}>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                {attributes.filter(attr => !attr.relationship).map((attr) => <DynInput attribute={attr} key={attr.name}/> )}
+                {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) => <DynInput attribute={attr} key={attr.name} xs={4}/> )}
                 </Grid>
-                <Grid container spacing={2} margin={2} m={40} xs={4} className={classes.edit_grid}>
-                {attributes.filter(attr => attr.relationship).map((attr) => <DynInput attribute={attr} key={attr.name} xs={8}/> )}
+                <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
+                {attributes.filter(attr => attr.relationship && !attr.hidden).map((attr) => <><DynInput attribute={attr} key={attr.name} xs={5}/><Grid item xs={6}/></> )}
                 </Grid>
         </SimpleForm>
 }

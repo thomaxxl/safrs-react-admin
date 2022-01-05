@@ -5,6 +5,7 @@ import MuiAccordion from '@mui/material/Accordion';
 import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
+import { typography } from '@material-ui/system';
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -44,55 +45,82 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 
 export default function CustomizedAccordions() {
   const [expanded, setExpanded] = React.useState('panel1');
-
   const handleChange = (panel) => (event, newExpanded) => {
     setExpanded(newExpanded ? panel : false);
   };
-
   return (
     <div>
-      <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+      <div className="MuiTypography-root jss4">
+      <Typography variant="h4" align="center">Welcome to API Logic Server -- Sample System</Typography>
+      <Typography lineHeight = {2}><br></br><a   rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/blob/main/README.md/" target="_blank">API Logic Server</a>
+      &nbsp;creates <i>customizable</i> model-driven systems, instantly from your&nbsp;
+      <a  href="https://github.com/valhuber/ApiLogicServer/wiki/Sample-Database" target="_blank">database</a>.
+      <Typography><br></br></Typography>
+      </Typography>
+      <Accordion  >
         <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
-          <Typography>Collapsible Group Item #1</Typography>
+          <Typography>This app was not coded - it was <i>created.</i> Click here to see how:</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-            malesuada lacus ex, sit amet blandit leo lobortis eget. Lorem ipsum dolor
-            sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-            sit amet blandit leo lobortis eget.
+          <ul>
+            <li><i>Automation: </i>create executable systems with this single command...
+              <pre>
+              &nbsp;&nbsp;&nbsp;ApiLogicServer <strong>create-and-run</strong> \<br></br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--project_name=ApiLogicProject \  # customize with Python and your IDE<br></br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--db_url=sqlite:///nw.sqlite      # your db here
+              </pre>
+              </li>
+            <li><i>Model-driven: </i>creation builds executable&nbsp;
+            <a rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Architecture#customizable-declarative-models" target="_blank">models</a>
+              , not code
+                <ul>
+                    <li>
+                    Dramatically simpler to understand, customize and maintain
+                    </li>
+                </ul>
+              <Typography>&nbsp;</Typography></li>
+            <li><i>Customizable: </i>models are created into a project;&nbsp;
+              <a rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki#customizing-apilogicprojects" target="_blank">customize</a>
+              &nbsp;with Python and your IDE 
+              <ul>
+                  <li>This system has about 20 rules, and 20 lines of code</li>
+              </ul>
+            </li>
+          </ul>
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <div >
-        <h2>Welcome to API Logic Server - PA</h2>
-      </div>
-      <h3><a   rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/blob/main/README.md/" target="_blank">API Logic Server</a>
-      creates <i>customizable</i> systems, instantly from your
-      <a  href="https://github.com/valhuber/ApiLogicServer/wiki/Sample-Database" target="_blank">database:</a>
-      </h3>
-      <h4>1. Automatic Admin App</h4>
+      <Typography><br></br>
+      1.&nbsp;
+          <a href="https://github.com/valhuber/ApiLogicServer/wiki/Admin-Tour/" target="_blank">Automatic Admin App</a>
+          &nbsp;, you are running it now
       <ul>
          <li>For instant collaboration and Back Office data maintenance</li>
-         <li>Rich functionality: multi-page, multi-table</li>
-         <li><a  href="https://github.com/valhuber/ApiLogicServer/wiki/Admin-Tour/" target="_blank">Explore</a> this Admin App,
+         <li>Rich functionality: multi-page, multi-table, automatic joins</li>
+         <li>Explore this app (e.g., click Customer, at left),
               and how to <a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Working-with-the-Admin-App" target="_blank">customize it</a></li>
       </ul>
-      <h4>2. API, with <a  href="/api" target="_blank">oas/Swagger</a></h4>
+      2. <a href="/api" target="_blank">API</a>, with oas/Swagger
       <ul>
-         <li>For custom app dev, integration</li>
+         <li>For custom app dev, application integration</li>
          <li>Rich functionality: endpoint for each table, with filtering, pagination, related data</li>
          <li><a rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki#customize-the-api-with-expose_servicespy-add-rpcs-services" target="_blank">Customizable</a>: add your own endpoints</li>
       </ul>
-      <h4>3. Business Logic, for <span title="Often nearly half the app -- automation required"><span>backend processing</span> </span></h4>
+      3.&nbsp;
+      <a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Logic:-Rules-plus-Python" target="_blank">Business Logic</a>
+          , for <span title="Often nearly half the app -- automation required"><span>backend processing</span> </span>
       <ul>
          <li>Spreadsheet-like rules for multi-table derivations and constraints</li>
          <li>Extensible with Python events for email, messages, etc</li>
-         <li><a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Logic:-Rules-plus-Python" target="_blank">Explore</a>
-             how logic can meaningfully improve
+         <li>Explore
+             &nbsp;how logic can meaningfully improve&nbsp;
              <a  rel="nofollow" href="https://github.com/valhuber/LogicBank/wiki/by-code" title="Rules are 40X more concise than code, and address over 95% of database logic" target="_blank">conciseness</a>
-             and quality</li>
+             &nbsp;and quality</li>
       </ul>
+      </Typography>
+
+      </div>
 
     </div>
   );

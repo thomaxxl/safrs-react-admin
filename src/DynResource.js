@@ -343,11 +343,14 @@ export const gen_DynResourceEdit = (resource) => {
     const attributes = resource.attributes;
     
     const Result = (props) => {
+        
         const notify = useNotify();
         const refresh = useRefresh();
         const redirect = useRedirect();
+        const dataProvider = useDataProvider();
         const classes = useStyles();
         const history = useHistory();
+        const [loaded, setLoaded] = useState(false)
 
         const onFailure = (error) => {
             notify(`Error Saving Changes`,  { type: 'warning' })
@@ -357,14 +360,14 @@ export const gen_DynResourceEdit = (resource) => {
 
         const onSuccess = () => {
             notify(`Changes Saved`);
-            //redirect('show', props.basePath, props.id);
             history.goBack()
             refresh();
         }
-    
-        return <Edit {...props} onFailure={onFailure} onSuccess={onSuccess}  mutationMode="pessimistic">
-            <AttrForm attributes={attributes} />
-        </Edit>
+        
+        refresh()
+
+        return <Edit {...props} attributes={attributes} onFailure={onFailure} onSuccess={onSuccess}  mutationMode="pessimistic">
+            <AttrForm attributes={attributes} /></Edit>
     }
     return Result;
 }
@@ -374,7 +377,6 @@ export const gen_DynResourceEdit = (resource) => {
 export const gen_DynResourceCreate = (resource) => (props) => {
 
     const refresh = useRefresh();
-    const redirect = useRedirect();
     const history = useHistory();
     const notify = useNotify();
     const attributes = resource.attributes
