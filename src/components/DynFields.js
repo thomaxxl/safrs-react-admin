@@ -50,32 +50,6 @@ const RelLabel = ({text}) => {
 }
 
 
-
-const ShowField = ({ label, value }) => {
-    if(value && !React.isValidElement(value) && typeof value == "object"){
-        try{
-            console.log(`Converting value :${value}`)
-            value=JSON.stringify(value)
-        }
-        catch(err){
-            console.log(`Invalid element value :${value}`)
-            console.warn(err)
-            value = <i>Value Error</i>
-        }
-    }
-    return (
-      <Grid item xs={3}>
-        <Typography variant="body2" color="textSecondary" component="p">
-          {label}
-        </Typography>
-        <Typography variant="body2" component="p">
-          {value}
-        </Typography>
-      </Grid>
-    )
-};
-
-
 const TruncatedTextField = (props) => {
     
     const record = props.record // "record" is a prop received from the Datagrid
@@ -129,7 +103,7 @@ const JoinedField = ({attribute, join}) => {
     let label = item?.id || id
     
     if(!item){
-        return null
+        return <>{id}</>
     }
     if(user_component){
         // user_component: custom component
@@ -201,13 +175,47 @@ const AttrField = ({attribute, ...props}) => {
 }
 
 
+const ShowField = ({ label, value }) => {
+    // Field like it is shown in the instance /show
+    if(value && !React.isValidElement(value) && typeof value == "object"){
+        try{
+            console.log(`Converting value :${value}`)
+            value=JSON.stringify(value)
+        }
+        catch(err){
+            console.log(`Invalid element value :${value}`)
+            console.warn(err)
+            value = <i>Value Error</i>
+        }
+    }
+
+    const trunc_size = 1024
+    if(!value || value.length < trunc_size || !value.slice || !value.slice instanceof Function){
+        
+    }
+    else{
+        value = <span>{value.slice(0, trunc_size)}<br/><InfoPopover label={<b> ...</b>} content={value}/></span>;
+    }
+    return (
+      <Grid item xs={3}>
+        <Typography variant="body2" color="textSecondary" component="p">
+          {label}
+        </Typography>
+        <Typography variant="body2" component="p">
+          {value}
+        </Typography>
+      </Grid>
+    )
+};
+
+
 export const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
     const classes = useStyles();
     let label =  <InfoPopover label={attr.label || attr_name} content={attr.info}/>
     let field = <ShowField label={label} value={value}/>
     if(attr.relationship){
-        // todo: make the onClick handler open the right tab
+        // todo: make the onClick handler open the corresponding tab
         const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
         const rel_label = <span style={{ display: "inline-flex"}}>
                                 {label}

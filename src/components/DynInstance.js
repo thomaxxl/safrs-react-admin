@@ -1,24 +1,13 @@
-import React from "react";
-
 import { useState, useEffect, useMemo} from 'react';
-import { List,
+import {
     Datagrid,
-    TextField,
-    DateField,
-    EditButton,
-    DeleteButton,
-    ShowButton
+    EditButton
 } from "react-admin";
 
 import Grid from '@material-ui/core/Grid';
 import { Resource, TabbedShowLayout, Tab } from 'react-admin';
 import {
-  Edit,
-  Create,
   Show,
-  SimpleForm,
-  TextInput,
-  DateInput,
   SimpleShowLayout,
   TabbedShowLayoutTabs,
   ReferenceManyField,
@@ -31,7 +20,6 @@ import { useDataProvider } from 'react-admin';
 import EditIcon from "@material-ui/icons/Edit";
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import {get_Conf} from '../Config.js'
-import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
@@ -50,7 +38,8 @@ const useStyles = makeStyles({
     delete_icon : {fill: "#3f51b5"},
     edit_grid : { width: "100%" },
     rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"},
-    many_tab : {color: "#3f51b5"}
+    many_tab : {color: "#3f51b5"},
+    instance_title : { margin: "30px 0px 30px" }
 });
 
 
@@ -77,26 +66,24 @@ export const ShowRecordField = ({ source }) => {
 
 const ShowInstance = ({attributes, relationships, resource_name, id}) => {
 
-    const title = <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
+    const classes = useStyles()
+    const title = <Typography variant="h5" component="h5" className={classes.instance_title}>
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
-                   </Typography>
+                  </Typography>
 
     const tabs = <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
                     {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
                         DynRelationshipMany(resource_name, id, rel) : 
                         DynRelationshipOne(resource_name, id, rel)) }
-                    </TabbedShowLayout>
+                  </TabbedShowLayout>
 
     return <SimpleShowLayout>
                 {title}
                 <Grid container spacing={3} margin={5} m={40}>
                     {attributes.map((attr) => <ShowRecordField key={attr.name} source={attr}/> )}
                 </Grid>
-                
                 <hr style={{ margin: "30px 0px 30px" }}/>
-
                 {tabs}
-
             </SimpleShowLayout>
 }
 
@@ -220,7 +207,7 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
     const label = relationship.label || relationship.name
     
     return <Tab label={label} key={relationship.name} className={classes.many_tab}>
-                <ReferenceManyField reference={relationship.resource} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
+                <ReferenceManyField reference={relationship.resource} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 25}>
                     <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
                         {fields.slice(0,col_nr)}
                         <EditButton />

@@ -46,9 +46,7 @@ const Home = (props) => {
     const [initialized, setInitialized] = useState(false)
     const [resourcesLoaded, setResourcesLoaded] = useState([])
     const dataProvider = useDataProvider();
-	//let query = useQuery();
-
-    for(let [resource_name, resource] of Object.entries(config.resources)){
+	/* for(let [resource_name, resource] of Object.entries(config.resources)){
         console.log(`prefetch ${resource_name}`)
         dataProvider.getList(resource.name, 
             {
@@ -60,7 +58,7 @@ const Home = (props) => {
             resourcesLoaded.push(resource.name)
             setResourcesLoaded(resourcesLoaded)
         })
-    }
+    } */
     if(!initialized && !config.settings){
         resetConf()
         setInitialized(true)
