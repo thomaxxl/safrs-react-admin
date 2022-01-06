@@ -6,6 +6,7 @@ import { List,
     TextField,
     DateField,
     EditButton,
+    DeleteButton,
     ShowButton
 } from "react-admin";
 
@@ -32,21 +33,15 @@ import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import {get_Conf} from '../Config.js'
 import Popover from '@material-ui/core/Popover';
 import Button from '@material-ui/core/Button';
-import { AutocompleteInput, ReferenceInput } from 'react-admin';
-import { Pagination } from 'react-admin';
-import '../style/DynStyle.css'
 import { useQueryWithStore, Loading, Error } from 'react-admin';
-import { useNotify, useRedirect } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
-import { Switch, Route } from "react-router-dom";
-import {useHistory} from "react-router-dom";
-import { updateJsxAttribute } from "typescript";
-import { configure } from "@testing-library/react";
 import { type2resource } from "../util.js";
 import { ShowAttrField } from "./DynFields.js";
 import { attr_fields } from "./DynFields.js";
 import {DynPagination} from '../util'
-
+import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import InfoModal from "./InfoModal.js";
 
 const conf = get_Conf();
 
@@ -279,13 +274,27 @@ export const RelatedInstance = ({instance}) => {
     return result;
 }
 
+const ShowActions = ({ basePath, data, resource}) => {
+    
+    const classes = useStyles();
+    let info_btn;
+    if(resource.info){
+        const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
+        info_btn= <InfoModal label={label} resource={resource}/>
+    }
+
+    return <TopToolbar>
+                {info_btn}
+                <EditButton basePath={basePath} record={data} />
+            </TopToolbar>
+}
 
 export const gen_DynResourceShow = (resource_conf) => (props) => {
 
     const attributes = resource_conf.attributes
     const relationships= resource_conf.relationships
 
-    return <Show title={<ResourceTitle />} {...props}>
+    return <Show title={<ResourceTitle />} actions={<ShowActions resource={resource_conf}/>} {...props}>
                 <ShowInstance attributes={attributes} relationships={relationships} resource_name={props.resource} id={props.id}/>
             </Show>
 }
