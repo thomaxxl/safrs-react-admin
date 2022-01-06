@@ -148,7 +148,9 @@ export const attr_fields = (attributes, ...props) => {
 
 
 const AttrField = ({attribute, ...props}) => {
-    
+    /* Attribute fields
+        Return a component that will be filled in depending on the record context
+    */
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
         
@@ -175,34 +177,43 @@ const AttrField = ({attribute, ...props}) => {
 }
 
 
-const ShowField = ({ label, value }) => {
+const ShowField = ({ label, value, attr, mode }) => {
     // Field like it is shown in the instance /show
+
+    const trunc_size = 1024
+    const [full_text, setFullText] = useState(false)
+    const style = {}
+    let shown = value
+    let component = attr.component || "p"
     if(value && !React.isValidElement(value) && typeof value == "object"){
         try{
             console.log(`Converting value :${value}`)
-            value=JSON.stringify(value)
+            shown=JSON.stringify(value, null, 2)
+            component = "pre"
+            style["width"] = "40%"
         }
         catch(err){
             console.log(`Invalid element value :${value}`)
             console.warn(err)
-            value = <i>Value Error</i>
+            shown = <i>Value Error</i>
         }
     }
-
-    const trunc_size = 1024
+    
     if(!value || value.length < trunc_size || !value.slice || !value.slice instanceof Function){
         
     }
     else{
-        value = <span>{value.slice(0, trunc_size)}<br/><InfoPopover label={<b> ...</b>} content={value}/></span>;
+        shown = <>{value.slice(0, trunc_size)}<br/><Button outlined color="primary" onClick={()=>setFullText(value)}>More...</Button></>
+        component = "pre"
     }
+    
     return (
       <Grid item xs={3}>
         <Typography variant="body2" color="textSecondary" component="p">
           {label}
         </Typography>
-        <Typography variant="body2" component="p">
-          {value}
+        <Typography variant="body2" component={component} style={style}>
+          {full_text || shown}
         </Typography>
       </Grid>
     )
@@ -213,7 +224,12 @@ export const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
     const classes = useStyles();
     let label =  <InfoPopover label={attr.label || attr_name} content={attr.info}/>
-    let field = <ShowField label={label} value={value}/>
+    const field_props = {
+        label : label, 
+        value: value, 
+        attr: attr, 
+        mode: "show"
+    }
     if(attr.relationship){
         // todo: make the onClick handler open the corresponding tab
         const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
@@ -222,10 +238,9 @@ export const ShowAttrField = ({attr, value}) => {
                                 <DensityMediumIcon 
                                     className={classes.rel_icon} style={{width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem"}}
                                 />
-                                
                     </span>
-        field = <ShowField label={rel_label} value={jf} />       
+        field_props[label] = rel_label
+        field_props[value] = jf
     }
-    return field
-    //return <Tooltip title={" field"} placement="top-start" arrow>{field}</Tooltip>
+    return <ShowField {...field_props} />
 }
