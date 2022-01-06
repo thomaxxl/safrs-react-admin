@@ -52,6 +52,9 @@ export const get_Conf = () => {
     if(!result.resources){
         result.resources = {}
     }
+    if(!result.settings){
+        result.settings = {}
+    }
     const resources = result.resources
 
     for(let [resource_name, resource] of Object.entries(resources||{})){
@@ -91,7 +94,7 @@ export const get_Conf = () => {
                 for(let fk of rel.fks || []){
                     if(attr.name == fk){
                         attr.relationship = rel;
-                        attr.relationship.target_resource = result.resources[attr.relationship.target]
+                        attr.relationship.target_resource = result.resources[attr.relationship.target] || result.resources[attr.relationship.resource]
                     }
                 }
             }

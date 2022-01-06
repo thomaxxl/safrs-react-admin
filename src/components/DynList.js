@@ -124,8 +124,7 @@ const ListActions = ({resource}) => {
                 <FilterButton/>
                 {info_btn}
                 <CreateButton/>
-                <ExportButton/>
-                
+                <ExportButton/>                
             </TopToolbar>
 }
 

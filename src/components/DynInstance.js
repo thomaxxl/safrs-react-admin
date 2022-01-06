@@ -51,10 +51,11 @@ import {DynPagination} from '../util'
 const conf = get_Conf();
 
 const useStyles = makeStyles({
-    join_attr: {color: '#3f51b5;'},
+    join_attr: {color: '#3f51b5'},
     delete_icon : {fill: "#3f51b5"},
     edit_grid : { width: "100%" },
-    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"}
+    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"},
+    many_tab : {color: "#3f51b5"}
 });
 
 
@@ -104,43 +105,58 @@ const ShowInstance = ({attributes, relationships, resource_name, id}) => {
             </SimpleShowLayout>
 }
 
+
 const DynRelationshipOne = (resource, id, relationship) => {
     
-    const [loading, setLoading] = useState(true);
-    const [related, setRelated] = useState(false);
-    const dataProvider = useDataProvider();
+    console.log({resource}, {id}, {relationship}, relationship.name)
     const { loaded, error, data } = useQueryWithStore({
         type: 'getOne',
             resource: resource,
             payload: { id: id }
         })
+    const rel_query = useQueryWithStore({
+        type: 'getOne',
+            resource: relationship.resource,
+            payload: { id: data && data[relationship.fks.join('_')] }
+        })
+    const rel_loaded = rel_query.loaded
+    const rel_error = rel_query.error
+    const rel_data = rel_query.data
+        
     let tab_content = " - "
-    if (!loaded) { 
+    if (!loaded || !rel_loaded) { 
         tab_content = <Loading key={relationship.name}/>; 
     }
-    else if (error) { 
+    else if (error || rel_error) { 
         tab_content = <Error key={relationship.name}/>; 
     }
-    else if(data[relationship.name]?.data === null){
-        tab_content = "Empty"
+    else if(rel_data){
+        tab_content = <RelatedInstance instance={rel_data} />
     }
-    else if(data && data[relationship.name]?.type && data[relationship.name].type === relationship?.target_resource?.type){
-        tab_content = <RelatedInstance instance={data[relationship.name]} />
-    }
-    else if(data[relationship.name]?.data){
-        // todo: might be obsolote, tbd
-        // todo: fix the data provider so we can simplify this conditional and use <RelatedInstance> instead
-        const rel_resource = type2resource(data[relationship.name].data?.type)
-        const rel_id = data[relationship.name]?.data?.id
-        if(!rel_resource){
-            console.log(data)
-            console.warn(`Related resource not found ${resource}.${relationship.name}`)
+    else{
+        // Deprecated.. Delete this stmt??
+        console.warn("Hit deprecated code!")
+        if(data[relationship.name]?.data === null){
+            tab_content = "Empty"
         }
-        else{
-            tab_content = <LoadingRelatedInstance rel_resource={rel_resource} rel_id={rel_id}/>
+        else if(data && data[relationship.name]?.type && data[relationship.name].type === relationship?.target_resource?.type){
+            tab_content = <RelatedInstance instance={data[relationship.name]} />
+        }
+        else if(data[relationship.name]?.data){
+            // todo: might be obsolote, tbd
+            // todo: fix the data provider so we can simplify this conditional and use <RelatedInstance> instead
+            const rel_resource = type2resource(data[relationship.name].data?.type)
+            const rel_id = data[relationship.name]?.data?.id
+            if(!rel_resource){
+                console.log(data)
+                console.warn(`Related resource not found ${resource}.${relationship.name}`)
+            }
+            else{
+                tab_content = <LoadingRelatedInstance rel_resource={rel_resource} rel_id={rel_id}/>
+            }
         }
     }
-    
+
     return <Tab label={relationship.label || relationship.name} key={relationship.name}>
                 {tab_content}
            </Tab>
@@ -170,8 +186,7 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
     const [error, setError] = useState();
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
-
-    console.debug({resource_name}, {id}, {relationship})
+    const classes = useStyles();
 
     useEffect(() => {
         dataProvider.getOne(resource_name, { id: id })
@@ -185,9 +200,10 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
             })
     }, []);
 
-    const target_resource = conf.resources[relationship.target]
+    const target_resource = conf.resources[relationship?.resource]
     if(!target_resource){
-        console.warn(`${resource_name}: No resource conf for ${target_resource}`)
+        console.warn(`${resource_name}: No resource conf for ${relationship.resource}`)
+        console.log({relationship})
         return null
     }
 
@@ -206,9 +222,10 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
     const fields = attr_fields(attributes);
     const col_nr = target_resource.max_list_columns
     const fk = relationship.fks.join('_')
-
-    return <Tab label={relationship.label || relationship.name} key={relationship.name}>
-                <ReferenceManyField reference={relationship.target} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
+    const label = relationship.label || relationship.name
+    
+    return <Tab label={label} key={relationship.name} className={classes.many_tab}>
+                <ReferenceManyField reference={relationship.resource} target={fk} addLabel={false} pagination={<DynPagination/>}  perPage={target_resource.perPage || 10}>
                     <Datagrid rowClick="show" expand={<DetailPanel attributes={target_resource.attributes} />}>
                         {fields.slice(0,col_nr)}
                         <EditButton />

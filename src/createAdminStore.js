@@ -52,6 +52,7 @@ const instance2store = (instance, result) => {
     if(!instance?.relationships){
         return result
     }
+    
     for(let [rel_name , rel] of Object.entries(instance.relationships)){
         if(!rel?.data){
             continue
@@ -74,9 +75,9 @@ const adminReducerWrapper = (previousState, action) => {
     
     let result = adminReducer(previousState, action)
     
-    if(action.type == "CRUD_GET_ONE_SUCCESS"){
+    /*if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
-    }
+    }*/
     /*
         Add the included resources to the redux store
         when items have been included we have to sort the corresponding resources per the resource conf

@@ -8,7 +8,6 @@ import {
     FunctionField } from 'react-admin';
 import Grid from '@material-ui/core/Grid';
 import { Typography } from '@material-ui/core';
-
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useState, useEffect, useMemo} from 'react';
@@ -115,7 +114,7 @@ const JoinedField = ({attribute, join}) => {
     const user_key = conf.resources[join.target]?.user_key
     const user_component = conf.resources[join.target]?.user_component
     const id = record ? record[fk] : null
-    
+    //console.log({attribute}, {id})
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource,
