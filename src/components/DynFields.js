@@ -5,6 +5,7 @@ import {
     Confirm,
     useRecordContext,
     DateField,
+    TextField,
     FunctionField } from 'react-admin';
 import Grid from '@material-ui/core/Grid';
 import { Typography } from '@material-ui/core';
@@ -29,7 +30,8 @@ const useStyles = makeStyles({
     join_attr: {color: '#3f51b5;'},
     delete_icon : {fill: "#3f51b5"},
     edit_grid : { width: "100%" },
-    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"}
+    rel_icon: {paddingLeft:"0.4rem", color: "#666", marginBottom:"0px"},
+    joined_field : {border: "2px solid red", cursor: "pointer"}
 });
 
 
@@ -88,7 +90,6 @@ const JoinedField = ({attribute, join}) => {
     const user_key = conf.resources[join.target]?.user_key
     const user_component = conf.resources[join.target]?.user_component
     const id = record ? record[fk] : null
-    //console.log({attribute}, {id})
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource,
@@ -120,7 +121,7 @@ const JoinedField = ({attribute, join}) => {
     }
     
     const modal_content = <RelatedInstance instance={item} resource_name={join.target}/>
-    return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={join.target}/>
+    return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={join.target} />
 }
 
 
@@ -177,10 +178,10 @@ const AttrField = ({attribute, ...props}) => {
 }
 
 
-const ShowField = ({ label, value, attr, mode }) => {
+const ShowField = ({ label, value, attr, mode, ...props }) => {
     // Field like it is shown in the instance /show
 
-    const trunc_size = 1024
+    const trunc_size = Number(attr.trunc_size) || 1024
     const [full_text, setFullText] = useState(false)
     const style = {}
     let shown = value
@@ -224,9 +225,9 @@ export const ShowAttrField = ({attr, value}) => {
     const attr_name = attr.name
     const classes = useStyles();
     let label =  <InfoPopover label={attr.label || attr_name} content={attr.info}/>
-    const field_props = {
-        label : label, 
-        value: value, 
+    let field_props = {
+        //label : label, 
+        //value: value,
         attr: attr, 
         mode: "show"
     }
@@ -239,8 +240,10 @@ export const ShowAttrField = ({attr, value}) => {
                                     className={classes.rel_icon} style={{width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem"}}
                                 />
                     </span>
-        field_props[label] = rel_label
-        field_props[value] = jf
+        field_props[label] = "rel_label"
+        field_props[value] = 'jf'
+        label = rel_label
+        value = jf
     }
-    return <ShowField {...field_props} />
+    return <ShowField {...field_props} value={value} label={label}/>
 }

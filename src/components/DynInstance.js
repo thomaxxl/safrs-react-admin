@@ -106,7 +106,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
     const rel_data = rel_query.data
         
     let tab_content = " - "
-    if (!loaded || !rel_loaded) { 
+    if (!loaded) { 
         tab_content = <Loading key={relationship.name}/>; 
     }
     else if (error || rel_error) { 
