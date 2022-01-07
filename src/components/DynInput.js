@@ -163,7 +163,7 @@ const DynInput = ({attribute, resource, xs}) => {
     if(attr_type == "DATE"){
         result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
     }
-    if(attr_type == "number"){
+    if(attr_type == "number" || attr_type == "decimal"){
         result = grid_wrap(<NumberInput source={attribute.name} fullWidth={false}  {...input_props}/>)
     }
 
