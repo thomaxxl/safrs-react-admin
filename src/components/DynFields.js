@@ -79,20 +79,20 @@ const TruncatedTextField = (props) => {
 
 
 const JoinedField = ({attribute, join, label}) => {
-    
+    console.log({join})
     const record = useRecordContext();
     if(record?.attributes){
         Object.assign(record, record.attributes)
     }
     const rel_name = join.name;
-    const target_resource = join.target
+    const target_resource = join.target_resource
     const fk = join.fks.join('_')
-    const user_key = conf.resources[join.target]?.user_key
-    const user_component = conf.resources[join.target]?.user_component
+    const user_key = target_resource?.user_key
+    const user_component = target_resource?.user_component
     const id = record ? record[fk] : null
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
-        resource: target_resource,
+        resource: target_resource.name,
         payload: { id: id }
     });
 
@@ -116,12 +116,12 @@ const JoinedField = ({attribute, join, label}) => {
     }
     else if (user_key in item){
         label = item[user_key]
-        item.type = conf.resources[join.target]?.type
+        item.type = target_resource?.type
         item.attributes = item
     }
     
-    const modal_content = <RelatedInstance instance={item} resource_name={join.target}/>
-    return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={join.target} />
+    const modal_content = <RelatedInstance instance={item} resource_name={target_resource.name}/>
+    return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={target_resource.name} />
 }
 
 
