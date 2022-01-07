@@ -78,7 +78,7 @@ const TruncatedTextField = (props) => {
 }
 
 
-const JoinedField = ({attribute, join}) => {
+const JoinedField = ({attribute, join, label}) => {
     
     const record = useRecordContext();
     if(record?.attributes){
@@ -101,7 +101,7 @@ const JoinedField = ({attribute, join}) => {
     }
     
     let item = data || record[rel_name]
-    let label = item?.id || id
+    label = item?.id || id
     
     if(!item){
         return <>{id}</>
@@ -235,7 +235,7 @@ export const ShowAttrField = ({attr, value}) => {
         // todo: make the onClick handler open the corresponding tab
         const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
         const rel_label = <span style={{ display: "inline-flex"}}>
-                                {label}
+                                {attr.name} / {label}
                                 <DensityMediumIcon 
                                     className={classes.rel_icon} style={{width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem"}}
                                 />
@@ -243,7 +243,7 @@ export const ShowAttrField = ({attr, value}) => {
         field_props[label] = "rel_label"
         field_props[value] = 'jf'
         label = rel_label
-        value = jf
+        value = value && <>{value} / {jf}</>
     }
     return <ShowField {...field_props} value={value} label={label}/>
 }

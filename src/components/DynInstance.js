@@ -53,13 +53,12 @@ export const DetailPanel = ({attributes}) => {
             </Grid>
 }
 
-export const ShowRecordField = ({ source }) => {
+export const ShowRecordField = ({ source, tabs }) => {
     const record = useRecordContext();
     const classes = useStyles();
     const attr_name = source.name
     const label =  source.label || attr_name
     let value = record[attr_name]
-
     return <ShowAttrField attr={source} value={value} />
 };
 
@@ -71,46 +70,62 @@ const ShowInstance = ({attributes, relationships, resource_name, id}) => {
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
                   </Typography>
 
-    const tabs = <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
-                    {relationships.map((rel) => rel.direction === "tomany" ?  // <> "toone"
+    const tabs = relationships.map((rel) => {
+            // 
+            return rel.direction === "tomany" ?  // <> "toone"
                         DynRelationshipMany(resource_name, id, rel) : 
-                        DynRelationshipOne(resource_name, id, rel)) }
-                  </TabbedShowLayout>
+                        DynRelationshipOne(resource_name, id, rel)
+    })
+                  
 
     return <SimpleShowLayout>
                 {title}
                 <Grid container spacing={3} margin={5} m={40}>
-                    {attributes.map((attr) => <ShowRecordField key={attr.name} source={attr}/> )}
+                    {attributes.map((attr) => <ShowRecordField key={attr.name} source={attr} tabs={tabs}/> )}
                 </Grid>
                 <hr style={{ margin: "30px 0px 30px" }}/>
+                <TabbedShowLayout tabs={<TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />}>
                 {tabs}
+                </TabbedShowLayout>
             </SimpleShowLayout>
 }
 
 
 const DynRelationshipOne = (resource, id, relationship) => {
     
-    console.log({resource}, {id}, {relationship}, relationship.name)
-    const { loaded, error, data } = useQueryWithStore({
+    const [rel_data, setRelData]  =useState(false)
+    const [loading, setLoading] = useState(true);
+    const [rel_error, setRelError] = useState();
+    const {loaded, error, data} = useQueryWithStore({
         type: 'getOne',
             resource: resource,
             payload: { id: id }
         })
-    const rel_query = useQueryWithStore({
-        type: 'getOne',
-            resource: relationship.resource,
-            payload: { id: data && data[relationship.fks.join('_')] }
-        })
-    const rel_loaded = rel_query.loaded
-    const rel_error = rel_query.error
-    const rel_data = rel_query.data
-        
+    const rel_id = data && relationship.fks.map(fk => data[fk]).join('_')
+    const dataProvider = useDataProvider();
     let tab_content = " - "
-    if (!loaded) { 
-        tab_content = <Loading key={relationship.name}/>; 
+    useEffect(() => {
+        if(rel_id === undefined){
+            return
+        }
+        dataProvider.getOne(relationship.resource, { id: rel_id })
+            .then(({ data }) => {
+                setRelData(data);
+                setLoading(false);
+            })
+            .catch(error => {
+                setRelError(error);
+                setLoading(false);
+            })
+    }, [data]);
+    
+    if (!rel_data) { 
+        tab_content = <Loading key={relationship.name}/>;
     }
-    else if (error || rel_error) { 
-        tab_content = <Error key={relationship.name}/>; 
+    else if (error || rel_error) {
+        console.log({resource}, {id}, {relationship}, relationship.name)
+        console.log({data}, {rel_data})
+        tab_content = <Error key={relationship.name} error={"Failed to load relationship"}/>;
     }
     else if(rel_data){
         tab_content = <RelatedInstance instance={rel_data} />
