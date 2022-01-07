@@ -84,6 +84,7 @@ const AsyncResources = () => {
 
 
 const App = () => {
+    
     if(!localStorage.getItem("raconf")){
         LoadYaml(null)
     }

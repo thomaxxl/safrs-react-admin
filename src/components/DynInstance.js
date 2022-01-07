@@ -125,7 +125,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
     else if (error || rel_error) {
         console.log({resource}, {id}, {relationship}, relationship.name)
         console.log({data}, {rel_data})
-        tab_content = <Error key={relationship.name} error={"Failed to load relationship"}/>;
+        tab_content = <Error key={relationship.name} />;
     }
     else if(rel_data){
         tab_content = <RelatedInstance instance={rel_data} />

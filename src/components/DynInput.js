@@ -138,7 +138,6 @@ const DynReferenceInput = (props) => {
     const [selected, setSelected] = useState(props.selected)
     const handleChange = useCallback((event) => setVersion(version + 1), [version]);
     
-    console.log({selected})
     return <>
             <Grid item xs={4} spacing={4} margin={5} >
                 <ReferenceInput key={version} {...props}>

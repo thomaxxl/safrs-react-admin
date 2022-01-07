@@ -18,7 +18,12 @@ const AttrForm = ({attributes, ...props}) => {
                 {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) => <DynInput attribute={attr} key={attr.name} xs={4}/> )}
                 </Grid>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                {attributes.filter(attr => attr.relationship && !attr.hidden).map((attr) => <><DynInput attribute={attr} key={attr.name} xs={5}/><Grid item xs={6}/></> )}
+                {
+                  attributes.filter(attr => attr.relationship && !attr.hidden)
+                            .map((attr, i) => <React.Fragment key={i}>
+                                                <DynInput attribute={attr} xs={5}/><Grid item xs={6}/>
+                                              </React.Fragment> )
+                }
                 </Grid>
         </SimpleForm>
 }

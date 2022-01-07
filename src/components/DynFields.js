@@ -80,6 +80,7 @@ const TruncatedTextField = (props) => {
 
 const NestedJoinedField = ({resource_name, id}) => {
     // Nested foins no longer have access to the right RecordContext
+    // this doesn't work for composite keys :// (because we just pass a single id)
     const user_key = conf.resources[resource_name]?.user_key || "id"
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
@@ -140,6 +141,13 @@ const JoinedField = ({attribute, pvalue}) => {
 }
 
 
+const ToOneJoin = ({attribute}) => {
+    const record = useRecordContext();
+    const label_text = attribute.label || attribute.relationship.resource || attribute.name
+    const label = <RelLabel text={label_text} />
+    return <JoinedField key={attribute.name} attribute={attribute} label={label} pvalue={record.id}/>
+}
+
 export const attr_fields = (attributes, ...props) => {
 
     if(! attributes instanceof Array){
@@ -153,12 +161,12 @@ export const attr_fields = (attributes, ...props) => {
             }
             if(attr.relationship?.direction == "toone"){
                 const label_text = attr.label || attr.relationship.resource || attr.name
-                const label = <RelLabel text={label_text} />
-                return <JoinedField key={attr.name} attribute={attr} label={label} pvalue="attr_field"/>
+                return <ToOneJoin attribute={attr} />
             }
             return AttrField({attribute: attr, ...props})
         }
     )
+    
     return fields
 }
 
@@ -258,8 +266,7 @@ export const ShowAttrField = ({attr, value}) => {
         field_props[label] = "rel_label"
         field_props[value] = 'jf'
         label = rel_label
-        console.log({value})
-        value = <>{value} / {jf}</>
+        value = value || value === 0 ? <>{value} / {jf}</> : <></>
     }
     return <ShowField {...field_props} value={value} label={label}/>
 }
