@@ -78,8 +78,20 @@ const TruncatedTextField = (props) => {
 }
 
 
-const JoinedField = ({attribute, join, label}) => {
-    console.log({join})
+const NestedJoinedField = ({resource_name, id}) => {
+    // Nested foins no longer have access to the right RecordContext
+    const user_key = conf.resources[resource_name]?.user_key || "id"
+    const { data, loading, error } = useQueryWithStore({ 
+        type: 'getOne',
+        resource: resource_name,
+        payload: { id: id }
+    });
+    const modal_content = <RelatedInstance instance={data} resource_name={resource_name}/>
+    return <JoinModal label={data && data[user_key]} content={modal_content} resource_name={resource_name} />
+}
+
+const JoinedField = ({attribute, pvalue}) => {
+    const join = attribute.relationship
     const record = useRecordContext();
     if(record?.attributes){
         Object.assign(record, record.attributes)
@@ -101,10 +113,11 @@ const JoinedField = ({attribute, join, label}) => {
     }
     
     let item = data || record[rel_name]
-    label = item?.id || id
+    let label = item?.id || id
     
     if(!item){
-        return <>{id}</>
+        // no item: we're in a nested view and pvalue already holds our id
+        return <NestedJoinedField resource_name={target_resource.name} id={pvalue} />
     }
     if(user_component){
         // user_component: custom component
@@ -119,7 +132,9 @@ const JoinedField = ({attribute, join, label}) => {
         item.type = target_resource?.type
         item.attributes = item
     }
-    
+    if(!label){
+        label = 'NNN'
+    }
     const modal_content = <RelatedInstance instance={item} resource_name={target_resource.name}/>
     return <JoinModal label={label} key={attribute.name} content={modal_content} resource_name={target_resource.name} />
 }
@@ -139,7 +154,7 @@ export const attr_fields = (attributes, ...props) => {
             if(attr.relationship?.direction == "toone"){
                 const label_text = attr.label || attr.relationship.resource || attr.name
                 const label = <RelLabel text={label_text} />
-                return <JoinedField key={attr.name} attribute={attr} join={attr.relationship} label={label}/>
+                return <JoinedField key={attr.name} attribute={attr} label={label} pvalue="attr_field"/>
             }
             return AttrField({attribute: attr, ...props})
         }
@@ -233,7 +248,7 @@ export const ShowAttrField = ({attr, value}) => {
     }
     if(attr.relationship){
         // todo: make the onClick handler open the corresponding tab
-        const jf = <JoinedField key={attr.name} attribute={attr} join={attr.relationship} />
+        const jf = <JoinedField key={attr.name} attribute={attr} pvalue={value} />
         const rel_label = <span style={{ display: "inline-flex"}}>
                                 {attr.name} / {label}
                                 <DensityMediumIcon 
@@ -243,7 +258,8 @@ export const ShowAttrField = ({attr, value}) => {
         field_props[label] = "rel_label"
         field_props[value] = 'jf'
         label = rel_label
-        value = value && <>{value} / {jf}</>
+        console.log({value})
+        value = <>{value} / {jf}</>
     }
     return <ShowField {...field_props} value={value} label={label}/>
 }
