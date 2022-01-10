@@ -35,7 +35,7 @@ export const safrsErrorHandler: HttpErrorHandler = (
   }
   
   const errors: { errors: err[] } = httpError.body; // JSON.parse(httpError.body.stringify);
-  if (errors?.errors.length > 0) {
+  if (errors?.errors?.length > 0) {
     alert("Data error "+ errors.errors[0].title)
     return new SafrsHttpError(
       errors.errors[0].title,

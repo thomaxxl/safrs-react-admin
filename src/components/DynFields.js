@@ -25,7 +25,6 @@ import {InfoPopover} from '../util'
 
 const conf = get_Conf();
 
-
 const useStyles = makeStyles({
     join_attr: {color: '#3f51b5;'},
     delete_icon : {fill: "#3f51b5"},
@@ -148,7 +147,7 @@ const ToOneJoin = ({attribute}) => {
     return <JoinedField key={attribute.name} attribute={attribute} label={label} pvalue={record.id}/>
 }
 
-export const attr_fields = (attributes, ...props) => {
+export const attr_fields = (attributes, mode, ...props) => {
 
     if(! attributes instanceof Array){
         console.warn("Invalid attributes", attributes)
@@ -163,15 +162,15 @@ export const attr_fields = (attributes, ...props) => {
                 const label_text = attr.label || attr.relationship.resource || attr.name
                 return <ToOneJoin attribute={attr} />
             }
-            return AttrField({attribute: attr, ...props})
+            return AttrField({attribute: attr, mode: mode, ...props})
         }
-    )
+    ).filter((attr) => attr?.key) // filter out "null" items, for ex when it's not supposed to show up in this mode
     
     return fields
 }
 
 
-const AttrField = ({attribute, ...props}) => {
+const AttrField = ({attribute, mode, ...props}) => {
     /* Attribute fields
         Return a component that will be filled in depending on the record context
     */
@@ -191,7 +190,7 @@ const AttrField = ({attribute, ...props}) => {
         const Component = loadable(() => import(`./Custom.js`), {
                 resolveComponent: (components) => components[component],
         })
-        result = <Component attribute={attribute}/>
+        result = <Component attribute={attribute} mode={mode}/>
     }
     catch(e){
         alert("Custom component error")

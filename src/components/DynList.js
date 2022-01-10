@@ -114,7 +114,7 @@ const gen_DynResourceList = (resource) => (props) => {
     }
     
     const attributes = resource.attributes
-    const fields = attr_fields(attributes);
+    const fields = attr_fields(attributes, "list");
     const col_nr = resource.max_list_columns
     const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
     document.title = resource.label || resource.name

@@ -26,6 +26,7 @@ import AttrForm from './AttrForm.js'
 import {get_Conf} from '../Config.js'
 import QuickPreviewButton from './QuickPreviewButton.js'
 import { NumberInput }  from 'react-admin';
+import get_Component from "../get_Component";
 
 const conf = get_Conf();
 
@@ -159,6 +160,10 @@ const DynInput = ({attribute, resource, xs}) => {
     const attr_type = attribute.type?.toLowerCase()
     let result = grid_wrap(<TextInput source={attribute.name} fullWidth  {...input_props}/>)
 
+    if(attribute.component){
+        const Component = get_Component(attribute.component)
+        return <Component attr={attribute} mode="edit"/>
+    }
     if(attr_type == "DATE"){
         result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
     }

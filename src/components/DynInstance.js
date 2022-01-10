@@ -30,6 +30,7 @@ import {DynPagination} from '../util'
 import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoModal from "./InfoModal.js";
+import get_Component from '../get_Component.js';
 
 const conf = get_Conf();
 
@@ -59,24 +60,33 @@ export const ShowRecordField = ({ source, tabs }) => {
     const attr_name = source.name
     const label =  source.label || attr_name
     let value = record[attr_name]
+    if(source.component){
+        const Component = get_Component(source.component)
+        return <Component attr={source} value={value} mode="show"/>
+    }
     return <ShowAttrField attr={source} value={value} />
 };
 
 
-const ShowInstance = ({attributes, relationships, resource_name, id}) => {
+const ShowInstance = ({attributes, tab_groups, resource_name, id}) => {
 
     const classes = useStyles()
     const title = <Typography variant="h5" component="h5" className={classes.instance_title}>
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
                   </Typography>
 
-    const tabs = relationships.map((rel) => {
-            // 
-            return rel.direction === "tomany" ?  // <> "toone"
-                        DynRelationshipMany(resource_name, id, rel) : 
-                        DynRelationshipOne(resource_name, id, rel)
+    const tabs = tab_groups.map((tab) => {
+            if(tab.component){
+                const Component = get_Component(tab.component)
+                return <Tab label={tab.name || 'Tab'} key={tab.name}><Component/></Tab>
+            }
+            if(tab.direction === "tomany"){ // <> "toone"
+                return DynRelationshipMany(resource_name, id, tab)
+            }
+            if (tab.direction === "toone"){
+                return DynRelationshipOne(resource_name, id, tab)
+            }
     })
-                  
 
     return <SimpleShowLayout>
                 {title}
@@ -294,9 +304,9 @@ const ShowActions = ({ basePath, data, resource}) => {
 export const gen_DynResourceShow = (resource_conf) => (props) => {
 
     const attributes = resource_conf.attributes
-    const relationships= resource_conf.relationships
+    const tab_groups= resource_conf.tab_groups
 
     return <Show title={<ResourceTitle />} actions={<ShowActions resource={resource_conf}/>} {...props}>
-                <ShowInstance attributes={attributes} relationships={relationships} resource_name={props.resource} id={props.id}/>
+                <ShowInstance attributes={attributes} tab_groups={tab_groups} resource_name={props.resource} id={props.id}/>
             </Show>
 }

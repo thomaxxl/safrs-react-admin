@@ -61,9 +61,13 @@ export const get_Conf = () => {
         resource.relationships = resource.relationships || []
         if(resource.tab_groups instanceof Array){
             for(let tg of resource.tab_groups){
+                if(!tg.direction){
+                    continue
+                }
                 tg.target = tg.resource
+                resource.relationships.push(tg)
             }
-            resource.relationships = resource.relationships.concat(resource.tab_groups)
+            //resource.relationships = resource.relationships.concat(resource.tab_groups)
         }
         else {
             // dict: deprecated soon

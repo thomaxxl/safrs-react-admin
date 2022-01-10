@@ -38,6 +38,15 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
   }
 }
 
+const httpAuthClient = (url: string, options : any) => {
+  if (!options.headers) {
+      options.headers = new Headers({ Accept: 'application/json' });
+  }
+  const token : string = localStorage.getItem('auth_token') || "";
+  options.headers.set('Authorization', `Bearer ${token}`);
+  return fetchUtils.fetchJson(url, options);
+}
+
 /**
  * Based on
  * 
@@ -48,7 +57,7 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
 export const jsonapiClient = (
   apiUrl: string,
   userSettings = {conf : {}},
-  httpClient = fetchUtils.fetchJson,
+  httpClient = httpAuthClient,//fetchUtils.fetchJson,
   countHeader: string = 'Content-Range'
 ): DataProvider => {
   const settings = merge(defaultSettings, userSettings);
@@ -114,7 +123,7 @@ export const jsonapiClient = (
 
       const url = `${apiUrl}/${resource}?${stringify(query)}`;
       console.log(query)
-      return httpClient(url)
+      return httpClient(url, {})
         .then(({ json }) => {
           // const lookup = new ResourceLookup(json.data);
           // When meta data and the 'total' setting is provided try
@@ -164,7 +173,7 @@ export const jsonapiClient = (
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
       const url = `${apiUrl}/${resource}/${params.id}?include=${includes}&page[limit]=1`; // we only need 1 include at most
       
-      return httpClient(url).then(({ json }) => {
+      return httpClient(url, {}).then(({ json }) => {
 
         let { id, attributes, relationships, type } = json.data;
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
@@ -190,7 +199,7 @@ export const jsonapiClient = (
       let query = 'filter[id]=' 
       query += params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids); // fixme
       const url = `${apiUrl}/${resource}?${query}`;
-      return httpClient(url).then(({ json }) => {
+      return httpClient(url, {}).then(({ json }) => {
         console.log('getMany', json);
         // When meta data and the 'total' setting is provided try
         // to get the total count.

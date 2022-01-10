@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { AdminContext, Admin, AdminUI, Resource, useDataProvider } from 'react-admin';
+import { AdminContext, Admin, AdminUI, Resource, useDataProvider, fetchUtils } from 'react-admin';
 //import {jsonapiClient} from "@agoe/rav3-jsonapi-client"
 import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
@@ -33,10 +33,11 @@ const bcR =  (previousState = 0, { type, payload }) => {
     return previousState;
 }
 
+
 const conf = get_Conf();
 const cache_duration = conf?.settings?.cache_duration || 90000
 //const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
-const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}), ); //  caching
+const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}),); //  caching
 
 
 const AsyncResources = () => {
