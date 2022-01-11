@@ -4,9 +4,18 @@ import {get_Conf} from './Config'
 
 const conf = get_Conf()
 
+const dummy_auth = () => {
+    localStorage.setItem('auth_token','xxxx')
+    localStorage.setItem('username','admin')
+}
 const authProvider = {
     login: ({ username, password }) =>  {
+        if(! conf.api_root?.includes("admin-api")){
+            dummy_auth()
+            return Promise.resolve()
+        }
         const login_url = `${conf.api_root}/Users/login_user`
+        console.log(login_url)
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -23,12 +32,12 @@ const authProvider = {
             )
             .catch((err)=>{
                 console.warn(`Authentication Failed: ${err}`)
-                localStorage.setItem('auth_token','dummy auth')
+                localStorage.setItem('auth_token','')
             })
     },
     logout: () => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('username');
+        
+        dummy_auth()
         const cookies = document.cookie.split(";");
         for (const cookie of cookies) {
             const eqPos = cookie.indexOf("=");
@@ -57,7 +66,9 @@ const authProvider = {
             }
         }
         catch(exc){
-            console.warn(exc)
+            console.warn('checkAuth')
+            console.debug(exc)
+            authProvider.login(0,0)
             //localStorage.removeItem('auth_token');
         }
         return localStorage.getItem('auth_token')

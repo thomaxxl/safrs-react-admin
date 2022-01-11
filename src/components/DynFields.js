@@ -104,15 +104,18 @@ const JoinedField = ({attribute, pvalue}) => {
     const fk = join.fks.join('_')
     const id = record ? record[fk] : null
     
-    console.log("JoinedField", fk, record[fk], record)
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource.name,
         payload: { id: id }
-    });
+    })
 
     if(!record){
         return null
+    }
+
+    if(loading){
+        return <span>{id}</span>
     }
     
     let item = data || record[rel_name]
