@@ -1,5 +1,5 @@
 {
-    "api_root": "//localhost:5656/admin-api",
+    "api_root": "/admin-api",
     "resources": {
         "Apis": {
             "attributes": [

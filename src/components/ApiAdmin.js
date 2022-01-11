@@ -15,7 +15,7 @@ const boxStyle = {
   transform: 'translate(-50%, -50%)',
   width: "75%",
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: '0px solid #000',
   boxShadow: 24,
   p: 4,
   textAlign: "left"
@@ -30,7 +30,8 @@ const useStyles = makeStyles({
     overflow:'scroll',
     height:'100%',
     display:'block',
-    fontWeight : "0.6em"
+    fontWeight : "0.6em",
+    display: 'flex'
   }
 });
 
