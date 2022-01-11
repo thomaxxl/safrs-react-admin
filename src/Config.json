@@ -1,15 +1,67 @@
 {
-    "api_root": null,
+    "api_root": "//localhost:5656/admin-api",
     "resources": {
-        "Databases": {
-            "type": "DB",
-            "user_key": "name",
+        "Apis": {
             "attributes": [
                 {
-                    "name": "name",
-                    "hidden": true
+                    "name": "name"
+                },
+                {
+                    "name": "connection_string"
+                },
+                {
+                    "name": "owner_id",
+                    "label": "Owner"
+                },
+                {
+                    "name": "manage",
+                    "component": "ApiManageField"
                 }
-            ]
+            ],
+            "tab_groups": [
+                {
+                    "direction": "toone",
+                    "fks": [
+                        "owner_id"
+                    ],
+                    "name": "owner",
+                    "resource": "Users"
+                }
+            ],
+            "type": "Api",
+            "info": "<h1>API List</h1>"
+        },
+        "Users": {
+            "user_key": "username",
+            "attributes": [
+                {
+                    "name": "username",
+                    "search": true
+                },
+                {
+                    "name": "name",
+                    "search": true
+                },
+                {
+                    "name": "email",
+                    "search": true
+                },
+                {
+                    "name": "_password",
+                    "component": "UserPasswordField"
+                }
+            ],
+            "tab_groups": [
+                {
+                    "direction": "tomany",
+                    "fks": [
+                        "owner_id"
+                    ],
+                    "name": "apis",
+                    "resource": "Apis"
+                }
+            ],
+            "type": "User"
         }
     }
 }

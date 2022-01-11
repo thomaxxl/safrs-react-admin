@@ -8,7 +8,7 @@ import Button from '@material-ui/core/Button';
 import { get_Conf } from '../Config';
 import {Loading} from 'react-admin'
 
-const style = {
+const boxStyle = {
   position: 'absolute',
   top: '50%',
   left: '50%',
@@ -50,7 +50,7 @@ export default function ApiModal(props) {
         setOutput(<Loading/>)
         fetch(create_url, requestOptions)
             .then(response => response.json())
-            .then(data => setOutput(<Typography component="pre">{data}</Typography>))
+            .then(data => setOutput(<pre>{data}</pre>))
     }
     
     const [open, setOpen] = React.useState(false);
@@ -60,7 +60,7 @@ export default function ApiModal(props) {
     const record = props.record
     
     const classes = useStyles()
-    console.log(props)
+    
     return (
         <span>
         <span onClick={handleOpen} className={classes.joined_field} title={` Relationship` }><PlayCircleOutlineIcon/></span>
@@ -72,11 +72,10 @@ export default function ApiModal(props) {
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
-            <Box sx={style}>
+            <Box sx={boxStyle}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
                 Create API 
             </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                 Pressing the button will generate an API with the following properties:
                 <dl>
                 <dt>Name:</dt>
@@ -93,7 +92,6 @@ export default function ApiModal(props) {
                 
                 {output}
                 
-            </Typography>
             </Box>
         </Modal>
         </span>
