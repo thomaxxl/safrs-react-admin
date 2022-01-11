@@ -162,7 +162,7 @@ export const jsonapiClient = (
       
       if(params.id === null || params.id === undefined){
           console.debug(`params.id is '${params.id}'`)
-          return new Promise(()=>{ data: {}})
+          return new Promise(()=>{return {data: {}}})
       }
       const resource_conf = conf["resources"][resource];
       if(!resource_conf){
@@ -176,6 +176,10 @@ export const jsonapiClient = (
       return httpClient(url, {}).then(({ json }) => {
 
         let { id, attributes, relationships, type } = json.data;
+        if(id === undefined){
+          console.log(id, attributes)
+          return {data:{}}
+        }
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
         attributes = prepareAttributes(attributes, resource)
         const validUntil = new Date();

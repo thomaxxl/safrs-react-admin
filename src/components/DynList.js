@@ -112,6 +112,8 @@ const gen_DynResourceList = (resource) => (props) => {
             </span>
         return buttons
     }
+
+    const ListTitle = (props) => <>{resource.name} List</>
     
     const attributes = resource.attributes
     const fields = attr_fields(attributes, "list");
@@ -123,6 +125,7 @@ const gen_DynResourceList = (resource) => (props) => {
                 actions={<ListActions resource={resource}/>}
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
+                title={<ListTitle/>}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}

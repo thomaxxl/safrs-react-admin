@@ -31,6 +31,7 @@ import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, E
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoModal from "./InfoModal.js";
 import get_Component from '../get_Component.js';
+import BlockIcon from '@mui/icons-material/Block';
 
 const conf = get_Conf();
 
@@ -75,7 +76,7 @@ const ShowInstance = ({attributes, tab_groups, resource_name, id}) => {
                         {resource_name}<i style={{color: "#ccc"}}> #{id}</i>
                   </Typography>
 
-    const tabs = tab_groups.map((tab) => {
+    const tabs = tab_groups?.map((tab) => {
             if(tab.component){
                 const Component = get_Component(tab.component)
                 return <Tab label={tab.name || 'Tab'} key={tab.name}><Component/></Tab>
@@ -84,7 +85,7 @@ const ShowInstance = ({attributes, tab_groups, resource_name, id}) => {
                 return DynRelationshipMany(resource_name, id, tab)
             }
             if (tab.direction === "toone"){
-                return DynRelationshipOne(resource_name, id, tab)
+                return id !== undefined ? DynRelationshipOne(resource_name, id, tab) : null
             }
     })
 
@@ -103,19 +104,21 @@ const ShowInstance = ({attributes, tab_groups, resource_name, id}) => {
 
 const DynRelationshipOne = (resource, id, relationship) => {
     
+    console.log("DR1", resource, id)
     const [rel_data, setRelData]  =useState(false)
     const [loading, setLoading] = useState(true);
-    const [rel_error, setRelError] = useState();
+    const [rel_error, setRelError] = useState(false);
     const {loaded, error, data} = useQueryWithStore({
         type: 'getOne',
             resource: resource,
             payload: { id: id }
         })
-    const rel_id = data && relationship.fks.map(fk => data[fk]).join('_')
+    const rel_id = data && relationship.fks.map(fk => data[fk] ? data[fk] : "").join('_')
     const dataProvider = useDataProvider();
     let tab_content = " - "
     useEffect(() => {
-        if(rel_id === undefined){
+        if(rel_id === undefined || rel_id === ""){
+            setLoading(false);
             return
         }
         dataProvider.getOne(relationship.resource, { id: rel_id })
@@ -124,18 +127,19 @@ const DynRelationshipOne = (resource, id, relationship) => {
                 setLoading(false);
             })
             .catch(error => {
-                setRelError(error);
+                console.warn(error)
+                setRelError(error || "Relationship Error");
                 setLoading(false);
             })
     }, [data]);
     
     if (!rel_data) { 
-        tab_content = <Loading key={relationship.name}/>;
+        tab_content = loading ? <Loading key={relationship.name}/> : <BlockIcon style={{fill : "#ccc"}} title="No data"/>
     }
     else if (error || rel_error) {
         console.log({resource}, {id}, {relationship}, relationship.name)
         console.log({data}, {rel_data})
-        tab_content = <Error key={relationship.name} />;
+        tab_content = <Error key={relationship.name} error={error || rel_error}/>;
     }
     else if(rel_data){
         tab_content = <RelatedInstance instance={rel_data} />
@@ -170,8 +174,10 @@ const DynRelationshipOne = (resource, id, relationship) => {
 }
 
 const LoadingRelatedInstance = ({rel_resource, rel_id}) =>{
+
+    return <div>LoadingRelatedInstance</div>
     // obsolete?
-    console.log('LoadingRelatedInstance', {rel_resource}, {rel_id})
+    /*console.log('LoadingRelatedInstance', {rel_resource}, {rel_id})
     const { loaded, error, data } = useQueryWithStore({
         type: 'getOne',
             resource: rel_resource,
@@ -183,7 +189,7 @@ const LoadingRelatedInstance = ({rel_resource, rel_id}) =>{
     if (error) { 
         return <Error />; 
     }
-    return <RelatedInstance instance={data} />
+    return <RelatedInstance instance={data} />*/
 }
 
 

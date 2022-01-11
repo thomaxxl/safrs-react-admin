@@ -91,6 +91,7 @@ const NestedJoinedField = ({resource_name, id}) => {
 }
 
 const JoinedField = ({attribute, pvalue}) => {
+    
     const join = attribute.relationship
     const record = useRecordContext();
     if(record?.attributes){
@@ -98,10 +99,12 @@ const JoinedField = ({attribute, pvalue}) => {
     }
     const rel_name = join.name;
     const target_resource = join.target_resource
-    const fk = join.fks.join('_')
     const user_key = target_resource?.user_key
     const user_component = target_resource?.user_component
+    const fk = join.fks.join('_')
     const id = record ? record[fk] : null
+    
+    console.log("JoinedField", fk, record[fk], record)
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
         resource: target_resource.name,
@@ -116,8 +119,9 @@ const JoinedField = ({attribute, pvalue}) => {
     let label = item?.id || id
     
     if(!item){
-        // no item: we're in a nested view and pvalue already holds our id
-        return <NestedJoinedField resource_name={target_resource.name} id={pvalue} />
+        // no item: if there is data then we're in a nested view and pvalue already holds our id
+        // without data this join is empty
+        return data ? <NestedJoinedField resource_name={target_resource.name} id={pvalue} /> : null
     }
     if(user_component){
         // user_component: custom component
@@ -160,11 +164,11 @@ export const attr_fields = (attributes, mode, ...props) => {
             }
             if(attr.relationship?.direction == "toone"){
                 const label_text = attr.label || attr.relationship.resource || attr.name
-                return <ToOneJoin attribute={attr} />
+                return <ToOneJoin attribute={attr} label={label_text}/>
             }
             return AttrField({attribute: attr, mode: mode, ...props})
         }
-    ).filter((attr) => attr?.key) // filter out "null" items, for ex when it's not supposed to show up in this mode
+    )//.filter((attr) => attr?.key) // filter out "null" items, for ex when it's not supposed to show up in this mode
     
     return fields
 }
@@ -185,12 +189,14 @@ const AttrField = ({attribute, mode, ...props}) => {
     if(!component){
         return result
     }
+    
     // component is specified => render the specified component
     try{
         const Component = loadable(() => import(`./Custom.js`), {
                 resolveComponent: (components) => components[component],
         })
-        result = <Component attribute={attribute} mode={mode}/>
+        const label_text = attribute.label || attribute.name
+        result = <Component attribute={attribute} mode={mode} label={label_text}/>
     }
     catch(e){
         alert("Custom component error")

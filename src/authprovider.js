@@ -10,8 +10,11 @@ const authProvider = {
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({username: username, password: password})
+            body: username ? JSON.stringify({username: username, password: password}) : "{}"
         };
+        if(!username){
+            requestOptions.headers["Authorization"] = `Bearer ${localStorage.getItem('auth_token')}`
+        }
         return fetch(login_url, requestOptions)
             .then(response => response.json())
             .then(data =>{
@@ -34,11 +37,29 @@ const authProvider = {
         }
         return Promise.resolve();
     },
-    checkError: ({error}) => {
+    checkError: (error) => {
+        console.warn(`Auth error ${error}`)
+        const has_token = localStorage.getItem('auth_token')
+        //localStorage.removeItem('auth_token');
+        //localStorage.removeItem('username');
+        //has_token && window.location.reload()
         return Promise.resolve();
 
     },
     checkAuth: () => {
+        const token = localStorage.getItem('auth_token')
+        try{
+            const iat = JSON.parse(atob(token.split('.')[0])).iat
+            const token_age = Date.now() / 1000 - iat
+            if(token_age > 5*60){
+                // refresh tokens older than 5 min
+                authProvider.login(0,0)
+            }
+        }
+        catch(exc){
+            console.warn(exc)
+            //localStorage.removeItem('auth_token');
+        }
         return localStorage.getItem('auth_token')
             ? Promise.resolve()
             : Promise.reject();

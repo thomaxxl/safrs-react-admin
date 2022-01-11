@@ -3,6 +3,7 @@ import {
     DateInput,
     ReferenceInput,
     AutocompleteInput,
+    NumberInput,
     SelectInput,
     required,
     useCreate,
@@ -22,10 +23,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import Grid from '@material-ui/core/Grid';
-import AttrForm from './AttrForm.js'
 import {get_Conf} from '../Config.js'
 import QuickPreviewButton from './QuickPreviewButton.js'
-import { NumberInput }  from 'react-admin';
 import get_Component from "../get_Component";
 
 const conf = get_Conf();
@@ -154,7 +153,9 @@ const DynReferenceInput = (props) => {
 
 const DynInput = ({attribute, resource, xs}) => {
 
-    const input_props = {validate : attribute.required ? required() : false}
+    const label = attribute.label || attribute.name
+    const input_props = {validate : attribute.required ? required() : false , label: label}
+    
     const [selected_ref, setSelected_ref] = useState(false)
     const grid_wrap = (el) => <Grid item xs={xs | 4} spacing={4} margin={5} >{el}</Grid>
     const attr_type = attribute.type?.toLowerCase()

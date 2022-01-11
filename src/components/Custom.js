@@ -5,11 +5,17 @@ import { List,
     Datagrid,
     TextField,
     EditButton,
+    SaveButton,
     PasswordInput
 } from "react-admin";
+import Button from '@mui/material/Button';
+
+
 //import CreateUser from './CreateUser'
 
 export {CreateUser} from './CreateUser'
+export {ApiManageField} from './ApiAdmin'
+
 
 export const SampleColumnField = ({attribute}) => {
     return <TextField source={attribute.name} key={attribute.name} style={{color : "red" }} />
@@ -28,7 +34,7 @@ export const CustomerLabel = (props) => {
 export const UserPasswordField = (props) => {
 
     if(props.mode === "list"){
-        return null
+        return <></>
     }
     if(props.mode === "edit"){
         return <>
@@ -37,7 +43,9 @@ export const UserPasswordField = (props) => {
             </Grid>
             <Grid item xs={4} spacing={4} margin={5} ><PasswordInput source="_password" /> </Grid>
             <Grid item xs={4} spacing={4} margin={5} ><PasswordInput source="_password" /> </Grid>
+            <Grid item xs={4} spacing={4} margin={5} ></Grid>
         </>
     }
-    return null
+    return <></>
 }
+

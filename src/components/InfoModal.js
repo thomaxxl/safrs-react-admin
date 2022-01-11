@@ -36,7 +36,7 @@ const InfoModal = ({label, resource}) => {
         >
           <Box sx={style} className={classes.info_modal}>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              {resource.info}
+                <div dangerouslySetInnerHTML={{ __html: resource.info}} />
             </Typography>
           </Box>
         </Modal>
