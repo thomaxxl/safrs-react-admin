@@ -14,8 +14,8 @@
                     "label": "Owner"
                 },
                 {
-                    "name": "manage",
-                    "component": "ApiManageField"
+                    "name": "Generate",
+                    "component": "ApiGenerateField"
                 }
             ],
             "tab_groups": [

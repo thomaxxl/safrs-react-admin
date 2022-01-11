@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MuiThemeProvider } from "@material-ui/core/styles";
 import { userLogin } from "react-admin";
 import { connect } from "react-redux";
+import { hideNotification } from 'react-admin'
 
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -15,6 +16,8 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import { useDispatch} from 'react-redux'
+
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -40,6 +43,11 @@ export function LoginPage(props) {
   const [username, setusername] = useState("admin");
   const [password, setpassword] = useState("p");
   const [loaded, setLoaded] = useState(false)
+
+  const dispatch = useDispatch()
+   useEffect(() => {
+      dispatch(hideNotification())
+     }, [])
 
   fetch(`https://jsonapi.hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
 

@@ -14,7 +14,7 @@ import Button from '@mui/material/Button';
 //import CreateUser from './CreateUser'
 
 export {CreateUser} from './CreateUser'
-export {ApiManageField} from './ApiAdmin'
+export {ApiGenerateField} from './ApiAdmin'
 
 
 export const SampleColumnField = ({attribute}) => {

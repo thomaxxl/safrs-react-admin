@@ -98,7 +98,7 @@ export default function ApiModal(props) {
     );
 }
 
-export const ApiManageField = (props) => {
+export const ApiGenerateField = (props) => {
 
   if(props.mode === "list"){
       return <ApiModal {...props}/>
