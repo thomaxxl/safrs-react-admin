@@ -296,9 +296,9 @@ const ShowActions = ({ basePath, data, resource}) => {
     
     const classes = useStyles();
     let info_btn;
-    if(resource.info){
+    if(resource.info_show){
         const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
-        info_btn= <InfoModal label={label} resource={resource}/>
+        info_btn= <InfoModal label={label} resource={resource} mode="show"/>
     }
 
     return <TopToolbar>

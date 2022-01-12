@@ -20,11 +20,16 @@ const useStyles = makeStyles({
 });
 
 
-const InfoModal = ({label, resource}) => {
+const InfoModal = ({label, resource, mode}) => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
     const classes = useStyles()
+
+    let content = resource.info
+    if(mode === "show"){
+        content = resource.info_show
+    }
   
     return <>
         <span onClick={handleOpen} title={`${resource.name} Info`}>{label} </span>
@@ -36,7 +41,7 @@ const InfoModal = ({label, resource}) => {
         >
           <Box sx={style} className={classes.info_modal}>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                <div dangerouslySetInnerHTML={{ __html: resource.info}} />
+                <div dangerouslySetInnerHTML={{ __html: content}} />
             </Typography>
           </Box>
         </Modal>
