@@ -1,4 +1,6 @@
 import React from "react";
+import ReactMarkdown from 'react-markdown'
+import ReactDom from 'react-dom'
 import { Typography } from '@material-ui/core';
 import { Modal, Box  } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
@@ -27,7 +29,13 @@ const useStyles = makeStyles({
 
 const InfoModal = ({resource, mode}) => {
     const [open, setOpen] = React.useState(false);
-    const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
+    const handleOpen = (e) => {
+        setOpen(true);
+        e.stopPropagation(); 
+        /*ReactDom.render(
+        <ReactMarkdown children={"markdown"} remarkPlugins={[]} />,
+        document.getElementById("info_content"))*/
+    }
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
     const classes = useStyles()
     const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
@@ -45,7 +53,7 @@ const InfoModal = ({resource, mode}) => {
         >
           <Box sx={style} className={classes.info_modal}>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                <div dangerouslySetInnerHTML={{ __html: content}} />
+                <div id="info_content" dangerouslySetInnerHTML={{ __html: content}} />
             </Typography>
           </Box>
         </Modal>
