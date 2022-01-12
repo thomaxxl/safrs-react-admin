@@ -10,7 +10,7 @@ const dummy_auth = () => {
 }
 const authProvider = {
     login: ({ username, password }) =>  {
-        if(! conf.api_root?.includes("admin-api")){
+        if(! conf.api_root?.includes("/admin/api")){
             dummy_auth()
             return Promise.resolve()
         }

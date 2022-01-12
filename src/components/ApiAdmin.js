@@ -49,17 +49,21 @@ export default function ApiModal(props) {
             body: '{}'
         };
         setOutput(<Loading/>)
+        box_style.top = "90%"
+        setBoxStyle(box_style)
         fetch(create_url, requestOptions)
             .then(response => response.json())
-            .then(data => setOutput(<pre>{data}</pre>))
+            .then(data => {
+                setOutput(<pre>{data}</pre>)
+            })
     }
     
     const [open, setOpen] = React.useState(false);
     const [output, setOutput] = React.useState("");
+    const [box_style, setBoxStyle] = React.useState(boxStyle);
     const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
     const record = props.record
-    
     const classes = useStyles()
     
     return (
@@ -73,7 +77,7 @@ export default function ApiModal(props) {
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
-            <Box sx={boxStyle}>
+            <Box sx={box_style}>
             <Typography id="modal-modal-title" variant="h6" component="h2">
                 Create API 
             </Typography>

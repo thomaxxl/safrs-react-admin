@@ -135,7 +135,7 @@ export const reset_Conf = (reload) => {
     const configs = {}
     console.log("Resetting conf", config)
     localStorage.setItem("raconf", JSON.stringify(config));
-    //configs[config.api_root] = config
+    configs[config.api_root] = config
     //configs[als_config.api_root] = als_config
     
     localStorage.setItem("raconfigs", JSON.stringify(configs));
@@ -146,8 +146,6 @@ export const reset_Conf = (reload) => {
     return config
 }
 
-export const default_configs = [als_config, config];
-
+export const default_configs = [config]
 export const conf = get_Conf()
-
 export default conf

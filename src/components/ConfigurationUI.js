@@ -271,8 +271,8 @@ export const resetConf = (notify) => {
     let defconf = {}
     
     for(defconf of default_configs){
-        /*localStorage.setItem("raconf", JSON.stringify(defconf));
-        configs[defconf.api_root] = defconf*/
+        localStorage.setItem("raconf", JSON.stringify(defconf));
+        configs[defconf.api_root] = defconf
     }
     localStorage.setItem("raconf", JSON.stringify({}));
     localStorage.setItem("raconfigs", JSON.stringify(configs));
