@@ -1,6 +1,7 @@
 import { showNotification } from 'react-admin';
 import { connect } from 'react-redux';
 import {get_Conf} from './Config'
+import {resetConf} from "./components/ConfigurationUI";
 
 const conf = get_Conf()
 
@@ -8,6 +9,7 @@ const dummy_auth = () => {
     localStorage.setItem('auth_token','xxxx')
     localStorage.setItem('username','admin')
 }
+
 const authProvider = {
     login: ({ username, password }) =>  {
         if(! conf.api_root?.includes("/admin/api")){
@@ -15,7 +17,7 @@ const authProvider = {
             return Promise.resolve()
         }
         const login_url = `${conf.api_root}/Users/login_user`
-        console.log(login_url)
+        
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -32,11 +34,10 @@ const authProvider = {
             )
             .catch((err)=>{
                 console.warn(`Authentication Failed: ${err}`)
-                localStorage.setItem('auth_token','')
+                dummy_auth()
             })
     },
     logout: () => {
-        
         dummy_auth()
         const cookies = document.cookie.split(";");
         for (const cookie of cookies) {
@@ -48,14 +49,14 @@ const authProvider = {
     },
     checkError: (error) => {
         console.warn(`Auth error ${error}`)
-        const has_token = localStorage.getItem('auth_token')
-        //localStorage.removeItem('auth_token');
-        //localStorage.removeItem('username');
-        //has_token && window.location.reload()
+        authProvider.login(0,0)
         return Promise.resolve();
 
     },
     checkAuth: () => {
+        if(!conf.auth_url){
+            return Promise.resolve()
+        }
         const token = localStorage.getItem('auth_token')
         try{
             const iat = JSON.parse(atob(token.split('.')[0])).iat
@@ -71,12 +72,20 @@ const authProvider = {
             authProvider.login(0,0)
             //localStorage.removeItem('auth_token');
         }
+        
         return localStorage.getItem('auth_token')
             ? Promise.resolve()
             : Promise.reject();
     },
     getPermissions: () => Promise.resolve(),
 
+}
+
+
+if(!localStorage.getItem('username')){
+    console.log('Dummy Authentication - Demo')
+    dummy_auth()
+    resetConf()
 }
 
 export default authProvider;

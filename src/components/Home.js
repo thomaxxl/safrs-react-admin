@@ -60,6 +60,7 @@ const Home = (props) => {
         })
     } */
     if(!initialized && !config.settings){
+        alert()
         resetConf()
         setInitialized(true)
     }
