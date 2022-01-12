@@ -2,6 +2,8 @@ import React from "react";
 import { Typography } from '@material-ui/core';
 import { Modal, Box  } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Button from '@material-ui/core/Button';
 
 const style = {
     position: 'absolute',
@@ -16,22 +18,24 @@ const style = {
     textAlign: "left"
 } 
 const useStyles = makeStyles({
-    info_modal : style
+    info_modal : style,
+    icon : {color: '#ccc',
+            '&:hover' : {color: '#3f51b5'}
+            },
 });
 
 
-const InfoModal = ({label, resource, mode}) => {
+const InfoModal = ({resource, mode}) => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = (e) => {setOpen(true); e.stopPropagation();}
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
     const classes = useStyles()
-
-    let content = resource.info
-    if(mode === "show"){
-        content = resource.info_show
-    }
-  
-    return <>
+    const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
+    
+    console.log(resource)
+    const content = resource[`info_${mode}`] // modes: "show", "list", "edit"
+    
+    return content ? <>
         <span onClick={handleOpen} title={`${resource.name} Info`}>{label} </span>
         <Modal
           open={open}
@@ -45,7 +49,7 @@ const InfoModal = ({label, resource, mode}) => {
             </Typography>
           </Box>
         </Modal>
-      </>
+      </> : null
 }
 
 export default InfoModal

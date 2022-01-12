@@ -28,7 +28,6 @@ import { ShowAttrField } from "./DynFields.js";
 import { attr_fields } from "./DynFields.js";
 import {DynPagination} from '../util'
 import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import InfoModal from "./InfoModal.js";
 import get_Component from '../get_Component.js';
 import BlockIcon from '@mui/icons-material/Block';
@@ -294,15 +293,8 @@ export const RelatedInstance = ({instance}) => {
 
 const ShowActions = ({ basePath, data, resource}) => {
     
-    const classes = useStyles();
-    let info_btn;
-    if(resource.info_show){
-        const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
-        info_btn= <InfoModal label={label} resource={resource} mode="show"/>
-    }
-
     return <TopToolbar>
-                {info_btn}
+                <InfoModal resource={resource} mode="show"/>
                 <EditButton basePath={basePath} record={data} />
             </TopToolbar>
 }

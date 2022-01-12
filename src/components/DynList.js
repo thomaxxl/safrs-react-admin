@@ -22,7 +22,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import DeleteIcon from "@material-ui/icons/Delete";
 import { DetailPanel } from "./DynInstance.js";
 import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import {InfoPopover} from '../util'
 import { Modal, Box  } from "@material-ui/core";
 import InfoModal from "./InfoModal.js";
@@ -77,16 +76,10 @@ const DeleteButton = (props) => {
 
 const ListActions = ({resource}) => {
     
-    const classes = useStyles();
-    let info_btn;
-    if(resource.info){
-        const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
-        info_btn= <InfoModal label={label} resource={resource}/>
-    }
-
+    
     return <TopToolbar>
                 <FilterButton/>
-                {info_btn}
+                <InfoModal resource={resource} mode="list"/>
                 <CreateButton/>
                 <ExportButton/>                
             </TopToolbar>
