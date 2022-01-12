@@ -34,7 +34,7 @@ export const CustomerLabel = (props) => {
 export const UserPasswordField = (props) => {
 
     if(props.mode === "list"){
-        return <></>
+        return <span/>
     }
     if(props.mode === "edit"){
         return <>

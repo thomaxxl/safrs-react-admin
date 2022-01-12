@@ -1,10 +1,22 @@
 {
-    "api_root": "http://localhost:5656/admin-api",
+    "api_root": "//localhost:5656/admin/api",
     "resources": {
         "Apis": {
+            "info_list": "<h1>List Info</h1>",
+            "info_show": "<h1>Show Info</h1>",
             "attributes": [
                 {
                     "name": "name"
+                },
+                {
+                    "name": "prefix",
+                    "label": "Url Prefix"
+                },
+                {
+                    "name": "port"
+                },
+                {
+                    "name": "hostname"
                 },
                 {
                     "name": "connection_string"
@@ -14,7 +26,7 @@
                     "label": "Owner"
                 },
                 {
-                    "name": "Generate",
+                    "name": "Create",
                     "component": "ApiGenerateField"
                 }
             ],
@@ -28,8 +40,7 @@
                     "resource": "Users"
                 }
             ],
-            "type": "Api",
-            "info": "<h1>API List</h1>"
+            "type": "Api"
         },
         "Users": {
             "user_key": "username",
@@ -48,6 +59,8 @@
                 },
                 {
                     "name": "_password",
+                    "label": " - ",
+                    "hidden": "list",
                     "component": "UserPasswordField"
                 }
             ],

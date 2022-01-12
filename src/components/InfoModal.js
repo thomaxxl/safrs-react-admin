@@ -39,8 +39,6 @@ const InfoModal = ({resource, mode}) => {
     const handleClose = (e) => {e.stopPropagation();setOpen(false);}
     const classes = useStyles()
     const label = <Button label="Info"><HelpOutlineIcon className={classes.icon}/></Button>
-    
-    console.log(resource)
     const content = resource[`info_${mode}`] // modes: "show", "list", "edit"
     
     return content ? <>

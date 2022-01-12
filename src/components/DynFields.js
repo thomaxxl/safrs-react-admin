@@ -162,7 +162,7 @@ export const attr_fields = (attributes, mode, ...props) => {
     }
     
     const fields = attributes.map((attr) => {
-            if (attr.hidden){
+            if(attr.hidden === mode || attr.hidden === true){
                 return null;
             }
             if(attr.relationship?.direction == "toone"){
@@ -183,6 +183,9 @@ const AttrField = ({attribute, mode, ...props}) => {
     */
     const component = attribute.component // component name to be loaded
     const style = attribute.style || {}
+    if(attribute.hidden === mode || attribute.hidden === true){
+        return null
+    }
         
     let result = <TruncatedTextField source={attribute.name} key={attribute.name} sortBy={attribute.name} label={attribute.label || attribute.name} {...props}/>
     
