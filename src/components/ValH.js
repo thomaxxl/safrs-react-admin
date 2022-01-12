@@ -98,7 +98,7 @@ export default function CustomizedAccordions() {
       <ul>
          <li>For instant collaboration and Back Office data maintenance</li>
          <li>Rich functionality: multi-page, multi-table, automatic joins</li>
-         <li>Explore this app (e.g., click Customer, at left),
+         <li>Explore this app (e.g., click Customer, at left, and look for the info icons, upper right),
               and how to <a  rel="nofollow" href="https://github.com/valhuber/ApiLogicServer/wiki/Working-with-the-Admin-App" target="_blank">customize it</a></li>
       </ul>
       2. <a href="/api" target="_blank">API</a>, with oas/Swagger
