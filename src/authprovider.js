@@ -88,4 +88,9 @@ if(!localStorage.getItem('username')){
     resetConf()
 }
 
+if(!localStorage.getItem('4LS')){
+    resetConf()
+    localStorage.setItem('4LS', new Date())
+}
+
 export default authProvider;
