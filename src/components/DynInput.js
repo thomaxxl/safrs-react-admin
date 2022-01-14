@@ -165,7 +165,7 @@ const DynInput = ({attribute, resource, xs}) => {
         const Component = get_Component(attribute.component)
         return <Component attr={attribute} mode="edit"/>
     }
-    if(attr_type == "DATE"){
+    if(attr_type == "date"){
         result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
     }
     if(attr_type == "number" || attr_type == "decimal"){
