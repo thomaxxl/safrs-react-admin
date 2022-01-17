@@ -8,8 +8,8 @@ import {
 //import als_config from './Config.als.json'
 
 const useQuery = () => {
-    const search = useLocation() || "";
-    console.log(search)
+    //const search = useLocation() || "";
+    //console.log(search)
     //return React.useMemo(() => new URLSearchParams(search), [search])
 }
 
@@ -70,7 +70,7 @@ export const getConf = () => {
 
 export const useConf = () => {
 
-    const query = useQuery();
+    //const query = useQuery();
     init_Conf();
     let result = getConf()
     
