@@ -4,7 +4,7 @@ import CardContent from '@material-ui/core/CardContent';
 import { Title } from 'react-admin';
 import { useState} from 'react';
 import Script from "react-load-script";
-import {get_Conf} from '../Config.js'
+import {useConf} from '../Config.js'
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import {resetConf} from "./ConfigurationUI";
@@ -41,7 +41,7 @@ const Demo = ({ready, config}) => {
 const Home = (props) => {
     document.title = ""
     const { classes } = props;
-    const config = get_Conf()
+    const config = useConf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const [initialized, setInitialized] = useState(false)
     const [resourcesLoaded, setResourcesLoaded] = useState([])

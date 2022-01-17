@@ -25,6 +25,7 @@ import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, E
 import {InfoPopover} from '../util'
 import { Modal, Box  } from "@material-ui/core";
 import InfoModal from "./InfoModal.js";
+import get_Component from '../get_Component.js';
 
 const useStyles = makeStyles({
     icon : {color: '#ccc',
@@ -107,14 +108,14 @@ const gen_DynResourceList = (resource) => (props) => {
     }
 
     const ListTitle = (props) => <>{resource.name} List</>
-    
     const attributes = resource.attributes
     const fields = attr_fields(attributes, "list");
     const col_nr = resource.max_list_columns
     const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
+    
     document.title = resource.label || resource.name
-
-    return <List filters={searchFilters} perPage={resource.perPage || 25}
+    
+    let list = <List filters={searchFilters} perPage={resource.perPage || 25}
                 actions={<ListActions resource={resource}/>}
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
@@ -125,6 +126,13 @@ const gen_DynResourceList = (resource) => (props) => {
                     <ButtonField resource={resource} {...props} />
                 </Datagrid>
             </List>
-};
+    
+    if(resource.components?.list){
+        const Wrapper = get_Component(resource.components?.list)
+        list = <Wrapper list={list} />
+    }
+
+    return list
+}
 
 export default gen_DynResourceList

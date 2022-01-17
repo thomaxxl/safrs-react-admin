@@ -14,7 +14,7 @@ import Button from '@mui/material/Button';
 //import CreateUser from './CreateUser'
 
 export {CreateUser} from './CreateUser'
-export {ApiGenerateField} from './ApiAdmin'
+export * from './ApiAdmin'
 
 
 export const SampleColumnField = ({attribute}) => {
@@ -48,4 +48,3 @@ export const UserPasswordField = (props) => {
     }
     return <></>
 }
-

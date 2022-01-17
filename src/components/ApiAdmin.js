@@ -5,8 +5,10 @@ import Modal from '@material-ui/core/Modal';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import Button from '@material-ui/core/Button';
-import { get_Conf } from '../Config';
-import {Loading} from 'react-admin'
+import { useConf } from '../Config';
+import {Loading,
+    useRecordContext
+} from 'react-admin'
 
 const boxStyle = {
   position: 'absolute',
@@ -36,10 +38,8 @@ const useStyles = makeStyles({
 });
 
 
-const conf = get_Conf()
-
-export default function ApiModal(props) {
-
+const ApiModal = (props) => {
+    const conf = useConf()
     const create_api = (record) =>{
         const create_url = `${conf.api_root}/Apis/${record.id}/generate`
         const requestOptions = {
@@ -109,4 +109,13 @@ export const ApiGenerateField = (props) => {
       return <ApiModal {...props}/>
   }
   return <></>
+}
+
+export const ApiShow = (props) => {
+    const record = useRecordContext();
+    console.log(record)   
+    return <>
+                <div>xxxx</div>
+                {props.show}
+            </>
 }

@@ -16,14 +16,12 @@ import Tooltip from '@mui/material/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import Button from '@material-ui/core/Button';
-import { get_Conf } from '../Config';
+import { useConf } from '../Config';
 import JoinModal from './JoinModal'
 import { load_custom_component } from '../util';
 import { RelatedInstance } from "./DynInstance";
 import loadable from '@loadable/component'
 import {InfoPopover} from '../util'
-
-const conf = get_Conf();
 
 const useStyles = makeStyles({
     join_attr: {color: '#3f51b5;'},
@@ -80,6 +78,7 @@ const TruncatedTextField = (props) => {
 const NestedJoinedField = ({resource_name, id}) => {
     // Nested foins no longer have access to the right RecordContext
     // this doesn't work for composite keys :// (because we just pass a single id)
+    const conf = useConf();
     const user_key = conf.resources[resource_name]?.user_key || "id"
     const { data, loading, error } = useQueryWithStore({ 
         type: 'getOne',
@@ -186,7 +185,8 @@ const AttrField = ({attribute, mode, ...props}) => {
     /*if(attribute.hidden === mode || attribute.hidden === true){
         return null
     }*/
-        
+    
+    const conf = useConf();
     let result = <TruncatedTextField source={attribute.name} key={attribute.name} sortBy={attribute.name} label={attribute.label || attribute.name} {...props}/>
     
     if(attribute.type?.toLowerCase() == "date"){

@@ -1,7 +1,26 @@
+import React from 'react';
 import config from './Config.json'
+import {
+    BrowserRouter as Router,
+    Link,
+    useLocation
+  } from "react-router-dom";
 //import als_config from './Config.als.json'
 
+const useQuery = () => {
+    const search = useLocation() || "";
+    console.log(search)
+    //return React.useMemo(() => new URLSearchParams(search), [search])
+}
+
 const init_Conf = () => {
+    const selected_api = null
+    if(selected_api){
+        const configs = JSON.parse(localStorage.getItem("raconfigs") || {})
+        if(selected_api in configs){
+            alert()
+        }
+    }
     if(! "raconf" in localStorage){
         console.log("Init Configuration")
         localStorage.setItem("raconf",JSON.stringify(config))
@@ -32,13 +51,11 @@ const getBrowserLocales = (options = {}) => {
     });
   }
 
-export const get_Conf = () => {
 
-    init_Conf();
-
-    let ls_conf = null
+export const getConf = () => {
     let result = {}
     const lsc_str = localStorage.getItem("raconf")
+    let ls_conf = null
     try{
         ls_conf = JSON.parse(lsc_str)
         result = ls_conf ? ls_conf : JSON.parse(JSON.stringify(config)) || {};
@@ -48,6 +65,15 @@ export const get_Conf = () => {
         console.warn(`Failed to parse config ${lsc_str}`)
         localStorage.setItem("raconf", JSON.stringify(config))
     }
+    return result
+}
+
+export const useConf = () => {
+
+    const query = useQuery();
+    init_Conf();
+    let result = getConf()
+    
 
     if(!result.resources){
         result.resources = {}
@@ -147,5 +173,3 @@ export const reset_Conf = (reload) => {
 }
 
 export const default_configs = [config]
-export const conf = get_Conf()
-export default conf

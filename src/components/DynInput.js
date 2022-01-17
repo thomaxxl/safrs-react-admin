@@ -23,11 +23,9 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import Grid from '@material-ui/core/Grid';
-import {get_Conf} from '../Config.js'
+import {useConf} from '../Config.js'
 import QuickPreviewButton from './QuickPreviewButton.js'
 import get_Component from "../get_Component";
-
-const conf = get_Conf();
 
 function QuickCreateButton({ onChange, resource_name, cb_set_id }) {
     
@@ -35,6 +33,7 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id }) {
     const [create, { loading }] = useCreate(resource_name);
     const notify = useNotify();
     const form = useForm();
+    const conf = useConf();
     const resource = conf.resources[resource_name]
     const attributes = resource?.attributes || []
 
@@ -160,6 +159,7 @@ const DynInput = ({attribute, resource, xs}) => {
     const grid_wrap = (el) => <Grid item xs={xs | 4} spacing={4} margin={5} >{el}</Grid>
     const attr_type = attribute.type?.toLowerCase()
     let result = grid_wrap(<TextInput source={attribute.name} fullWidth  {...input_props}/>)
+    const conf = useConf();
 
     if(attribute.component){
         const Component = get_Component(attribute.component)

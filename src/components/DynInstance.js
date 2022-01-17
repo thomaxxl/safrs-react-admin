@@ -19,7 +19,7 @@ import { useRefresh } from 'react-admin';
 import { useDataProvider } from 'react-admin';
 import EditIcon from "@material-ui/icons/Edit";
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
-import {get_Conf} from '../Config.js'
+import {useConf} from '../Config.js'
 import Button from '@material-ui/core/Button';
 import { useQueryWithStore, Loading, Error } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
@@ -32,8 +32,6 @@ import InfoModal from "./InfoModal.js";
 import get_Component from '../get_Component.js';
 import BlockIcon from '@mui/icons-material/Block';
 
-const conf = get_Conf();
-
 const useStyles = makeStyles({
     join_attr: {color: '#3f51b5'},
     delete_icon : {fill: "#3f51b5"},
@@ -44,8 +42,12 @@ const useStyles = makeStyles({
 });
 
 
-const ResourceTitle = ({ record }) => {
-    return <span>{record ? `${record.type ? record.type +" " : ""} #${record.id} ` : ''}</span>;
+const ResourceTitle = ({ record, resource }) => {
+    const key = resource?.user_key || "id"
+    if(!(record && key in record)){
+        return <span/>
+    }
+    return <span>{resource?.label || resource?.name || record?.type} &mdash; {record[key]}</span>
 };
 
 export const DetailPanel = ({attributes}) => {
@@ -199,6 +201,7 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
     const [related, setRelated] = useState(false);
     const dataProvider = useDataProvider();
     const classes = useStyles();
+    const conf = useConf();
 
     useEffect(() => {
         dataProvider.getOne(resource_name, { id: id })
@@ -249,10 +252,11 @@ const DynRelationshipMany = (resource_name, id, relationship) => {
 
 export const RelatedInstance = ({instance}) => {
 
+    const conf = useConf();
     if (!instance?.type){
         return <span></span>;
     }
-    const resource_name = type2resource(instance?.type)
+    const resource_name = type2resource(instance?.type, conf)
     if (!resource_name){
         return <span>...</span>;
     }
@@ -303,8 +307,13 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
 
     const attributes = resource_conf.attributes
     const tab_groups= resource_conf.tab_groups
+    let show = <ShowInstance attributes={attributes} tab_groups={tab_groups} resource_name={props.resource} id={props.id}/>
+    if(resource_conf.components?.show){
+        const Wrapper = get_Component(resource_conf.components?.show)
+        show = <Wrapper show={show} />
+    }
 
-    return <Show title={<ResourceTitle />} actions={<ShowActions resource={resource_conf}/>} {...props}>
-                <ShowInstance attributes={attributes} tab_groups={tab_groups} resource_name={props.resource} id={props.id}/>
+    return <Show title={<ResourceTitle resource={resource_conf}/>} actions={<ShowActions resource={resource_conf}/>} {...props}>
+                {show}
             </Show>
 }

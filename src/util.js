@@ -1,13 +1,12 @@
 import React from "react";
 import { Typography } from '@material-ui/core';
-import { get_Conf } from "./Config";
+import { useConf } from "./Config";
 import {Pagination }  from 'react-admin'
 import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';
 
-const conf = get_Conf();
 
-export const type2resource = (type) => {
+export const type2resource = (type, conf) => {
     for(let [resource_name, resource] of Object.entries(conf?.resources)){
         if(resource.type === type){
             return resource_name

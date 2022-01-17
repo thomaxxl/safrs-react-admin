@@ -7,7 +7,7 @@ import {
 } from "react-admin";
 import { useRefresh } from 'react-admin';
 import { useDataProvider } from 'react-admin';
-import {get_Conf} from './Config.js'
+import {useConf} from './Config.js'
 import './style/DynStyle.css'
 import { useNotify, useRedirect } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
@@ -18,8 +18,6 @@ import { gen_DynResourceShow } from './components/DynInstance'
 import get_Component from "./get_Component";
 import {gen_DynResourceEdit} from './components/DynResourceEdit'
 //import {ExtComp} from './components/ExtComp';
-
-const conf = get_Conf();
 
 const useStyles = makeStyles({
     join_attr: {color: '#3f51b5;'},
@@ -56,6 +54,7 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
 
 export const DynResource = (props) => {
+    const conf = useConf();
     window.addEventListener("storage", ()=>window.location.reload())
     const [, updateState] = React.useState();
     const [resource_conf, setConf] = useState(conf.resources[props.name])

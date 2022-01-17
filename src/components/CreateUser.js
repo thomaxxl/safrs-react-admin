@@ -7,12 +7,10 @@ import {
 } from "react-admin"
 import Grid from '@material-ui/core/Grid';
 import DynInput from "./DynInput";
-import {get_Conf} from '../Config.js'
-
-const conf = get_Conf();
+import {useConf} from '../Config.js'
 
 export const CreateUser  = ({resource_name, ...props}) => {
-    
+    const conf = useConf();    
     const resource = conf.resources[resource_name]
 
     return <Create {...props}>

@@ -1,17 +1,18 @@
 import { showNotification } from 'react-admin';
 import { connect } from 'react-redux';
-import {get_Conf} from './Config'
+import {getConf} from './Config'
 import {resetConf} from "./components/ConfigurationUI";
-
-const conf = get_Conf()
 
 const dummy_auth = () => {
     localStorage.setItem('auth_token','xxxx')
     localStorage.setItem('username','admin')
 }
 
+const conf ={}
+
 const authProvider = {
     login: ({ username, password }) =>  {
+        const conf = getConf()
         if(! conf.api_root?.includes("/admin/api")){
             dummy_auth()
             return Promise.resolve()
@@ -54,6 +55,7 @@ const authProvider = {
 
     },
     checkAuth: () => {
+        const conf = getConf()
         if(!conf.auth_url){
             return Promise.resolve()
         }

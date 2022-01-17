@@ -4,15 +4,15 @@ import createSagaMiddleware from 'redux-saga';
 import { all, fork } from 'redux-saga/effects';
 import { put, takeEvery } from 'redux-saga/effects';
 import { AutocompleteArrayInput, showNotification } from 'react-admin';
+import {type2resource} from './util'
 
 import {
     adminReducer,
     adminSaga,
     USER_LOGOUT,
 } from 'react-admin';
-import {get_Conf} from './Config'
+import {getConf} from './Config'
 
-const conf = get_Conf();
 
 function* preSaga() {
     yield takeEvery('RA/CRUD_GET_LIST_SUCCESS', function* (args) {
@@ -36,19 +36,10 @@ const sReducer = (previousState = 0, { type, payload }) => {
     return previousState;
 }
 
-const type2resource = (type) => {
-    // map the resource "type" (jsonapi type attr) to the resource_name (list/collection name)
-    for(let [resource_name, resource] of Object.entries(conf.resources)){
-        if(resource.type === type){
-            return resource_name
-        }
-    }
-    return false
-}
-
 
 const instance2store = (instance, result) => {
 
+    const conf = getConf();
     if(!instance?.relationships){
         return result
     }
@@ -57,7 +48,7 @@ const instance2store = (instance, result) => {
         if(!rel?.data){
             continue
         }
-        let rel_resource_name = type2resource(rel.data?.type)
+        let rel_resource_name = type2resource(rel.data?.type, conf)
         if(rel_resource_name){
             if(Array.isArray(rel.data)){
                 instance.relationships[rel_name] = instance[rel_name] = rel.data.map(rel_inst => result['resources'][rel_resource_name][rel_inst.id])
@@ -74,6 +65,7 @@ const instance2store = (instance, result) => {
 const adminReducerWrapper = (previousState, action) => {
     
     let result = adminReducer(previousState, action)
+    const conf = getConf();
     
     /*if(action.type == "CRUD_GET_ONE_SUCCESS"){
         return result;
@@ -84,7 +76,7 @@ const adminReducerWrapper = (previousState, action) => {
     */
     const inc_resources = new Set();
     for(let instance of action.payload?.included || []){
-        const resource_name = type2resource(instance.type)
+        const resource_name = type2resource(instance.type, conf)
         if(instance.type !== undefined && instance.id !== undefined && resource_name){
             if(!result['resources'][resource_name]){
                 result['resources'][resource_name] = {}

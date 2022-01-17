@@ -3,10 +3,10 @@ import { fetchUtils, DataProvider, HttpError } from 'react-admin';
 import merge from 'deepmerge';
 import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
-import {get_Conf} from '../Config'
+import {getConf} from '../Config'
 import { number } from 'prop-types';
 
-const conf : { [ key: string] : any } = get_Conf();
+const conf : { [ key: string] : any } = getConf();
 const duration = 2000;
 
 const prepareAttributes = (attributes : any, resource : any) => {

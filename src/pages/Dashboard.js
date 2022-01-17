@@ -2,10 +2,10 @@ import React from 'react'
 import { Card, CardContent, CardHeader } from '@material-ui/core'
 import Button from '@material-ui/core/Button';
 import { Link } from 'react-router-dom';
-import {get_Conf} from '../Config.js'
+import {useConf} from '../Config.js'
 
 const Dashboard = () => {
-  const config = get_Conf()
+  const config = useConf()
   
   return (
     <Card>

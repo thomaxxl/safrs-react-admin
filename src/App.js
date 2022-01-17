@@ -8,7 +8,7 @@ import { DynResource } from './DynResource';
 import Home from './components/Home.js'
 import ConfigurationUI, {LoadYaml} from './components/ConfigurationUI'
 import Dashboard from './pages/Dashboard';
-import {get_Conf} from './Config'
+import {useConf} from './Config'
 import { Layout }  from './components/Layout';
 import { put, takeEvery } from 'redux-saga/effects';
 import { showNotification } from 'react-admin';
@@ -34,10 +34,9 @@ const bcR =  (previousState = 0, { type, payload }) => {
 }
 
 
-const conf = get_Conf();
-const cache_duration = conf?.settings?.cache_duration || 90000
+//const cache_duration = conf?.settings?.cache_duration || 90000
 //const dataProvider = jsonapiClient(conf.api_root, {includeRelations : [{resource: "OrderDetail", includes : ["Order", "Product"] }] }); // http://localhost:5000
-const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}),); //  caching
+//
 
 
 const AsyncResources = () => {
@@ -86,6 +85,9 @@ const AsyncResources = () => {
 
 const App = () => {
     
+    const conf = useConf();
+    const dataProvider = cacheDataProviderProxy(jsonapiClient(conf.api_root, {}),); //  caching
+
     if(!localStorage.getItem("raconf")){
         LoadYaml(null)
     }
