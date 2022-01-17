@@ -1,0 +1,415 @@
+{
+    "about": {
+        "date": "December 06, 2021 04:42:12",
+        "recent_changes": "works with modified safrs-react-admin",
+        "version": "3.50.29"
+    },
+    "api_root": "//ApiLogicServer.pythonanywhere.com/api",
+    "info": {
+        "number_relationships": 8,
+        "number_tables": 8
+    },
+    "properties_ref": {
+        "attribute": {
+            "group": "name",
+            "hidden": "exp",
+            "label": "caption for display",
+            "search": "true | false",
+            "style": {
+                "color": "blue",
+                "font_weight": 0
+            }
+        },
+        "resource": {
+            "allow_delete": "exp",
+            "allow_insert": "exp",
+            "allow_update": "exp",
+            "info": "long html / rich text",
+            "menu": "False | name"
+        },
+        "tab": {
+            "label": "text",
+            "lookup": "boolean"
+        }
+    },
+    "resources": {
+        "customers": {
+            "attributes": [
+                {
+                    "label": "customerName*",
+                    "name": "customerName",
+                    "search": true
+                },
+                {
+                    "name": "salesRepEmployeeNumber"
+                },
+                {
+                    "name": "customerNumber"
+                },
+                {
+                    "name": "contactLastName"
+                },
+                {
+                    "name": "contactFirstName"
+                },
+                {
+                    "name": "phone"
+                },
+                {
+                    "name": "addressLine1"
+                },
+                {
+                    "name": "addressLine2"
+                },
+                {
+                    "name": "city"
+                },
+                {
+                    "name": "state"
+                },
+                {
+                    "name": "postalCode"
+                },
+                {
+                    "name": "country"
+                },
+                {
+                    "name": "creditLimit"
+                }
+            ],
+            "tab_groups": {
+                "OrderList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "customerNumber"
+                    ],
+                    "resource": "orders"
+                },
+                "PaymentList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "customerNumber"
+                    ],
+                    "resource": "payments"
+                },
+                "employee": {
+                    "direction": "toone",
+                    "fks": [
+                        "salesRepEmployeeNumber"
+                    ],
+                    "resource": "employees"
+                }
+            },
+            "type": "Customer",
+            "user_key": "customerName"
+        },
+        "employees": {
+            "attributes": [
+                {
+                    "label": "lastName*",
+                    "name": "lastName",
+                    "search": true
+                },
+                {
+                    "name": "officeCode"
+                },
+                {
+                    "name": "reportsTo"
+                },
+                {
+                    "name": "employeeNumber"
+                },
+                {
+                    "name": "firstName"
+                },
+                {
+                    "name": "extension"
+                },
+                {
+                    "name": "email"
+                },
+                {
+                    "name": "jobTitle"
+                }
+            ],
+            "tab_groups": {
+                "CustomerList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "salesRepEmployeeNumber"
+                    ],
+                    "resource": "customers"
+                },
+                "EmployeeList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "reportsTo"
+                    ],
+                    "resource": "employees"
+                },
+                "office": {
+                    "direction": "toone",
+                    "fks": [
+                        "officeCode"
+                    ],
+                    "resource": "offices"
+                },
+                "parent": {
+                    "direction": "toone",
+                    "fks": [
+                        "reportsTo"
+                    ],
+                    "resource": "employees"
+                }
+            },
+            "type": "Employee",
+            "user_key": "lastName"
+        },
+        "offices": {
+            "attributes": [
+                {
+                    "label": "officeCode*",
+                    "name": "officeCode",
+                    "search": true
+                },
+                {
+                    "name": "city"
+                },
+                {
+                    "name": "phone"
+                },
+                {
+                    "name": "addressLine1"
+                },
+                {
+                    "name": "addressLine2"
+                },
+                {
+                    "name": "state"
+                },
+                {
+                    "name": "country"
+                },
+                {
+                    "name": "postalCode"
+                },
+                {
+                    "name": "territory"
+                }
+            ],
+            "tab_groups": {
+                "EmployeeList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "officeCode"
+                    ],
+                    "resource": "employees"
+                }
+            },
+            "type": "Office",
+            "user_key": "officeCode"
+        },
+        "orderdetails": {
+            "attributes": [
+                {
+                    "label": "orderNumber*",
+                    "name": "orderNumber",
+                    "search": true
+                },
+                {
+                    "name": "orderNumber"
+                },
+                {
+                    "name": "productCode"
+                },
+                {
+                    "name": "quantityOrdered"
+                },
+                {
+                    "name": "priceEach"
+                },
+                {
+                    "name": "orderLineNumber"
+                }
+            ],
+            "tab_groups": {
+                "order": {
+                    "direction": "toone",
+                    "fks": [
+                        "orderNumber"
+                    ],
+                    "resource": "orders"
+                },
+                "product": {
+                    "direction": "toone",
+                    "fks": [
+                        "productCode"
+                    ],
+                    "resource": "products"
+                }
+            },
+            "type": "Orderdetail",
+            "user_key": "orderNumber"
+        },
+        "orders": {
+            "attributes": [
+                {
+                    "label": "orderNumber*",
+                    "name": "orderNumber",
+                    "search": true
+                },
+                {
+                    "name": "customerNumber"
+                },
+                {
+                    "name": "orderDate"
+                },
+                {
+                    "name": "requiredDate"
+                },
+                {
+                    "name": "shippedDate"
+                },
+                {
+                    "name": "status"
+                },
+                {
+                    "name": "comments"
+                }
+            ],
+            "tab_groups": {
+                "OrderdetailList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "orderNumber"
+                    ],
+                    "resource": "orderdetails"
+                },
+                "customer": {
+                    "direction": "toone",
+                    "fks": [
+                        "customerNumber"
+                    ],
+                    "resource": "customers"
+                }
+            },
+            "type": "Order",
+            "user_key": "orderNumber"
+        },
+        "payments": {
+            "attributes": [
+                {
+                    "label": "customerNumber*",
+                    "name": "customerNumber",
+                    "search": true
+                },
+                {
+                    "name": "customerNumber"
+                },
+                {
+                    "name": "checkNumber"
+                },
+                {
+                    "name": "paymentDate"
+                },
+                {
+                    "name": "amount"
+                }
+            ],
+            "tab_groups": {
+                "customer": {
+                    "direction": "toone",
+                    "fks": [
+                        "customerNumber"
+                    ],
+                    "resource": "customers"
+                }
+            },
+            "type": "Payment",
+            "user_key": "customerNumber"
+        },
+        "productlines": {
+            "attributes": [
+                {
+                    "label": "textDescription*",
+                    "name": "textDescription",
+                    "search": true
+                },
+                {
+                    "name": "productLine"
+                },
+                {
+                    "name": "htmlDescription"
+                },
+                {
+                    "name": "image"
+                }
+            ],
+            "tab_groups": {
+                "ProductList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "productLine"
+                    ],
+                    "resource": "products"
+                }
+            },
+            "type": "Productline",
+            "user_key": "textDescription"
+        },
+        "products": {
+            "attributes": [
+                {
+                    "label": "productName*",
+                    "name": "productName",
+                    "search": true
+                },
+                {
+                    "name": "productLine"
+                },
+                {
+                    "name": "productCode"
+                },
+                {
+                    "name": "productScale"
+                },
+                {
+                    "name": "productVendor"
+                },
+                {
+                    "name": "productDescription"
+                },
+                {
+                    "name": "quantityInStock"
+                },
+                {
+                    "name": "buyPrice"
+                },
+                {
+                    "name": "MSRP"
+                }
+            ],
+            "tab_groups": {
+                "OrderdetailList": {
+                    "direction": "tomany",
+                    "fks": [
+                        "productCode"
+                    ],
+                    "resource": "orderdetails"
+                },
+                "productline": {
+                    "direction": "toone",
+                    "fks": [
+                        "productLine"
+                    ],
+                    "resource": "productlines"
+                }
+            },
+            "type": "Product",
+            "user_key": "productName"
+        }
+    },
+    "settings": {
+        "max_list_columns": "7"
+    }
+}

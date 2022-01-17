@@ -1,0 +1,22 @@
+.JoinedField {
+    width: 100%;
+    color: #3f51b5;
+}
+
+.JoinedField:hover{
+    color: black;
+}
+
+.fkField {
+    color: red;
+    border: 2px solid green;
+}
+
+th > span {
+    font-weight: bold;
+    color: #444;
+}
+
+.ext_class {
+    color: red;
+}
