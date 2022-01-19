@@ -1,10 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import config from './Config.json'
-import {
-    BrowserRouter as Router,
-    Link,
-    useLocation
-  } from "react-router-dom";
+import { useRefresh } from "react-admin"
 //import als_config from './Config.als.json'
 
 const useQuery = () => {
@@ -158,13 +154,18 @@ const json2Conf = (conf) => {
 
 export const useConf = () => {
 
-    init_Conf();
-    return json2Conf(getLSConf())
+    /*const [conf, setConf] = useState({});
+    //window.addEventListener("storage", ()=>setConf(getLSConf()))
+    useEffect(() => {
+        setConf(getLSConf());
+    },[])*/
+    let conf = getLSConf()
+    return json2Conf(conf)
 }
 
 
 export const getConf = () => {
-
+    init_Conf();
     return json2Conf(getLSConf())
 }
 

@@ -8,13 +8,15 @@ import { List,
     SaveButton,
     PasswordInput
 } from "react-admin";
+
 import Button from '@mui/material/Button';
-
-
+import {useRecordContext, useDataProvider} from "react-admin";
+import {MyComp} from './external'
 //import CreateUser from './CreateUser'
-
+export {UserPasswordTab} from './external/UserPasswordTab'
 export {CreateUser} from './CreateUser'
 export * from './ApiAdmin'
+export * from './external'
 
 
 export const SampleColumnField = ({attribute}) => {
@@ -50,5 +52,10 @@ export const UserPasswordField = (props) => {
 }
 
 export const CustomTab = (props) => {
-    return <div>xxx</div>
+    const record = useRecordContext();
+    
+    console.log(record)
+    return <div>Some Text</div>
 }
+
+
