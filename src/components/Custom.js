@@ -48,3 +48,7 @@ export const UserPasswordField = (props) => {
     }
     return <></>
 }
+
+export const CustomTab = (props) => {
+    return <div>xxx</div>
+}

@@ -93,13 +93,16 @@ export const jsonapiClient = (
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
           // search is requested by react-admin
-          const search_cols = resource_conf.attributes.filter((col : any) => col.search);
-          const filter = search_cols.map((col: any) => {return { 
+          const search_cols = resource_conf.search_cols
+          const filter = search_cols?.map((col: any) => {
+                              return { 
                                 "name":col.name,
                                 "op": col.op? col.op : "ilike",
                                 "val": col.val ? col.val.format(params.filter.q) : `%${params.filter.q}%`
-                              };})
-            query['filter'] = JSON.stringify(filter) // => startswith operator in sql
+                              };}) || ""
+          if(filter){
+            query['filter'] = JSON.stringify(filter)
+          }
       }
       else{
         Object.keys(params.filter || {}).forEach((key) => {
@@ -122,7 +125,6 @@ export const jsonapiClient = (
       query['include'] = includes.join(',');
 
       const url = `${apiUrl}/${resource}?${stringify(query)}`;
-      console.log(query)
       return httpClient(url, {})
         .then(({ json }) => {
           // const lookup = new ResourceLookup(json.data);

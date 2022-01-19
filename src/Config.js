@@ -52,7 +52,7 @@ const getBrowserLocales = (options = {}) => {
   }
 
 
-export const getConf = () => {
+export const getLSConf = () => {
     let result = {}
     const lsc_str = localStorage.getItem("raconf")
     let ls_conf = null
@@ -68,13 +68,10 @@ export const getConf = () => {
     return result
 }
 
-export const useConf = () => {
 
-    //const query = useQuery();
-    init_Conf();
-    let result = getConf()
+const json2Conf = (conf) => {
     
-
+    let result = conf
     if(!result.resources){
         result.resources = {}
     }
@@ -145,7 +142,9 @@ export const useConf = () => {
             }
             attr.resource = resource
         }
-        
+        if(resource.search_cols.length === 0){
+            resource.search_cols = attributes.filter((col) => col.name !== false && (col.name === "id" || col.name === resource.user_key || col.name === "name") )
+        }
         resource.max_list_columns = resource.max_list_columns || result.settings?.max_list_columns || 8
         //resource.label = resource.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
         console.debug(`Loaded config resource ${resource_name}`, resource)
@@ -156,6 +155,19 @@ export const useConf = () => {
     }
     return result || reset_Conf()
 }
+
+export const useConf = () => {
+
+    init_Conf();
+    return json2Conf(getLSConf())
+}
+
+
+export const getConf = () => {
+
+    return json2Conf(getLSConf())
+}
+
 
 export const reset_Conf = (reload) => {
     const configs = {}

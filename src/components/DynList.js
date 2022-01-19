@@ -87,7 +87,7 @@ const ListActions = ({resource}) => {
 }
 
 
-const gen_DynResourceList = (resource) => (props) => {
+const gen_DynResourceList = (resource_conf) => (props) => {
 
     const ButtonField = (props) => {
         let filtered_props = {}
@@ -100,35 +100,35 @@ const gen_DynResourceList = (resource) => (props) => {
             }
         }
         const buttons = <span>
-                {resource.edit !== false ? <EditButton title="Edit" key={`${resource.name}_edit`} label={""} {...filtered_props} /> : null}
-                {resource.delete !== false ? <DeleteButton {...filtered_props} /> : null}
+                {resource_conf.edit !== false ? <EditButton title="Edit" key={`${resource_conf.name}_edit`} label={""} {...filtered_props} /> : null}
+                {resource_conf.delete !== false ? <DeleteButton {...filtered_props} /> : null}
                 <ShowButton title="Show" label="" {...filtered_props} />
             </span>
         return buttons
     }
 
-    const ListTitle = (props) => <>{resource.name} List</>
-    const attributes = resource.attributes
+    const ListTitle = (props) => <>{resource_conf.name} List</>
+    const attributes = resource_conf.attributes
     const fields = attr_fields(attributes, "list");
-    const col_nr = resource.max_list_columns
-    const sort = resource.sort_attr_names ? resource.sort_attr_names[0] : ""
+    const col_nr = resource_conf.max_list_columns
+    const sort = resource_conf.sort_attr_names ? resource_conf.sort_attr_names[0] : ""
     
-    document.title = resource.label || resource.name
+    document.title = resource_conf.label || resource_conf.name
     
-    let list = <List filters={searchFilters} perPage={resource.perPage || 25}
-                actions={<ListActions resource={resource}/>}
+    let list = <List filters={searchFilters} perPage={resource_conf.perPage || 25}
+                actions={<ListActions resource={resource_conf}/>}
                 pagination={<DynPagination/>}
                 sort={{field: sort, order: 'ASC'}}
                 title={<ListTitle/>}
                 {...props} >
                 <Datagrid rowClick="show" expand={<DetailPanel attributes={attributes} />}>
                     {fields.slice(0, col_nr)}
-                    <ButtonField resource={resource} {...props} />
+                    <ButtonField resource={resource_conf} {...props} />
                 </Datagrid>
             </List>
     
-    if(resource.components?.list){
-        const Wrapper = get_Component(resource.components?.list)
+    if(resource_conf.components?.list){
+        const Wrapper = get_Component(resource_conf.components?.list)
         list = <Wrapper list={list} />
     }
 

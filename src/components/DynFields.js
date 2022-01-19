@@ -166,7 +166,7 @@ export const attr_fields = (attributes, mode, ...props) => {
             }
             if(attr.relationship?.direction == "toone"){
                 const label_text = attr.label || attr.relationship.resource || attr.name
-                return <ToOneJoin attribute={attr} label={label_text}/>
+                return <ToOneJoin attribute={attr} label={label_text} key={attr.name}/>
             }
             return AttrField({attribute: attr, mode: mode, ...props})
         }
