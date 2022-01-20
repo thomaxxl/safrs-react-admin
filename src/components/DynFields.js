@@ -5,6 +5,7 @@ import {
     Confirm,
     useRecordContext,
     DateField,
+    PasswordInput,
     TextField,
     FunctionField } from 'react-admin';
 import Grid from '@material-ui/core/Grid';

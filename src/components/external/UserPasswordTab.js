@@ -5,8 +5,13 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { FormControl } from '@mui/material';
 import {useRecordContext, useDataProvider} from "react-admin";
+import {httpAuthClient} from "../../rav3-jsonapi-client/ra-jsonapi-client"
+import { useConf } from "../../Config";
+import { useNotify } from 'react-admin';
 
 export const UserPasswordTab = () => {
+    const conf = useConf();
+    const notify = useNotify();
     const record = useRecordContext();
     const dataProvider = useDataProvider();
     const [pwdValue, setPwdValue] = useState("");
@@ -28,14 +33,23 @@ export const UserPasswordTab = () => {
     const handleSubmit = () => {
         console.log(rpwdValue);
         if(pwdValue !== rpwdValue){
-            alert('Passwords don\'t match')
+            notify('Passwords don\'t match',  { type: 'warning' })
             return
         }
         if(pwdValue.length < 6){
-            alert('Password too short')
+            notify('Password too short',  { type: 'warning' })
             return
         }
-        
+        const data = {
+            "password": pwdValue
+        }
+        httpAuthClient(`${conf.api_root}/Users/${record.id}/change_password`, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(()=>notify('Password Changed!'))
+        .catch(()=>notify(`Error Changing Password`,  { type: 'warning' }))
+          
     }
 
     return (
@@ -49,7 +63,7 @@ export const UserPasswordTab = () => {
         >
         <FormControl>
             <Grid item xs={12} spacing={4} margin={5} >
-                <Typography variant="body2" component="p" >Change the user password</Typography>
+                <Typography variant="body2" component="p" ><b>Change the user password</b></Typography>
             </Grid>
             <Grid item xs={12} spacing={4} margin={5} >
             <TextField

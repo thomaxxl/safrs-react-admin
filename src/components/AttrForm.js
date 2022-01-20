@@ -12,6 +12,7 @@ const useStyles = makeStyles({
 });
 
 const AttrForm = ({attributes, ...props}) => {
+    
     const classes = useStyles();
     return <SimpleForm {...props}>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>

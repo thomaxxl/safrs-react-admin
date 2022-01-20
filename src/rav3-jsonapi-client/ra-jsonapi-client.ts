@@ -38,7 +38,7 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
   }
 }
 
-const httpAuthClient = (url: string, options : any) => {
+export const httpAuthClient = (url: string, options : any) => {
   if (!options.headers) {
       options.headers = new Headers({ Accept: 'application/json' });
   }

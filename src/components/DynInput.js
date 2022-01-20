@@ -5,6 +5,7 @@ import {
     AutocompleteInput,
     NumberInput,
     SelectInput,
+    PasswordInput,
     required,
     useCreate,
     useNotify,
@@ -156,9 +157,9 @@ const DynInput = ({attribute, resource, xs}) => {
     const input_props = {validate : attribute.required ? required() : false , label: label}
     
     const [selected_ref, setSelected_ref] = useState(false)
-    const grid_wrap = (el) => <Grid item xs={xs | 4} spacing={4} margin={5} >{el}</Grid>
+    const GridWrap = (props) => <Grid item xs={xs | 4} spacing={4} margin={5} >{props.children}</Grid>
     const attr_type = attribute.type?.toLowerCase()
-    let result = grid_wrap(<TextInput source={attribute.name} fullWidth  {...input_props}/>)
+    let result = <GridWrap><TextInput source={attribute.name} fullWidth  {...input_props}/></GridWrap>
     const conf = useConf();
 
     if(attribute.component){
@@ -166,10 +167,13 @@ const DynInput = ({attribute, resource, xs}) => {
         return <Component attr={attribute} mode="edit"/>
     }
     if(attr_type == "date"){
-        result = grid_wrap(<DateInput source={attribute.name} fullWidth />)
+        result = <GridWrap><DateInput source={attribute.name} fullWidth /></GridWrap>
+    }
+    if(attribute.type?.toLowerCase() == "password"){
+        result = <GridWrap><PasswordInput source={attribute.name} key={attribute.name}/></GridWrap>
     }
     if(attr_type == "number" || attr_type == "decimal"){
-        result = grid_wrap(<NumberInput source={attribute.name} fullWidth={false}  {...input_props}/>)
+        result = <GridWrap><NumberInput source={attribute.name} fullWidth={false}  {...input_props}/></GridWrap>
     }
 
     if(attribute.relationship?.direction == "toone" && attribute.relationship.target){
