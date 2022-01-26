@@ -327,6 +327,9 @@ export const DBConnection = (props) => {
 export const ApiURL = (props) => {
     const record = useRecordContext();
     const conf = useConf()
+    if(!record.id){
+        return null
+    }
     const url = `/${record.name}/api`
     return <Typography><a href={url}>{url}</a></Typography>
 }
