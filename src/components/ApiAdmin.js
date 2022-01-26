@@ -68,12 +68,12 @@ const useStyles = makeStyles({
 });
 
 
-const C2Rpc = (url, options) => {
+const C2Rpc = (url, data, options) => {
     const defaultOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 
                     'Authorization' : `Bearer ${localStorage.getItem('auth_token')}` },
-        body: '{}'
+        body: JSON.stringify(data || {})
     }
     const requestOptions = Object.assign(defaultOptions, options || {})
     return fetch(url, requestOptions)
@@ -195,7 +195,7 @@ const DBConnectionEdit = (props) => {
     const test_conn = (connection_string) => {
         const create_url = `${conf.api_root}/Apis/test_conn`
         const req_data = { connection_string : connection_string}
-        C2Rpc(create_url, {body: JSON.stringify(req_data)})
+        C2Rpc(create_url, req_data)
         .then(response => response.json())
         .then(data => {
             setLogData(<><Typography variant="h6" component="h2">Result:</Typography><pre>{data}</pre></>)
@@ -321,4 +321,12 @@ export const DBConnection = (props) => {
     }
 
     return <DBConnectionEdit {...props} />
+}
+
+
+export const ApiURL = (props) => {
+    const record = useRecordContext();
+    const conf = useConf()
+    const url = `/${record.name}/api`
+    return <Typography><a href={url}>{url}</a></Typography>
 }
