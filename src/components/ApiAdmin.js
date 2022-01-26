@@ -1,14 +1,22 @@
 import * as React from 'react';
-import Box from '@material-ui/core/Box';
+import { Modal, Box, Grid, TextField  } from "@material-ui/core";
 import Typography from '@material-ui/core/Typography';
-import Modal from '@material-ui/core/Modal';
 import { makeStyles } from '@material-ui/core/styles';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import Button from '@material-ui/core/Button';
 import { useConf } from '../Config';
 import {Loading,
+    TextInput,
     useRecordContext
 } from 'react-admin'
+import { useForm } from 'react-final-form';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import DBForm from './DBForm';
+import { red } from '@material-ui/core/colors';
 
 const boxStyle = {
   position: 'absolute',
@@ -34,24 +42,51 @@ const useStyles = makeStyles({
     display:'block',
     fontWeight : "0.6em",
     display: 'flex'
-  }
+  },
+  db_btn: {
+    height : "80%",
+    position: "relative",
+    top: "50%",
+    "-webkit-transform": "translateY(-50%)",
+    "-ms-transform": "translateY(-50%)",
+    "transform": "translateY(-50%)"
+  },
+  db_grid : {
+      "& .MuiTextField-root": {
+        borderBottom : "4px solid white",
+        paddingBottom: "1em",
+        paddingRight: "1em"
+      }
+  },
+  actions : {
+    textAlign : "center",
+    "& button": {
+        width: "99%"
+    }
+  },
+  conn_str: {backgroundColor: "#ccc",  fontFamily: "Consolas" }
 });
 
+
+const C2Rpc = (url, options) => {
+    const defaultOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 
+                    'Authorization' : `Bearer ${localStorage.getItem('auth_token')}` },
+        body: '{}'
+    }
+    const requestOptions = Object.assign(defaultOptions, options || {})
+    return fetch(url, requestOptions)
+}
 
 const ApiModal = (props) => {
     const conf = useConf()
     const create_api = (record) =>{
         const create_url = `${conf.api_root}/Apis/${record.id}/generate`
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 
-                        'Authorization' : `Bearer ${localStorage.getItem('auth_token')}` },
-            body: '{}'
-        };
         setOutput(<Loading/>)
         box_style.top = "90%"
         setBoxStyle(box_style)
-        fetch(create_url, requestOptions)
+        C2Rpc(create_url)
             .then(response => response.json())
             .then(data => {
                 setOutput(<pre>{data}</pre>)
@@ -118,4 +153,151 @@ export const ApiShow = (props) => {
                 <div>xxxx</div>
                 {props.show}
             </>
+}
+
+const DBConnectionEdit = (props) => {
+    console.log(props)
+    const form = useForm();
+    const record = useRecordContext();
+    let value = record ? record["connection_string"] : "";
+    const classes = useStyles()
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+    const [box_style, setBoxStyle] = React.useState(boxStyle);
+    const [other, setOther] = React.useState(value);
+    const [username, setUsername] = React.useState("user");
+    const [password, setPassword] = React.useState("pass");
+    const [dbhost, setDbhost] = React.useState("dbhost");
+    const [dbname, setDbname] = React.useState("dbname");
+    const [dialect, setDialect] = React.useState("Other");
+    const [logdata, setLogData] = React.useState("")
+    const conf = useConf()
+
+    const selectDialect = (e) => {
+        setDialect(e.target.value)
+    }
+
+    const create_conn = () => {
+        let result = `${dialect}://`
+        if(dialect === "Other"){
+            result = other
+        }
+        else if(dialect === "sqlite"){
+            result += `/${dbname}`
+        }
+        else {
+            result += `${username}:${password}@${dbhost}/${dbname}`
+        }
+        return result
+    }
+
+    const test_conn = (connection_string) => {
+        const create_url = `${conf.api_root}/Apis/test_conn`
+        const req_data = { connection_string : connection_string}
+        C2Rpc(create_url, {body: JSON.stringify(req_data)})
+        .then(response => response.json())
+        .then(data => {
+            setLogData(<><Typography variant="h6" component="h2">Result:</Typography><pre>{data}</pre></>)
+            })
+        .catch(err => alert())
+    }
+
+
+    return <>
+            <Grid item xs={12} spacing={4} margin={5} ></Grid>
+            <Grid item xs={4} spacing={4} margin={5} >
+                <TextInput source={'connection_string'} initialValue={create_conn()} helperText="SQLAlchemy connection string syntax" fullWidth/>
+            </Grid>
+            <Grid item xs={4} spacing={4} margin={5} >
+                <Button variant="outlined"
+                        onClick={handleOpen}
+                        color="primary"
+                        size='large'
+                        className={classes.db_btn}
+                > 
+                Configure Connection
+                </Button>
+            </Grid>
+            <Grid item xs={12} spacing={4} margin={5} ></Grid>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                className={classes.modalStyle}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+                >
+                <Box sx={box_style}>
+                <Grid container className={classes.db_grid}>
+                    <Grid item xs={12} spacing={4} margin={5} >
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                        Database Configuration
+                        </Typography>
+                        <hr/>
+                    </Grid>
+                    <Grid item xs={6} spacing={4} margin={5} >
+                        <FormControl>
+                            <FormLabel id="demo-radio-buttons-group-label">DB Dialect</FormLabel>
+                            <RadioGroup
+                                aria-labelledby="demo-radio-buttons-group-label"
+                                defaultValue="Other"
+                                name="radio-buttons-group"
+                                onChange={selectDialect}
+                            >
+                                <FormControlLabel value="mysql+pymysql" control={<Radio />} label="MySQL" />
+                                <FormControlLabel value="oracle" control={<Radio />} label="Oracle" />
+                                <FormControlLabel value="postgresql" control={<Radio />} label="Postgres" />
+                                <FormControlLabel value="sqlite" control={<Radio />} label="SQLite" />
+                                <FormControlLabel value="mssql+pyodbc" control={<Radio />} label="SQLServer" />
+                                <FormControlLabel value="Other" control={<Radio />} label="Manual:" />
+                            </RadioGroup>
+                            <TextField id="outlined-basic" label="Manual" variant="outlined" 
+                                        defaultValue={value}
+                                        onChange={(e) => setOther(e.target.value)} helperText="Manual connection string configuration"/>
+                        </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={6} spacing={4} margin={5} >
+                        <TextField label="Username" variant="outlined" onChange={(e)=>setUsername(e.target.value)} value={username}/>
+                        <TextField label="Password" variant="outlined" onChange={(e)=>setPassword(e.target.value)} value={password}/>
+                        <TextField label="Database host" variant="outlined" onChange={(e)=>setDbhost(e.target.value)} value={dbhost}/>
+                        <TextField label="Database name" variant="outlined" onChange={(e)=>setDbname(e.target.value)} value={dbname}/>
+                    </Grid>
+                    <Grid item xs={6} spacing={4} margin={5}>
+                    <Typography>
+                        Connection String: <span className={classes.conn_str}>{create_conn()}</span>
+                    </Typography>
+                    </Grid>
+                    <Grid item xs={12} spacing={4} margin={5} className={classes.actions}>
+                        <hr/>
+                    </Grid>
+                    <Grid item xs={12} spacing={4} margin={5} />
+                    <Grid item xs={2} spacing={4} margin={5} className={classes.actions}>
+                        <Button variant="outlined" color="primary" onClick={()=>test_conn(create_conn()) }> Test Connection</Button>
+                    </Grid>
+                    <Grid item xs={2} spacing={4} margin={5} className={classes.actions}>
+                        <Button variant="outlined" color="primary" onClick={()=>{setOpen(false); form.change('connection_string',create_conn()); }} >Save &amp; Close</Button>
+                    </Grid>
+                    <Grid item xs={2} spacing={4} margin={5} className={classes.actions}>
+                        <Button variant="outlined" color="primary" onClick={()=>setOpen(false) }>Close</Button>
+                    </Grid>
+                    <Grid item xs={12} spacing={4} margin={5} className={classes.logdata}>
+                        {logdata}
+                    </Grid>
+                </Grid>
+                </Box>
+            </Modal>
+        </>
+}
+
+export const DBConnection = (props) => {
+    const record = useRecordContext();
+    let value = record ? record["connection_string"] : "";
+    
+    if(props.mode !== "edit"){
+        console.log(props)
+        return <Typography>{value}</Typography>
+    }
+
+    return <DBConnectionEdit {...props} />
 }

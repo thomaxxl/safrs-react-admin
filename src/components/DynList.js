@@ -22,8 +22,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import DeleteIcon from "@material-ui/icons/Delete";
 import { DetailPanel } from "./DynInstance.js";
 import { ListActions as RAListActions, FilterButton, TopToolbar, CreateButton, ExportButton } from 'react-admin';
-import {InfoPopover} from '../util'
-import { Modal, Box  } from "@material-ui/core";
 import InfoModal from "./InfoModal.js";
 import get_Component from '../get_Component.js';
 

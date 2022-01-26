@@ -159,7 +159,7 @@ const DynInput = ({attribute, resource, xs}) => {
     const [selected_ref, setSelected_ref] = useState(false)
     const GridWrap = (props) => <Grid item xs={xs | 4} spacing={4} margin={5} >{props.children}</Grid>
     const attr_type = attribute.type?.toLowerCase()
-    let result = <GridWrap><TextInput source={attribute.name} fullWidth  {...input_props}/></GridWrap>
+    let result = <GridWrap><TextInput source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props}/></GridWrap>
     const conf = useConf();
 
     if(attribute.component){
@@ -169,7 +169,7 @@ const DynInput = ({attribute, resource, xs}) => {
     if(attr_type == "date"){
         result = <GridWrap><DateInput source={attribute.name} fullWidth /></GridWrap>
     }
-    if(attribute.type?.toLowerCase() == "password"){
+    if(attr_type == "password"){
         result = <GridWrap><PasswordInput source={attribute.name} key={attribute.name}/></GridWrap>
     }
     if(attr_type == "number" || attr_type == "decimal"){

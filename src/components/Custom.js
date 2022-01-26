@@ -53,9 +53,6 @@ export const UserPasswordField = (props) => {
 
 export const CustomTab = (props) => {
     const record = useRecordContext();
-    
     console.log(record)
     return <div>Some Text</div>
 }
-
-
