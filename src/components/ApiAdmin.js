@@ -203,6 +203,23 @@ const DBConnectionEdit = (props) => {
         .catch(err => alert())
     }
 
+    const create_api = () =>{
+        if(record.id === undefined){
+            const msg = "you must first save the api"
+            alert(msg)
+            setLogData(msg)
+            return
+        }
+        const create_url = `${conf.api_root}/Apis/${record.id}/generate`
+        setLogData(<Loading/>)
+        box_style.top = "90%"
+        C2Rpc(create_url)
+            .then(response => response.json())
+            .then(data => {
+                setLogData(<pre>{data}</pre>)
+            })
+    }
+
 
     return <>
             <Grid item xs={12} spacing={4} margin={5} ></Grid>
@@ -279,8 +296,12 @@ const DBConnectionEdit = (props) => {
                         <Button variant="outlined" color="primary" onClick={()=>{setOpen(false); form.change('connection_string',create_conn()); }} >Save &amp; Close</Button>
                     </Grid>
                     <Grid item xs={2} spacing={4} margin={5} className={classes.actions}>
+                        <Button variant="outlined" color="primary" onClick={()=>create_api() } disabled={record.id ? false : true} title={record.id? "" : "you must first save the api"}>Generate API</Button>
+                    </Grid>
+                    <Grid item xs={2} spacing={4} margin={5} className={classes.actions}>
                         <Button variant="outlined" color="primary" onClick={()=>setOpen(false) }>Close</Button>
                     </Grid>
+                    
                     <Grid item xs={12} spacing={4} margin={5} className={classes.logdata}>
                         {logdata}
                     </Grid>
@@ -294,7 +315,7 @@ export const DBConnection = (props) => {
     const record = useRecordContext();
     let value = record ? record["connection_string"] : "";
     
-    if(props.mode !== "edit"){
+    if(props.mode !== "edit" && props.mode !== "create"){
         console.log(props)
         return <Typography>{value}</Typography>
     }
