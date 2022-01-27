@@ -28,7 +28,14 @@ const authProvider = {
             requestOptions.headers["Authorization"] = `Bearer ${localStorage.getItem('auth_token')}`
         }
         return fetch(login_url, requestOptions)
-            .then(response => response.json())
+            .then(response => {
+                if(response.status == 403){
+                    console.log("403 - Not logged in - redirect")
+                    document.location.href = "/#/login"
+                }
+
+                return response.json()
+            })
             .then(data =>{
                 localStorage.setItem('auth_token',data.auth_token)
                 localStorage.setItem('username', username)}
