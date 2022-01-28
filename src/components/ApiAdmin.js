@@ -330,14 +330,18 @@ export const DBConnection = (props) => {
 }
 
 
+const api_url = (props) => {
+    const url = `/${props.name}/api`
+    return <Typography><a href={url}>{url}</a></Typography>
+}
+
 export const ApiURL = (props) => {
     const record = useRecordContext();
     const conf = useConf()
     if(!record.id){
         return null
     }
-    const url = `/${record.name}/api`
-    return <Typography><a href={url}>{url}</a></Typography>
+    return api_url(record)
 }
 
 
@@ -350,7 +354,7 @@ export const ApiAdminHome = (props) => {
         })
     
     console.log(data)
-    const apis = data?.map(api => <li><a href={`${api.name}/api`}>{api.name}</a></li>)
+    const apis = data?.map(api => <li>{api_url(api)}</li>)
 
     return <>
                 <Typography variant="h6" component="h2"> APIs</Typography>
