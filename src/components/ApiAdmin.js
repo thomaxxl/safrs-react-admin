@@ -7,7 +7,8 @@ import Button from '@material-ui/core/Button';
 import { useConf } from '../Config';
 import {Loading,
     TextInput,
-    useRecordContext
+    useRecordContext,
+    useQueryWithStore
 } from 'react-admin'
 import { useForm } from 'react-final-form';
 import Radio from '@mui/material/Radio';
@@ -175,7 +176,13 @@ const DBConnectionEdit = (props) => {
     const conf = useConf()
 
     const selectDialect = (e) => {
-        setDialect(e.target.value)
+        const dialect = e.target.value
+        setDialect(dialect)
+        if(dialect === "sqlite"){
+            setUsername("")
+            setPassword("")
+            setDbhost("")
+        }
     }
 
     const create_conn = () => {
@@ -319,7 +326,6 @@ export const DBConnection = (props) => {
         console.log(props)
         return <Typography>{value}</Typography>
     }
-
     return <DBConnectionEdit {...props} />
 }
 
@@ -332,4 +338,26 @@ export const ApiURL = (props) => {
     }
     const url = `/${record.name}/api`
     return <Typography><a href={url}>{url}</a></Typography>
+}
+
+
+export const ApiAdminHome = (props) => {
+
+    const {loaded, error, data} = useQueryWithStore({
+        type: 'getList',
+            resource: "Apis",
+            payload: {pagination : {page: 0, perPage: 100}}
+        })
+    
+    console.log(data)
+    const apis = data?.map(api => <li><a href={`${api.name}/api`}>{api.name}</a></li>)
+
+    return <>
+                <Typography variant="h6" component="h2"> APIs</Typography>
+                <Typography>
+                    <ul>
+                        {apis}
+                    </ul>
+                </Typography>
+            </>
 }

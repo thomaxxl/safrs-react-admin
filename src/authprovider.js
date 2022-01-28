@@ -33,7 +33,9 @@ const authProvider = {
                     console.log("403 - Not logged in - redirect")
                     document.location.href = "/#/login"
                 }
-
+                else if(response.status != 200){
+                    alert(`Unknown Status '${response.statusText}'`)
+                }
                 return response.json()
             })
             .then(data =>{

@@ -40,8 +40,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function LoginPage(props) {
-  const [username, setusername] = useState("admin");
-  const [password, setpassword] = useState("p");
+  const [username, setusername] = useState("");
+  const [password, setpassword] = useState("");
   const [loaded, setLoaded] = useState(false)
 
   const dispatch = useDispatch()

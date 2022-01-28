@@ -10,6 +10,7 @@ import Button from '@material-ui/core/Button';
 import {resetConf} from "./ConfigurationUI";
 import ALSDesc from "./ValH"
 import { useDataProvider } from 'react-admin';
+import get_Component from '../get_Component.js';
 
 import {
   BrowserRouter as Router,
@@ -27,7 +28,7 @@ const styles = {
     home: {fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'},
 };
 //import universal from 'react-universal-component'
-//const UniversalComponent = universal(props => import(`https://automat-c2.rccu-brussels.lan/imager/comp.js`))
+//const UniversalComponent = universal(props => import(`https://my.internet.com/imager/comp.js`))
 
 const Demo = ({ready, config}) => {
 
@@ -64,23 +65,27 @@ const Home = (props) => {
         resetConf()
         setInitialized(true)
     }
+
     const init = config.settings ? null : <Link to={{ pathname: "/configuration" }}>
                                             <Button variant="contained" color="link"> Initialize Configuration</Button>
                                         </Link>
+    let content =  <><Script
+                            url={config.settings?.HomeJS}
+                            onError={(e) => {setScriptLoaded(true);console.error(e)}}
+                            onLoad={()=>setScriptLoaded(true)}
+                        />
+                        <Demo  ready={scriptLoaded} config={config}/>    
+                        {init}
+                    </>
+    if(config.settings.Home){
+        const HomeComp = get_Component(config.settings.Home) 
+        content = <HomeComp/>
+    }
     
     return <Card>
             <Title title="Home" />
             <CardContent>
-                    <Script
-                        url={config.settings?.HomeJS}
-                        onError={(e) => {setScriptLoaded(true);console.error(e)}}
-                        onLoad={()=>setScriptLoaded(true)}
-                    />
-                    <span className={classes.home}>
-                        <Demo  ready={scriptLoaded} config={config}/>
-                    </span>
-                    {init}
-
+                {content}
             </CardContent>
             </Card>
 }

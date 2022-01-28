@@ -80,7 +80,7 @@ const ShowInstance = ({attributes, tab_groups, resource_name, id}) => {
     const tabs = tab_groups?.map((tab) => {
             if(tab.component){
                 const Component = get_Component(tab.component)
-                return <Tab label={tab.name || 'Tab'} key={tab.name}><Component/></Tab>
+                return <Tab label={tab.label || tab.name || 'InstanceTab'} key={tab.name}><Component/></Tab>
             }
             if(tab.direction === "tomany"){ // <> "toone"
                 return DynRelationshipMany(resource_name, id, tab)
@@ -111,8 +111,8 @@ const DynRelationshipOne = (resource, id, relationship) => {
     const [rel_error, setRelError] = useState(false);
     const {loaded, error, data} = useQueryWithStore({
         type: 'getOne',
-            resource: resource,
-            payload: { id: id }
+        resource: resource,
+        payload: { id: id }
         })
     const rel_id = data && relationship.fks.map(fk => data[fk] ? data[fk] : "").join('_')
     const dataProvider = useDataProvider();

@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import {useRecordContext, useDataProvider} from "react-admin";
 import {MyComp} from './external'
 //import CreateUser from './CreateUser'
-export {UserPasswordTab} from './external/UserPasswordTab'
+export * from './external/UserPasswordTab'
 export {CreateUser} from './CreateUser'
 export * from './ApiAdmin'
 export * from './external'
