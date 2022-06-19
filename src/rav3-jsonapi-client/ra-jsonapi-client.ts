@@ -291,15 +291,15 @@ export const jsonapiClient = (
       });
     },
 
-    update: (resource_name, params) => {
-      let type = conf["resources"][resource_name].type;
-      const arr = settings.endpointToTypeStripLastLetters;
+    update: (resource_name : string, params: any) => {
+      let type = conf["resources"][resource_name].type || resource_name;
+      /*const arr = settings.endpointToTypeStripLastLetters;
       for (const i in arr) {
         if (resource_name.endsWith(arr[i])) {
           type = resource_name.slice(0, arr[i].length * -1);
           break; // quit after first hit
         }
-      }
+      }*/
       const data = {
         data: {
           id: params.id,
@@ -348,22 +348,24 @@ export const jsonapiClient = (
       .then((responses) => ({ data: responses.map(({ json }) => json.id) }))
       ,
 
-    create: (resource, params) => {
-      let type = resource;
+    create: (resource_name : string, params: any) => {
+      let type = conf["resources"][resource_name].type || resource_name;
+      
+      /*let type = resource;
       const arr = settings.endpointToTypeStripLastLetters;
       for (const i in arr) {
         if (resource.endsWith(arr[i])) {
           type = resource.slice(0, arr[i].length * -1);
           break; // quit after first hit
         }
-      }
+      }*/
       const data = {
         data: {
           type: type,
           attributes: params.data
         }
       };
-      return httpClient(`${apiUrl}/${resource}`, {
+      return httpClient(`${apiUrl}/${resource_name}`, {
         method: 'POST',
         body: JSON.stringify(data)
       })
