@@ -11,7 +11,8 @@ import {
     useNotify,
     Button,
     SaveButton,
-    FormWithRedirect
+    FormWithRedirect,
+    useRecordContext,
 } from 'react-admin'
 import { useForm } from 'react-final-form';
 import React, { useState, useCallback } from 'react';
@@ -152,16 +153,18 @@ const DynReferenceInput = (props) => {
 };
 
 const DynInput = ({attribute, resource, xs}) => {
-
+    const [selected_ref, setSelected_ref] = useState(false)
+    const conf = useConf();
+    const record = useRecordContext();    
+    if(attribute.show_when && !(eval(attribute.show_when)) ){
+        return <></>
+    }
     const label = attribute.label || attribute.name
     const input_props = {validate : attribute.required ? required() : false , label: label}
-    
-    const [selected_ref, setSelected_ref] = useState(false)
     const GridWrap = (props) => <Grid item xs={xs | 4} spacing={4} margin={5} >{props.children}</Grid>
     const attr_type = attribute.type?.toLowerCase()
     let result = <GridWrap><TextInput source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props}/></GridWrap>
-    const conf = useConf();
-
+   
     if(attribute.component){
         const Component = get_Component(attribute.component)
         return <Component attr={attribute} mode="edit"/>
