@@ -62,6 +62,10 @@ export const ShowRecordField = ({ source, tabs }) => {
     const attr_name = source.name
     const label =  source.label || attr_name
     let value = record[attr_name]
+    if(source.show_when && !(eval(source.show_when)) ){
+        return <></>
+    }
+
     if(source.component){
         const Component = get_Component(source.component)
         return <Component attr={source} value={value} mode="show"/>
