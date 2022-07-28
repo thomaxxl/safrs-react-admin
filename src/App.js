@@ -82,7 +82,7 @@ const AsyncResources = () => {
 }
 
 
-
+// App component
 const App = () => {
     
     const conf = useConf();
