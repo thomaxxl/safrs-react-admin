@@ -15,7 +15,7 @@ import {
     useRecordContext,
 } from 'react-admin'
 import { useForm } from 'react-final-form';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useFormState } from 'react-final-form';
 import { makeStyles } from '@material-ui/core/styles';
 import IconContentAdd from '@material-ui/icons/Add';
@@ -152,18 +152,34 @@ const DynReferenceInput = (props) => {
         </>
 };
 
-const DynInput = ({attribute, resource, xs}) => {
+const DynInput = ({set_show_switch=true, setDynamicRender, attribute, resource, xs}) => {
+    const id  = useRef(null)
     const [selected_ref, setSelected_ref] = useState(false)
     const conf = useConf();
-    const record = useRecordContext();    
-    if(attribute.show_when && !(eval(attribute.show_when)) ){
-        return <></>
-    }
+    const record = useRecordContext();
     const label = attribute.label || attribute.name
     const input_props = {validate : attribute.required ? required() : false , label: label}
     const GridWrap = (props) => <Grid item xs={xs | 4} spacing={4} margin={5} >{props.children}</Grid>
     const attr_type = attribute.type?.toLowerCase()
-    let result = <GridWrap><TextInput source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props}/></GridWrap>
+
+
+    const dynamicRenderDues = (value, name ) => {
+        
+        if(name=== "EmployeeType" && value ==="Hourly"){
+            id.current = name
+            setDynamicRender(previousState => ({...previousState, EmployeeType:"Hourly"}))
+        }
+        else if(name === "EmployeeType" && value === "Commissioned"){
+            id.current = name
+            setDynamicRender(previousState => ({...previousState, EmployeeType:"Commissioned"}))
+        }
+        
+    } 
+
+    if(attribute.show_when && !(eval(attribute.show_when)) && !set_show_switch) {
+        return <></>
+    }
+    let result = <GridWrap><TextInput onChange={(e) => { if (attribute.name === "EmployeeType") { dynamicRenderDues(e.target.value, attribute.name) } }}  source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props} autoFocus={attribute.name === id.current} /></GridWrap>
    
     if(attribute.component){
         const Component = get_Component(attribute.component)

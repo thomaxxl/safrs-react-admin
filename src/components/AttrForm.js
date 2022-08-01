@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import DynInput from "./DynInput.js";
 import {
@@ -12,17 +12,25 @@ const useStyles = makeStyles({
 });
 
 const AttrForm = ({attributes, ...props}) => {
-    
+  const [dynamicRender,setDynamicRender]=useState({})
+  const switchFunction = (attr) => {
+    const current_label =  attr.name;
+      if(current_label === "Dues"){
+        return (dynamicRender.EmployeeType==="Hourly" )
+      }
+      
+  }
+  
     const classes = useStyles();
     return <SimpleForm {...props}>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) => <DynInput attribute={attr} key={attr.name} xs={4}/> )}
+                {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) =>  <DynInput set_show_switch={switchFunction(attr)} setDynamicRender={setDynamicRender} attribute={attr} key={attr.name} xs={4}/> )}
                 </Grid>
                 <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
                 {
                   attributes.filter(attr => attr.relationship && !attr.hidden)
                             .map((attr, i) => <React.Fragment key={i}>
-                                                <DynInput attribute={attr} xs={5}/><Grid item xs={6}/>
+                                                <DynInput set_show_switch={switchFunction(attr)} setDynamicRender={setDynamicRender}  attribute={attr} xs={5}/><Grid item xs={6}/>
                                               </React.Fragment> )
                 }
                 </Grid>
