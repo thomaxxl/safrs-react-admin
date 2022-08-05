@@ -72,7 +72,7 @@ export default function CustomizedAccordions() {
               </pre>
               </li>
             <li><i>Model-driven: </i>creation builds executable&nbsp;
-            <a rel="nofollow" href=https://valhuber.github.io/ApiLogicServer/Architecture/#customizable-declarative-models" target="_blank">models</a>
+            <a rel="nofollow" href="https://valhuber.github.io/ApiLogicServer/Architecture/#customizable-declarative-models" target="_blank">models</a>
               , not code
                 <ul>
                     <li>
