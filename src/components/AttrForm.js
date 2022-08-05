@@ -2,39 +2,41 @@ import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import DynInput from "./DynInput.js";
 import {
-    SimpleForm
-  } from "react-admin";
-  
+  SimpleForm
+} from "react-admin";
+
 import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles({
-    edit_grid : { width: "100%" }
+  edit_grid: { width: "100%" }
 });
 
-const AttrForm = ({attributes, ...props}) => {
-  const [dynamicRender,setDynamicRender]=useState({})
-  const switchFunction = (attr) => {
-    const current_label =  attr.name;
-      if(current_label === "Dues"){
-        return (dynamicRender.EmployeeType==="Hourly" )
-      }
-      
+const AttrForm = ({ attributes, ...props }) => {
+  const [renderSwitch, setRenderSwitch] = useState([])
+  const setRecords = (record) => {
+    const recordsArray = attributes.filter(attr => attr.show_when && (eval(attr.show_when))).map((attr) => attr.name)
+    setRenderSwitch(previousState => {
+      if (recordsArray.length === previousState.length) {
+        return previousState
+      } return recordsArray
+    })
   }
-  
-    const classes = useStyles();
-    return <SimpleForm {...props}>
-                <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) =>  <DynInput set_show_switch={switchFunction(attr)} setDynamicRender={setDynamicRender} attribute={attr} key={attr.name} xs={4}/> )}
-                </Grid>
-                <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
-                {
-                  attributes.filter(attr => attr.relationship && !attr.hidden)
-                            .map((attr, i) => <React.Fragment key={i}>
-                                                <DynInput set_show_switch={switchFunction(attr)} setDynamicRender={setDynamicRender}  attribute={attr} xs={5}/><Grid item xs={6}/>
-                                              </React.Fragment> )
-                }
-                </Grid>
-        </SimpleForm>
+
+
+  const classes = useStyles();
+  return <SimpleForm {...props}>
+    <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
+      {attributes.filter(attr => !attr.relationship && !attr.hidden).map((attr) => <DynInput renderSwitch={renderSwitch} setRecords={setRecords} attribute={attr} key={attr.name} xs={4} />)}
+    </Grid>
+    <Grid container spacing={2} margin={2} m={40} className={classes.edit_grid}>
+      {
+        attributes.filter(attr => attr.relationship && !attr.hidden)
+          .map((attr, i) => <React.Fragment key={i}>
+            <DynInput renderSwitch={renderSwitch} setRecords={setRecords} attribute={attr} xs={5} /><Grid item xs={6} />
+          </React.Fragment>)
+      }
+    </Grid>
+  </SimpleForm>
 }
 
 export default AttrForm
