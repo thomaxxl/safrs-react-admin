@@ -7,6 +7,8 @@ import {
     Button,
     SaveButton,
     FormWithRedirect,
+    useRedirect,
+    useRefresh
 } from 'react-admin'
 import { useForm } from 'react-final-form';
 import React, { useState, useCallback, memo } from 'react';
@@ -24,17 +26,26 @@ import QuickPreviewButton from './QuickPreviewButton.js'
 import DynInput from './DynInput.js';
 
 
-function QuickCreateButton({ onChange, resource_name, cb_set_id }) {
+function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
     const [renderSwitch, setRenderSwitch] = useState([])
     const [showDialog, setShowDialog] = useState(false);
     const [create, { loading }] = useCreate(resource_name);
     const notify = useNotify();
     const form = useForm();
     const conf = useConf()
+    const redirect = useRedirect()
+    const refresh = useRefresh()
     const resource = conf.resources[resource_name]
     const attributes = resource?.attributes || []
     const setRecords = (record) => {
-        const recordsArray = attributes.filter(attr => attr.show_when && (eval(attr.show_when))).map((attr) => attr.name)
+        const recordsArray = attributes.filter(attr => attr.show_when && (() => {
+            try { return (eval(attr.show_when)) } catch (e) {
+                console.log(e)
+                notify('Error occurred while evaluating \'show_when\' : Invalid Expression', { type: 'error' })
+                redirect(basePath)
+                refresh()
+            }
+        })()).map((attr) => attr.name)
         setRenderSwitch(previousState => {
             if (recordsArray.length === previousState.length) {
                 return previousState
@@ -152,7 +163,7 @@ const DynReferenceInput = (props) => {
             </ReferenceInput>
         </Grid>
         <Grid item xs={2} spacing={4} margin={5} >
-            <QuickCreateButton onChange={handleChange} resource_name={props.reference} cb_set_id={props.cb_set_id} />
+            <QuickCreateButton onChange={handleChange} resource_name={props.reference} cb_set_id={props.cb_set_id} basePath={props.basePath} />
             {selected && <QuickPreviewButton id={props.selected} resource_name={props.reference} />}
         </Grid>
     </>
