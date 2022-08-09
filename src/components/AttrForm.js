@@ -4,7 +4,7 @@ import DynInput from "./DynInput.js";
 import {
   SimpleForm
 } from "react-admin";
-
+import { useRedirect, useRefresh, useNotify } from 'react-admin';
 import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles({
@@ -13,8 +13,18 @@ const useStyles = makeStyles({
 
 const AttrForm = ({ attributes, ...props }) => {
   const [renderSwitch, setRenderSwitch] = useState([])
+  const redirect = useRedirect();
+  const refresh = useRefresh();
+  const notify = useNotify();
   const setRecords = (record) => {
-    const recordsArray = attributes.filter(attr => attr.show_when && (eval(attr.show_when))).map((attr) => attr.name)
+    const recordsArray = attributes.filter(attr => attr.show_when && (() => {
+      try { return (eval(attr.show_when)) } catch (e) {
+          console.log(e)
+          notify('Error occurred while evaluating \'show_when\' : Invalid Expression',  { type: 'error' })
+          redirect(props.basePath)
+          refresh()
+      }
+  })()).map((attr) => attr.name)
     setRenderSwitch(previousState => {
       if (recordsArray.length === previousState.length) {
         return previousState
