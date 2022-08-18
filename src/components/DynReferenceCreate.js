@@ -11,19 +11,27 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import { useHistory } from "react-router-dom";
 import { memo } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { Save } from "@mui/icons-material";
 
-
- function DynReferenceCreate({ resource_name, basePath}) {
+const useStyles = makeStyles({
+  container: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  button: { float: "left" },
+});
+function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
   const [showDialog, setShowDialog] = useState(false);
   const [create, { loading }] = useCreate(resource_name);
+  const [refreshId, setRefreshId] = useState(1);
   const notify = useNotify();
   const conf = useConf();
   const redirect = useRedirect();
   const refresh = useRefresh();
-  const history = useHistory();
   const resource = conf.resources[resource_name];
   const attributes = resource?.attributes || [];
 
@@ -34,14 +42,22 @@ import { memo } from "react";
           attr.show_when &&
           (() => {
             try {
-              return eval(attr.show_when);
+              if (
+                attr.resource.attributes.find(
+                  (object) => object.name == attr.show_when.split(/'|"/)[1]
+                )
+              ) {
+                return eval(attr.show_when);
+              } else {
+                throw "invalid attribute name";
+              }
             } catch (e) {
               console.log(e);
               notify(
                 "Error occurred while evaluating 'show_when' : Invalid Expression",
                 { type: "error" }
               );
-              redirect(basePath);
+              redirect(path);
               refresh();
             }
           })()
@@ -70,7 +86,6 @@ import { memo } from "react";
         onSuccess: () => {
           setShowDialog(false);
           notify(`Changes Saved`);
-          history.goBack();
           refresh();
         },
         onFailure: ({ error }) => {
@@ -79,7 +94,37 @@ import { memo } from "react";
       }
     );
   };
+  const handleSubmitAndShow = async (values) => {
+    create(
+      { payload: { data: values } },
+      {
+        onSuccess: (data) => {
+          setShowDialog(false);
+          notify(`Changes Saved`);
+          redirect(`/${resource_name}/${data.data.id}/show`);
+        },
+        onFailure: ({ error }) => {
+          notify(error.message, "error");
+        },
+      }
+    );
+  };
+  const handleSubmitAndAdd = async (values) => {
+    create(
+      { payload: { data: values } },
+      {
+        onSuccess: () => {
+          notify(`Changes Saved`);
+          setRefreshId((previousId) => previousId + 1);
+        },
+        onFailure: ({ error }) => {
+          notify(error.message, "error");
+        },
+      }
+    );
+  };
   const title = `Create ${resource_name}`;
+  const classes = useStyles();
   return (
     <>
       <Button onClick={handleClick} label={`Add New ${resource_name}`}>
@@ -95,6 +140,7 @@ import { memo } from "react";
         <DialogTitle>{title}</DialogTitle>
 
         <FormWithRedirect
+          key={refreshId}
           resource={resource_name}
           save={handleSubmit}
           render={({ handleSubmitWithRedirect, pristine, saving }) => (
@@ -112,7 +158,7 @@ import { memo } from "react";
                       />
                     ))}
                 </Grid>
-                <Grid container spacing={2} margin={2} m={40} xs={4}>
+                <Grid container spacing={2} margin={2} m={40}>
                   {attributes
                     .filter((attr) => attr.relationship)
                     .map((attr) => (
@@ -122,24 +168,60 @@ import { memo } from "react";
                         attribute={attr}
                         key={attr.name}
                         xs={8}
+                        currentid={currentid}
+                        currentParent={currentParent}
                       />
                     ))}
                 </Grid>
               </DialogContent>
-              <DialogActions>
-                <Button
-                  label="ra.action.cancel"
-                  onClick={handleCloseClick}
-                  disabled={loading}
+              <DialogActions className={classes.container}>
+                <div style={{ width: "50%" }}>
+                  <Button
+                    className={classes.button}
+                    label="ra.action.cancel"
+                    onClick={handleCloseClick}
+                    disabled={loading}
+                  >
+                    <IconCancel />
+                  </Button>
+                </div>
+                <div
+                  style={{
+                    width: "65%",
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
                 >
-                  <IconCancel />
-                </Button>
-                <SaveButton
-                  handleSubmitWithRedirect={handleSubmitWithRedirect}
-                  pristine={pristine}
-                  saving={saving}
-                  disabled={loading}
-                />
+                  <SaveButton
+                    handleSubmitWithRedirect={handleSubmitWithRedirect}
+                    pristine={pristine}
+                    saving={saving}
+                    disabled={loading}
+                  />
+                  <SaveButton
+                    label="save and add another"
+                    variant="outlined"
+                    handleSubmitWithRedirect={handleSubmitWithRedirect}
+                    onSave={handleSubmitAndAdd}
+                    pristine={pristine}
+                    saving={saving}
+                    disabled={loading}
+                    redirect={false}
+                  >
+                    <Save />
+                  </SaveButton>
+                  <SaveButton
+                    label="save and show"
+                    handleSubmitWithRedirect={handleSubmitWithRedirect}
+                    onSave={handleSubmitAndShow}
+                    variant="outlined"
+                    pristine={pristine}
+                    saving={saving}
+                    disabled={loading}
+                  >
+                    <Save />
+                  </SaveButton>
+                </div>
               </DialogActions>
             </>
           )}
@@ -147,7 +229,6 @@ import { memo } from "react";
       </Dialog>
     </>
   );
-
 }
 
 export default memo(DynReferenceCreate);

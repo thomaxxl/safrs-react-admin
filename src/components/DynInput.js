@@ -11,7 +11,7 @@ import { useConf } from '../Config.js'
 import get_Component from "../get_Component";
 import DynReferenceInput from './DynReferenceInput.js';
 
-const DynInput = ({ renderSwitch, setRecords, attribute, resource, xs }) => {
+const DynInput = ({ renderSwitch, setRecords, attribute, resource, xs, currentid, currentParent }) => {
     const id = useRef(null)
     const [selected_ref, setSelected_ref] = useState(false)
     const conf = useConf();
@@ -29,7 +29,7 @@ const DynInput = ({ renderSwitch, setRecords, attribute, resource, xs }) => {
     if (attribute.show_when && !renderSwitch.includes(attribute.name)) {
         return <></>
     }
-    let result = <GridWrap><TextInput onChange={(e) => { dynamicRender(attribute.name, e.target.value) }} source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props} autoFocus={attribute.name === id.current} /></GridWrap>
+    let result = <GridWrap><TextInput  onChange={(e) => { dynamicRender(attribute.name, e.target.value) }}  source={attribute.name} fullWidth multiline={attribute.multiline} {...input_props}  autoFocus={attribute.name === id.current} /></GridWrap>
 
     if (attribute.component) {
         const Component = get_Component(attribute.component)
@@ -80,6 +80,8 @@ const DynInput = ({ renderSwitch, setRecords, attribute, resource, xs }) => {
             cb_set_id={(v) => { setSelected_ref(v) }}
             allowEmpty={!attribute.required}
             selected={selected_ref}
+            currentid={currentid}
+            filter={(attribute.relationship.resource==currentParent&&{id:currentid})}
             {...ri_props}
         />
 
