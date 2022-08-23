@@ -202,8 +202,7 @@ export const jsonapiClient = (
     getMany: (resource, params: any) => {
       resource = capitalize(resource);
       console.log('getMany:',resource, params)
-      let query = 'filter[id]=' 
-      query += params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids); // fixme
+      let query = `filter{"id":[${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}]}`
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url, {}).then(({ json }) => {
         console.log('getMany', json);
