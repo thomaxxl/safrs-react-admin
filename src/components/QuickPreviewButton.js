@@ -32,7 +32,6 @@ const QuickPreviewButton = ({resource_name, id }) => {
         setShowPanel(false);
     };
 
-    console.log(resource_name, id)
 
     const attr_show = conf.resources[resource_name].attributes.map((attr) => <TextField source={attr.name} />)
     return (

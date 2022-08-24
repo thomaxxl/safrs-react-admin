@@ -22,18 +22,15 @@ const useStyles = makeStyles({
 });
 
 export const gen_DynResourceCreate = (resource) => (props) => {
-    console.log(props,'props')
   const classes = useStyles();
   const attributes = resource.attributes;
 
   if (resource.create) {
     const CreateComp = get_Component(resource.create);
-    console.log({ resource });
     return <CreateComp resource_name={resource.name} {...props}></CreateComp>;
   }
 
   const Mytoolbar = (props) => {
-    console.log(props,"toolbar")
     return (
       <Toolbar {...props}>
         <SaveButton
@@ -43,7 +40,7 @@ export const gen_DynResourceCreate = (resource) => (props) => {
         />
         <SaveButton
           className={classes.save_button}
-          label="save and add"
+          label="save and add another"
           redirect={false}
           submitOnEnter={false}
           variant="outlined"

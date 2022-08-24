@@ -1,7 +1,13 @@
-import { useState } from "react";
-import { FormWithRedirect, useNotify, useRedirect } from "react-admin";
+import React, { useState } from "react";
+import {
+  Create,
+  FormWithRedirect,
+  SimpleForm,
+  useNotify,
+  useRedirect,
+} from "react-admin";
 import Grid from "@material-ui/core/Grid";
-import { useCreate, Button, SaveButton } from "react-admin";
+import { Toolbar, useCreate, Button, SaveButton } from "react-admin";
 import { useRefresh } from "react-admin";
 import { useConf } from "../Config.js";
 import DynInput from "./DynInput.js";
@@ -11,19 +17,24 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
-import { useHistory } from "react-router-dom";
 import { memo } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { Save } from "@mui/icons-material";
 
-
- function DynReferenceCreate({ resource_name, basePath}) {
+const useStyles = makeStyles({
+  edit_grid: { width: "100%" },
+  save_button1:{marginLeft: "25%"},
+  save_button:{marginLeft:"2%"}
+});
+function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
   const [showDialog, setShowDialog] = useState(false);
   const [create, { loading }] = useCreate(resource_name);
+  const [refreshId, setRefreshId] = useState(1);
   const notify = useNotify();
   const conf = useConf();
   const redirect = useRedirect();
   const refresh = useRefresh();
-  const history = useHistory();
   const resource = conf.resources[resource_name];
   const attributes = resource?.attributes || [];
 
@@ -34,14 +45,22 @@ import { memo } from "react";
           attr.show_when &&
           (() => {
             try {
-              return eval(attr.show_when);
+              if (
+                attr.resource.attributes.find(
+                  (object) => object.name == attr.show_when.split(/'|"/)[1]
+                )
+              ) {
+                return eval(attr.show_when);
+              } else {
+                throw "invalid attribute name";
+              }
             } catch (e) {
               console.log(e);
               notify(
                 "Error occurred while evaluating 'show_when' : Invalid Expression",
                 { type: "error" }
               );
-              redirect(basePath);
+              redirect(path);
               refresh();
             }
           })()
@@ -62,24 +81,52 @@ import { memo } from "react";
   const handleCloseClick = () => {
     setShowDialog(false);
   };
+  const title = `Create ${resource_name}`;
+  const classes = useStyles();
+  const onSuccessShow = (data) => {
+    notify(`${resource_name} created successfully`);
+    redirect(`/${resource_name}/${data.data.id}/show`);
+  };
+  const Mytoolbar = (props) => {
+    return (
+      <Toolbar {...props}>
+        <Button
+          className={classes.button}
+          label="ra.action.cancel"
+          onClick={handleCloseClick}
+          disabled={loading}
+        >
+          <IconCancel />
+        </Button>
 
-  const handleSubmit = async (values) => {
-    create(
-      { payload: { data: values } },
-      {
-        onSuccess: () => {
-          setShowDialog(false);
-          notify(`Changes Saved`);
-          history.goBack();
-          refresh();
-        },
-        onFailure: ({ error }) => {
-          notify(error.message, "error");
-        },
-      }
+        <SaveButton
+          className={classes.save_button1}
+          label="save"
+          redirect={path}
+          submitOnEnter={true}
+          onSuccess={() => {
+            handleCloseClick();
+            refresh();
+          }}
+        />
+        <SaveButton
+          className={classes.save_button}
+          label="save and add another"
+          redirect={false}
+          submitOnEnter={false}
+          variant="outlined"
+        />
+        <SaveButton
+          className={classes.save_button}
+          label="save and show"
+          redirect={false}
+          onSuccess={onSuccessShow}
+          submitOnEnter={false}
+          variant="outlined"
+        />
+      </Toolbar>
     );
   };
-  const title = `Create ${resource_name}`;
   return (
     <>
       <Button onClick={handleClick} label={`Add New ${resource_name}`}>
@@ -93,61 +140,57 @@ import { memo } from "react";
         aria-label={title}
       >
         <DialogTitle>{title}</DialogTitle>
-
-        <FormWithRedirect
-          resource={resource_name}
-          save={handleSubmit}
-          render={({ handleSubmitWithRedirect, pristine, saving }) => (
-            <>
-              <DialogContent>
-                <Grid container spacing={2} margin={2} m={40}>
-                  {attributes
-                    .filter((attr) => !attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                      />
-                    ))}
-                </Grid>
-                <Grid container spacing={2} margin={2} m={40} xs={4}>
-                  {attributes
-                    .filter((attr) => attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                        xs={8}
-                      />
-                    ))}
-                </Grid>
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  label="ra.action.cancel"
-                  onClick={handleCloseClick}
-                  disabled={loading}
-                >
-                  <IconCancel />
-                </Button>
-                <SaveButton
-                  handleSubmitWithRedirect={handleSubmitWithRedirect}
-                  pristine={pristine}
-                  saving={saving}
-                  disabled={loading}
-                />
-              </DialogActions>
-            </>
-          )}
-        />
+        <DialogContent>
+          <Create basePath={path} resource={resource_name}>
+            <SimpleForm
+              initialValues={{ Id: currentid }}
+              toolbar={<Mytoolbar />}
+            >
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => !attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      attribute={attr}
+                      key={attr.name}
+                    />
+                  ))}
+              </Grid>
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      attribute={attr}
+                      key={attr.name}
+                      xs={8}
+                      currentid={currentid}
+                      currentParent={currentParent}
+                    />
+                  ))}
+              </Grid>
+            </SimpleForm>
+          </Create>
+        </DialogContent>
       </Dialog>
     </>
   );
-
 }
 
 export default memo(DynReferenceCreate);

@@ -1,8 +1,8 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Datagrid, EditButton, useNotify, useRedirect } from "react-admin";
 
 import Grid from "@material-ui/core/Grid";
-import {TabbedShowLayout, Tab } from "react-admin";
+import { TabbedShowLayout, Tab } from "react-admin";
 import {
   Show,
   SimpleShowLayout,
@@ -57,17 +57,17 @@ const ResourceTitle = ({ record, resource }) => {
   );
 };
 
-export const DetailPanel = ({ attributes }) => {
+export const DetailPanel = ({ attributes, path }) => {
   return (
     <Grid container spacing={3} margin={5} m={40}>
       {attributes.map((attr) => (
-        <ShowRecordField source={attr} key={attr.name} />
+        <ShowRecordField source={attr} key={attr.name} path={path} />
       ))}
     </Grid>
   );
 };
 
-export const ShowRecordField = ({ source, tabs, basePath }) => {
+export const ShowRecordField = ({ source, tabs, path }) => {
   const record = useRecordContext();
   const refresh = useRefresh();
   const classes = useStyles();
@@ -79,8 +79,12 @@ export const ShowRecordField = ({ source, tabs, basePath }) => {
 
   if (source.show_when) {
     try {
-      if (source.show_when && !eval(source.show_when)) {
-        return <></>;
+      if (eval(source.show_when.split(/>|=|<|!/)[0])) {
+        if (source.show_when && !eval(source.show_when)) {
+          return <></>;
+        }
+      } else {
+        throw "invalid attribute name";
       }
     } catch (e) {
       console.log(e);
@@ -88,7 +92,7 @@ export const ShowRecordField = ({ source, tabs, basePath }) => {
         "Error occurred while evaluating 'show_when' : Invalid Expression",
         { type: "error" }
       );
-      redirect(basePath);
+      redirect(path);
       refresh();
     }
   }
@@ -160,14 +164,13 @@ const ShowInstance = ({
   );
 };
 
-const DynRelationshipOne = (resource, id, relationship) => {
-  console.log("DR1", resource, id);
+const DynRelationshipOne = (resource_name, id, relationship) => {
   const [rel_data, setRelData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rel_error, setRelError] = useState(false);
   const { loaded, error, data } = useQueryWithStore({
     type: "getOne",
-    resource: resource,
+    resource: resource_name,
     payload: { id: id },
   });
   const rel_id =
@@ -199,7 +202,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
       <BlockIcon style={{ fill: "#ccc" }} title="No data" />
     );
   } else if (error || rel_error) {
-    console.log({ resource }, { id }, { relationship }, relationship.name);
+    console.log({ resource_name }, { id }, { relationship }, relationship.name);
     console.log({ data }, { rel_data });
     tab_content = <Error key={relationship.name} error={error || rel_error} />;
   } else if (rel_data) {
@@ -223,12 +226,10 @@ const DynRelationshipOne = (resource, id, relationship) => {
       if (!rel_resource) {
         console.log(data);
         console.warn(
-          `Related resource not found ${resource}.${relationship.name}`
+          `Related resource not found ${resource_name}.${relationship.name}`
         );
       } else {
-        tab_content = (
-          <LoadingRelatedInstance rel_resource={rel_resource} rel_id={rel_id} />
-        );
+        tab_content = <div>LoadingRelatedInstance</div>;
       }
     }
   }
@@ -243,25 +244,7 @@ const DynRelationshipOne = (resource, id, relationship) => {
   );
 };
 
-const LoadingRelatedInstance = ({ rel_resource, rel_id }) => {
-  return <div>LoadingRelatedInstance</div>;
-  // obsolete?
-  /*console.log('LoadingRelatedInstance', {rel_resource}, {rel_id})
-    const { loaded, error, data } = useQueryWithStore({
-        type: 'getOne',
-            resource: rel_resource,
-            payload: { id: rel_id }
-    })
-    if (!loaded) { 
-        return <Loading />; 
-    }
-    if (error) { 
-        return <Error />; 
-    }
-    return <RelatedInstance instance={data} />*/
-};
-
-const DynRelationshipMany = (resource_name, id, relationship, basePath) => {
+const DynRelationshipMany = (resource_name, id, relationship, path) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
   const [related, setRelated] = useState(false);
@@ -325,7 +308,9 @@ const DynRelationshipMany = (resource_name, id, relationship, basePath) => {
       >
         <Datagrid
           rowClick="show"
-          expand={<DetailPanel attributes={target_resource.attributes} />}
+          expand={
+            <DetailPanel attributes={target_resource.attributes} path={path} />
+          }
         >
           {fields.slice(0, col_nr)}
           <EditButton />
@@ -333,7 +318,9 @@ const DynRelationshipMany = (resource_name, id, relationship, basePath) => {
       </ReferenceManyField>
       <DynReferenceCreate
         resource_name={relationship.resource}
-        basePath={basePath}
+        path={path}
+        currentid={id}
+        currentParent={resource_name}
       ></DynReferenceCreate>
     </Tab>
   );

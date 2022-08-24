@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import DynInput from "./DynInput.js";
-import { SimpleForm} from "react-admin";
+import { SimpleForm } from "react-admin";
 import { useRedirect, useRefresh, useNotify } from "react-admin";
 import Grid from "@material-ui/core/Grid";
+import { isJsxFragment } from "typescript";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
@@ -11,17 +12,28 @@ const useStyles = makeStyles({
 
 const AttrForm = ({ attributes, ...props }) => {
   const [renderSwitch, setRenderSwitch] = useState([]);
+  const isValidExp = useRef(false);
   const redirect = useRedirect();
   const notify = useNotify();
   const refresh = useRefresh();
   const setRecords = (record) => {
-    const recordsArray = attributes 
+    console.log(record, "record");
+    console.log(attributes);
+    const recordsArray = attributes
       .filter(
         (attr) =>
           attr.show_when &&
           (() => {
             try {
-              return eval(attr.show_when);
+              if (
+                attr.resource.attributes.find(
+                  (object) => object.name == attr.show_when.split(/'|"/)[1]
+                )
+              ) {
+                return eval(attr.show_when);
+              } else {
+                throw "invalid attribute name";
+              }
             } catch (e) {
               console.log(e);
               notify(
