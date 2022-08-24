@@ -1,7 +1,13 @@
-import { useState } from "react";
-import { FormWithRedirect, useNotify, useRedirect } from "react-admin";
+import React, { useState } from "react";
+import {
+  Create,
+  FormWithRedirect,
+  SimpleForm,
+  useNotify,
+  useRedirect,
+} from "react-admin";
 import Grid from "@material-ui/core/Grid";
-import { useCreate, Button, SaveButton } from "react-admin";
+import { Toolbar, useCreate, Button, SaveButton } from "react-admin";
 import { useRefresh } from "react-admin";
 import { useConf } from "../Config.js";
 import DynInput from "./DynInput.js";
@@ -16,12 +22,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Save } from "@mui/icons-material";
 
 const useStyles = makeStyles({
-  container: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  button: { float: "left" },
+  edit_grid: { width: "100%" },
+  save_button1:{marginLeft: "25%"},
+  save_button:{marginLeft:"2%"}
 });
 function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
@@ -78,53 +81,52 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const handleCloseClick = () => {
     setShowDialog(false);
   };
-
-  const handleSubmit = async (values) => {
-    create(
-      { payload: { data: values } },
-      {
-        onSuccess: () => {
-          setShowDialog(false);
-          notify(`Changes Saved`);
-          refresh();
-        },
-        onFailure: ({ error }) => {
-          notify(error.message, "error");
-        },
-      }
-    );
-  };
-  const handleSubmitAndShow = async (values) => {
-    create(
-      { payload: { data: values } },
-      {
-        onSuccess: (data) => {
-          setShowDialog(false);
-          notify(`Changes Saved`);
-          redirect(`/${resource_name}/${data.data.id}/show`);
-        },
-        onFailure: ({ error }) => {
-          notify(error.message, "error");
-        },
-      }
-    );
-  };
-  const handleSubmitAndAdd = async (values) => {
-    create(
-      { payload: { data: values } },
-      {
-        onSuccess: () => {
-          notify(`Changes Saved`);
-          setRefreshId((previousId) => previousId + 1);
-        },
-        onFailure: ({ error }) => {
-          notify(error.message, "error");
-        },
-      }
-    );
-  };
   const title = `Create ${resource_name}`;
   const classes = useStyles();
+  const onSuccessShow = (data) => {
+    notify(`${resource_name} created successfully`);
+    redirect(`/${resource_name}/${data.data.id}/show`);
+  };
+  const Mytoolbar = (props) => {
+    return (
+      <Toolbar {...props}>
+        <Button
+          className={classes.button}
+          label="ra.action.cancel"
+          onClick={handleCloseClick}
+          disabled={loading}
+        >
+          <IconCancel />
+        </Button>
+
+        <SaveButton
+          className={classes.save_button1}
+          label="save"
+          redirect={path}
+          submitOnEnter={true}
+          onSuccess={() => {
+            handleCloseClick();
+            refresh();
+          }}
+        />
+        <SaveButton
+          className={classes.save_button}
+          label="save and add another"
+          redirect={false}
+          submitOnEnter={false}
+          variant="outlined"
+        />
+        <SaveButton
+          className={classes.save_button}
+          label="save and show"
+          redirect={false}
+          onSuccess={onSuccessShow}
+          submitOnEnter={false}
+          variant="outlined"
+        />
+      </Toolbar>
+    );
+  };
   return (
     <>
       <Button onClick={handleClick} label={`Add New ${resource_name}`}>
@@ -138,94 +140,54 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
         aria-label={title}
       >
         <DialogTitle>{title}</DialogTitle>
-
-        <FormWithRedirect
-          key={refreshId}
-          resource={resource_name}
-          save={handleSubmit}
-          render={({ handleSubmitWithRedirect, pristine, saving }) => (
-            <>
-              <DialogContent>
-                <Grid container spacing={2} margin={2} m={40}>
-                  {attributes
-                    .filter((attr) => !attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                      />
-                    ))}
-                </Grid>
-                <Grid container spacing={2} margin={2} m={40}>
-                  {attributes
-                    .filter((attr) => attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                        xs={8}
-                        currentid={currentid}
-                        currentParent={currentParent}
-                      />
-                    ))}
-                </Grid>
-              </DialogContent>
-              <DialogActions className={classes.container}>
-                <div style={{ width: "50%" }}>
-                  <Button
-                    className={classes.button}
-                    label="ra.action.cancel"
-                    onClick={handleCloseClick}
-                    disabled={loading}
-                  >
-                    <IconCancel />
-                  </Button>
-                </div>
-                <div
-                  style={{
-                    width: "65%",
-                    display: "flex",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <SaveButton
-                    handleSubmitWithRedirect={handleSubmitWithRedirect}
-                    pristine={pristine}
-                    saving={saving}
-                    disabled={loading}
-                  />
-                  <SaveButton
-                    label="save and add another"
-                    variant="outlined"
-                    handleSubmitWithRedirect={handleSubmitWithRedirect}
-                    onSave={handleSubmitAndAdd}
-                    pristine={pristine}
-                    saving={saving}
-                    disabled={loading}
-                    redirect={false}
-                  >
-                    <Save />
-                  </SaveButton>
-                  <SaveButton
-                    label="save and show"
-                    handleSubmitWithRedirect={handleSubmitWithRedirect}
-                    onSave={handleSubmitAndShow}
-                    variant="outlined"
-                    pristine={pristine}
-                    saving={saving}
-                    disabled={loading}
-                  >
-                    <Save />
-                  </SaveButton>
-                </div>
-              </DialogActions>
-            </>
-          )}
-        />
+        <DialogContent>
+          <Create basePath={path} resource={resource_name}>
+            <SimpleForm
+              initialValues={{ Id: currentid }}
+              toolbar={<Mytoolbar />}
+            >
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => !attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      attribute={attr}
+                      key={attr.name}
+                    />
+                  ))}
+              </Grid>
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      attribute={attr}
+                      key={attr.name}
+                      xs={8}
+                      currentid={currentid}
+                      currentParent={currentParent}
+                    />
+                  ))}
+              </Grid>
+            </SimpleForm>
+          </Create>
+        </DialogContent>
       </Dialog>
     </>
   );
