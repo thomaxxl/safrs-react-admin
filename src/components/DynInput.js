@@ -77,11 +77,11 @@ const DynInput = ({ renderSwitch, setRecords, attribute, resource, xs, currentid
             resource={attribute.relationship.resource}
             fullWidth
             optionText={optionText}
+            optionValue={attribute.name}
             cb_set_id={(v) => { setSelected_ref(v) }}
             allowEmpty={!attribute.required}
             selected={selected_ref}
             currentid={currentid}
-            filter={(attribute.relationship.resource==currentParent&&{id:currentid})}
             {...ri_props}
         />
 

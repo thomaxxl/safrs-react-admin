@@ -23,7 +23,7 @@ import { Save } from "@mui/icons-material";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
-  save_button1:{marginLeft: "25%"},
+  save_button1:{marginLeft: "23%"},
   save_button:{marginLeft:"2%"}
 });
 function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
@@ -127,6 +127,20 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
       </Toolbar>
     );
   };
+
+  const initialValue = () => {
+    const attribute = attributes.find((attr) => attr.relationship?.resource == currentParent)
+    const fks = attribute.relationship.fks
+    if(fks.length == 1){
+      return {[fks[0]]:currentid}
+    }
+    let id = currentid.split('_')
+    let resobj = {};
+    for (let i = 0; i < fks.length; i++) {
+      resobj[fks[i]] = id[i]
+    }
+    return resobj
+  }
   return (
     <>
       <Button onClick={handleClick} label={`Add New ${resource_name}`}>
@@ -143,7 +157,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
         <DialogContent>
           <Create basePath={path} resource={resource_name}>
             <SimpleForm
-              initialValues={{ Id: currentid }}
+              initialValues={initialValue()}
               toolbar={<Mytoolbar />}
             >
               <Grid
