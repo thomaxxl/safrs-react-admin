@@ -115,6 +115,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
           redirect={false}
           submitOnEnter={false}
           variant="outlined"
+          onSuccess={()=>{refresh();notify(`${resource_name} created successfully`)}}
         />
         <SaveButton
           className={classes.save_button}
