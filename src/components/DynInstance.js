@@ -388,7 +388,6 @@ export const RelatedInstance = ({ instance }) => {
 const ShowActions = ({ basePath, data, resource }) => {
   return (
     <TopToolbar>
-      <CreateButton label={`add new ${resource.name}`}></CreateButton>
       <InfoModal resource={resource} mode="show" />
       <EditButton basePath={basePath} record={data} />
     </TopToolbar>
