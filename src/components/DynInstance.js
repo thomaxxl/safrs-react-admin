@@ -76,15 +76,36 @@ export const ShowRecordField = ({ source, tabs, path }) => {
   const attr_name = source.name;
   const label = source.label || attr_name;
   let value = record[attr_name];
-
+  const isInserting = false;
   if (source.show_when) {
     try {
-      if (eval(source.show_when.split(/>|=|<|!/)[0])) {
-        if (source.show_when && !eval(source.show_when)) {
+      const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+      const pattern2 = /isInserting (==|!=) (true|false)/;
+      const arr = source.show_when.split(/&&|\|\|/);
+      let index = -1;
+      for (let i = 0; i < arr.length; ++i) {
+        if (arr[i].match(pattern1)) {
+          index = i;
+        }
+        if (arr[i].match(pattern1) || arr[i].match(pattern2)) {
+          continue;
+        } else {
+          throw "invalid expression";
+        }
+      }
+
+      if (index == -1) {
+        if (!eval(source.show_when)) {
           return <></>;
         }
       } else {
-        throw "invalid attribute name";
+        if (eval(arr[index].split(/>|=|<|!/)[0])) {
+          if (!eval(source.show_when)) {
+            return <></>;
+          }
+        } else {
+          throw "invalid attribute name";
+        }
       }
     } catch (e) {
       console.log(e);

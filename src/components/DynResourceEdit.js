@@ -22,7 +22,7 @@ const DynEdit = (props) => {
 
 
     return <Edit {...props}>
-                <AttrForm attributes={props.attributes} />
+                <AttrForm attributes={props.attributes} isInserting={true} />
             </Edit>
 }
 

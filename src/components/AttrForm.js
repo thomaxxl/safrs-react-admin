@@ -16,23 +16,36 @@ const AttrForm = ({ attributes, ...props }) => {
   const redirect = useRedirect();
   const notify = useNotify();
   const refresh = useRefresh();
+  const isInserting = props.isInserting;
   const setRecords = (record) => {
-    console.log(record, "record");
-    console.log(attributes);
     const recordsArray = attributes
       .filter(
         (attr) =>
           attr.show_when &&
-          (() => {
+          (()=>{
             try {
-              if (
-                attr.resource.attributes.find(
-                  (object) => object.name == attr.show_when.split(/'|"/)[1]
-                )
-              ) {
-                return eval(attr.show_when);
+              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+              const pattern2 = /isInserting (==|!=) (true|false)/;
+              const arr = attr.show_when.split(/&&|\|\|/);
+              let index = -1;
+              for (let i = 0; i < arr.length; ++i) {
+                if (arr[i].match(pattern1)) {
+                  index = i;
+                }
+                if (arr[i].match(pattern1) || arr[i].match(pattern2)) {
+                  continue;
+                } else {
+                  throw "invalid expression";
+                }
+              }
+              if (index == -1) {
+                return eval(attr.show_when)
               } else {
-                throw "invalid attribute name";
+                if (attr.resource.attributes.find((object)=> object.name == arr[index].split(/'|"/)[1])) {
+                  return eval(attr.show_when)
+                } else {
+                  throw "invalid attribute name";
+                }
               }
             } catch (e) {
               console.log(e);
