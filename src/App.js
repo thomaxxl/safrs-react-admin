@@ -6,7 +6,7 @@ import {jsonapiClient} from "./rav3-jsonapi-client/ra-jsonapi-client"
 import HomeIcon from '@material-ui/icons/Home';
 import { DynResource } from './DynResource';
 import Home from './components/Home.js'
-import ConfigurationUI, {LoadYaml} from './components/ConfigurationUI'
+import ConfigurationUI from './components/ConfigurationUI'
 import Dashboard from './pages/Dashboard';
 import {useConf} from './Config'
 import { Layout }  from './components/Layout';
@@ -20,6 +20,7 @@ import DashboardIcon from '@material-ui/icons/Dashboard';
 import authProvider from './authprovider';
 import LoginPage from './pages/LoginPage';
 import { cacheDataProviderProxy } from 'react-admin'; 
+import  LoadYaml   from './components/LoadYaml';
 
 const history = createHashHistory();
 
