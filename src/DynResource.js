@@ -58,7 +58,7 @@ export const gen_DynResourceCreate = (resource) => (props) => {
 
   return (
     <Create {...props}>
-      <AttrForm attributes={attributes} toolbar={<Mytoolbar />} />
+      <AttrForm attributes={attributes} toolbar={<Mytoolbar />} isInserting={false} />
     </Create>
   );
 };
@@ -84,22 +84,6 @@ export const DynResource = (props) => {
     () => gen_DynResourceShow(resource_conf),
     [resource_conf]
   );
-  let options = {};
-  if (resource_conf.label && resource_conf.label != resource_conf.name) {
-    //adding a label works, but causes a full rerender of the component which may not be desirable
-    options = { label: resource_conf.label };
-    return (
-      <Resource
-        key={props.name}
-        list={List}
-        edit={Edit}
-        create={Create}
-        show={Show}
-        options={options}
-        {...props}
-      />
-    );
-  }
   return (
     <Resource
       key={props.name}
@@ -107,6 +91,15 @@ export const DynResource = (props) => {
       edit={Edit}
       create={Create}
       show={Show}
+      options={(() => {
+        if (
+          resource_conf.label &&
+          resource_conf.label !=
+            resource_conf.name
+        ) {
+          return {label:resource_conf.label};
+        } return {label:resource_conf.type}
+      })()}
       {...props}
     />
   );

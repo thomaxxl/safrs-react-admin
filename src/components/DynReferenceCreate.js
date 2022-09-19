@@ -23,7 +23,7 @@ import { Save } from "@mui/icons-material";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
-  save_button1:{marginLeft: "25%"},
+  save_button1:{marginLeft: "23%"},
   save_button:{marginLeft:"2%"}
 });
 function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
@@ -37,22 +37,37 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const refresh = useRefresh();
   const resource = conf.resources[resource_name];
   const attributes = resource?.attributes || [];
+  const isInserting = true;
 
   const setRecords = (record) => {
     const recordsArray = attributes
       .filter(
         (attr) =>
           attr.show_when &&
-          (() => {
+          (()=>{
             try {
-              if (
-                attr.resource.attributes.find(
-                  (object) => object.name == attr.show_when.split(/'|"/)[1]
-                )
-              ) {
-                return eval(attr.show_when);
+              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+              const pattern2 = /isInserting (==|!=) (true|false)/;
+              const arr = attr.show_when.split(/&&|\|\|/);
+              let index = -1;
+              for (let i = 0; i < arr.length; ++i) {
+                if (arr[i].match(pattern1)) {
+                  index = i;
+                }
+                if (arr[i].match(pattern1) || arr[i].match(pattern2)) {
+                  continue;
+                } else {
+                  throw "invalid expression";
+                }
+              }
+              if (index == -1) {
+                return eval(attr.show_when)
               } else {
-                throw "invalid attribute name";
+                if (attr.resource.attributes.find((object)=> object.name == arr[index].split(/'|"/)[1])) {
+                  return eval(attr.show_when)
+                } else {
+                  throw "invalid attribute name";
+                }
               }
             } catch (e) {
               console.log(e);
@@ -115,6 +130,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
           redirect={false}
           submitOnEnter={false}
           variant="outlined"
+          onSuccess={()=>{refresh();notify(`${resource_name} created successfully`)}}
         />
         <SaveButton
           className={classes.save_button}
@@ -127,6 +143,20 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
       </Toolbar>
     );
   };
+
+  const initialValue = () => {
+    const attribute = attributes.find((attr) => attr.relationship?.resource == currentParent)
+    const fks = attribute.relationship.fks
+    if(fks.length == 1){
+      return {[fks[0]]:currentid}
+    }
+    let id = currentid.split('_')
+    let resobj = {};
+    for (let i = 0; i < fks.length; i++) {
+      resobj[fks[i]] = id[i]
+    }
+    return resobj
+  }
   return (
     <>
       <Button onClick={handleClick} label={`Add New ${resource_name}`}>
@@ -143,7 +173,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
         <DialogContent>
           <Create basePath={path} resource={resource_name}>
             <SimpleForm
-              initialValues={{ Id: currentid }}
+              initialValues={initialValue()}
               toolbar={<Mytoolbar />}
             >
               <Grid
