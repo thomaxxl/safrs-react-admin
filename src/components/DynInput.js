@@ -14,18 +14,18 @@ import DynReferenceInput from "./DynReferenceInput.js";
 const DynInput = ({
   renderSwitch,
   setRecords,
+  myfocusRef,
   attribute,
   resource,
   xs,
   currentid,
   currentParent,
 }) => {
-  const id = useRef(null);
   const [selected_ref, setSelected_ref] = useState(false);
   const conf = useConf();
   useEffect(()=>{
     if(attribute.show_when){
-    setRecords({ [attribute]: "" })}
+      setRecords(attribute,"" )}
   },[])
   const label = attribute.label || attribute.name;
   const input_props = {
@@ -40,8 +40,7 @@ const DynInput = ({
   const attr_type = attribute.type?.toLowerCase();
 
   const dynamicRender = (name, value) => {
-    id.current = name;
-    setRecords({ [name]: value });
+    setRecords(name, value);
   };
 
   if (attribute.show_when && !renderSwitch.includes(attribute.name)) {
@@ -57,7 +56,7 @@ const DynInput = ({
         fullWidth
         multiline={attribute.multiline}
         {...input_props}
-        autoFocus={attribute.name === id.current}
+        autoFocus={attribute.name === myfocusRef}
       />
     </GridWrap>
   );
@@ -75,7 +74,7 @@ const DynInput = ({
           }}
           source={attribute.name}
           fullWidth
-          autoFocus={attribute.name === id.current}
+          autoFocus={attribute.name === myfocusRef}
         />
       </GridWrap>
     );
@@ -89,7 +88,7 @@ const DynInput = ({
           }}
           source={attribute.name}
           key={attribute.name}
-          autoFocus={attribute.name === id.current}
+          autoFocus={attribute.name === myfocusRef}
         />
       </GridWrap>
     );
@@ -104,7 +103,7 @@ const DynInput = ({
           source={attribute.name}
           fullWidth={false}
           {...input_props}
-          autoFocus={attribute.name === id.current}
+          autoFocus={attribute.name === myfocusRef}
         />
       </GridWrap>
     );

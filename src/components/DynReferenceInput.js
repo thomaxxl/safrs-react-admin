@@ -9,6 +9,7 @@ import {
   useRedirect,
   useRefresh,
 } from "react-admin";
+import {useRef} from "react";
 import { useForm } from "react-final-form";
 import React, { useState, useCallback, memo } from "react";
 import { useFormState } from "react-final-form";
@@ -26,6 +27,8 @@ import DynInput from "./DynInput.js";
 
 function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
+  const recordRef = useRef({})
+  const focusRef = useRef(null)
   const [showDialog, setShowDialog] = useState(false);
   const [create, { loading }] = useCreate(resource_name);
   const notify = useNotify();
@@ -36,7 +39,10 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
   const resource = conf.resources[resource_name];
   const attributes = resource?.attributes || [];
   const isInserting = true;
-  const setRecords = (record) => {
+  const setRecords = (name, value) => {
+    focusRef.current = name;
+    recordRef.current = {...recordRef.current, [name]: value};
+    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr) =>
@@ -140,6 +146,7 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
                       <DynInput
                         renderSwitch={renderSwitch}
                         setRecords={setRecords}
+                        myfocusRef = {focusRef.current}
                         attribute={attr}
                         key={attr.name}
                       />
@@ -152,6 +159,7 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
                       <DynInput
                         renderSwitch={renderSwitch}
                         setRecords={setRecords}
+                        myfocusRef = {focusRef.current}
                         attribute={attr}
                         key={attr.name}
                         xs={8}
