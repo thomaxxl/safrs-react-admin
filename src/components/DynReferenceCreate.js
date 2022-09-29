@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useRef } from "react";
 import {
   Create,
   FormWithRedirect,
@@ -28,6 +28,8 @@ const useStyles = makeStyles({
 });
 function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
+  const recordRef = useRef({})
+  const focusRef = useRef(null)
   const [showDialog, setShowDialog] = useState(false);
   const [create, { loading }] = useCreate(resource_name);
   const [refreshId, setRefreshId] = useState(1);
@@ -39,7 +41,10 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
   const attributes = resource?.attributes || [];
   const isInserting = true;
 
-  const setRecords = (record) => {
+  const setRecords = (name, value) => {
+    focusRef.current = name;
+    recordRef.current = {...recordRef.current, [name]: value};
+    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr) =>
@@ -189,6 +194,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
                     <DynInput
                       renderSwitch={renderSwitch}
                       setRecords={setRecords}
+                      myfocusRef = {focusRef.current}
                       attribute={attr}
                       key={attr.name}
                     />
@@ -207,6 +213,7 @@ function DynReferenceCreate({ path, resource_name, currentid, currentParent }) {
                     <DynInput
                       renderSwitch={renderSwitch}
                       setRecords={setRecords}
+                      myfocusRef = {focusRef.current}
                       attribute={attr}
                       key={attr.name}
                       xs={8}

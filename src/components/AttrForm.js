@@ -12,12 +12,17 @@ const useStyles = makeStyles({
 
 const AttrForm = ({ attributes, ...props }) => {
   const [renderSwitch, setRenderSwitch] = useState([]);
+  const recordRef = useRef({});
+  const focusRef = useRef(null)
   const isValidExp = useRef(false);
   const redirect = useRedirect();
   const notify = useNotify();
   const refresh = useRefresh();
   const isInserting = props.isInserting;
-  const setRecords = (record) => {
+  const setRecords = (name, value) => {
+    focusRef.current = name;
+    recordRef.current = {...recordRef.current, [name]: value};
+    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr) =>
@@ -83,6 +88,7 @@ const AttrForm = ({ attributes, ...props }) => {
             <DynInput
               renderSwitch={renderSwitch}
               setRecords={setRecords}
+              myfocusRef = {focusRef.current}
               attribute={attr}
               key={attr.name}
               xs={4}
@@ -103,6 +109,7 @@ const AttrForm = ({ attributes, ...props }) => {
               <DynInput
                 renderSwitch={renderSwitch}
                 setRecords={setRecords}
+                myfocusRef = {focusRef.current}
                 attribute={attr}
                 xs={5}
               />
