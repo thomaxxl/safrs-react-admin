@@ -151,7 +151,7 @@ const ToOneJoin = ({attribute}) => {
     const record = useRecordContext();
     const label_text = attribute.label || attribute.relationship.resource || attribute.name
     const label = <RelLabel text={label_text} />
-    return <JoinedField key={attribute.name} attribute={attribute} label={label} pvalue={record.id}/>
+    return <JoinedField key={attribute.name} attribute={attribute} label={label} pvalue={record?.id}/>
 }
 
 export const attr_fields = (attributes, mode, ...props) => {
