@@ -97,7 +97,7 @@ export default function CustomizedAccordions() {
           &nbsp;, you are running it now
       <ul>
          <li>For instant collaboration and Back Office data maintenance</li>
-         <li>Rich functionality: multi-page, multi-table, automatic joins</li>
+         <li>Rich functionality: multi-page, multi-table, automatic joins, declarative hide/show</li>
          <li>Explore this app (e.g., click Customer, at left, and look for the info icons, upper right),
               and how to <a  rel="nofollow" href="https://valhuber.github.io/ApiLogicServer/Admin-Tour/" target="_blank">customize it</a></li>
       </ul>
