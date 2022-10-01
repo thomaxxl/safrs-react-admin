@@ -189,6 +189,7 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
   const [rel_data, setRelData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rel_error, setRelError] = useState(false);
+  const refresh = useRefresh();
   const { loaded, error, data } = useQueryWithStore({
     type: "getOne",
     resource: resource_name,
@@ -259,6 +260,7 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
     <Tab
       label={relationship.label || relationship.name}
       key={relationship.name}
+      onClick={()=>refresh()}
     >
       {tab_content}
     </Tab>
