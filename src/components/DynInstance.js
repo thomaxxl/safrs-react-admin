@@ -272,6 +272,7 @@ const DynRelationshipMany = (resource_name, id, relationship, path) => {
   const dataProvider = useDataProvider();
   const classes = useStyles();
   const conf = useConf();
+  const refresh = useRefresh();
 
   useEffect(() => {
     dataProvider
@@ -319,7 +320,7 @@ const DynRelationshipMany = (resource_name, id, relationship, path) => {
   const label = relationship.label || relationship.name;
 
   return (
-    <Tab label={label} key={relationship.name} className={classes.many_tab}>
+    <Tab label={label} key={relationship.name} className={classes.many_tab} onClick={()=>refresh()}>
       <ReferenceManyField
         reference={relationship.resource}
         target={fk}
