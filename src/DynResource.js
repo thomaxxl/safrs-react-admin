@@ -1,17 +1,11 @@
-import React from "react";
-import { useState, useMemo } from "react";
-import { Resource } from "react-admin";
-import {Create } from "react-admin";
+import { useNotify, useRedirect } from "react-admin";
+import { Create } from "react-admin";
 import { Toolbar, SaveButton } from "react-admin";
-import { useConf } from "./Config.js";
 import "./style/DynStyle.css";
 import { makeStyles } from "@material-ui/core/styles";
 import AttrForm from "./components/AttrForm.js";
-import gen_DynResourceList from "./components/DynList";
-import { gen_DynResourceShow } from "./components/DynInstance";
 import get_Component from "./get_Component";
-import { gen_DynResourceEdit } from "./components/DynResourceEdit";
-//import {ExtComp} from './components/ExtComp';
+import { useFormContext } from "react-hook-form";
 
 const useStyles = makeStyles({
   join_attr: { color: "#3f51b5;" },
@@ -23,6 +17,8 @@ const useStyles = makeStyles({
 
 export const gen_DynResourceCreate = (resource) => (props) => {
   const classes = useStyles();
+  const notify = useNotify();
+  const redirect = useRedirect();
   const attributes = resource.attributes;
 
   if (resource.create) {
@@ -31,76 +27,59 @@ export const gen_DynResourceCreate = (resource) => (props) => {
   }
 
   const Mytoolbar = (props) => {
+    const { reset } = useFormContext();
     return (
       <Toolbar {...props}>
         <SaveButton
+          type="button"
           label="save"
-          redirect={props.basePath}
           submitOnEnter={true}
+          mutationOptions={{
+            onSuccess: () => {
+              notify("Element created");
+              redirect(`/${resource.name}`);
+            },
+          }}
         />
-        <SaveButton
-          className={classes.save_button}
-          label="save and add another"
-          redirect={false}
-          submitOnEnter={false}
-          variant="outlined"
-        />
-        <SaveButton
-          className={classes.save_button}
-          label="save and show"
-          redirect="show"
-          submitOnEnter={false}
-          variant="outlined"
-        />
+        <div className={classes.save_button}>
+          <SaveButton
+            type="button"
+            label="save and add another"
+            submitOnEnter={false}
+            variant="outlined"
+            mutationOptions={{
+              onSuccess: () => {
+                notify("Element created");
+                reset();
+              },
+            }}
+          />
+        </div>
+        <div className={classes.save_button}>
+          <SaveButton
+            type="button"
+            label="save and show"
+            submitOnEnter={false}
+            variant="outlined"
+            mutationOptions={{
+              onSuccess: (data) => {
+                notify("Element created");
+                redirect(`/${resource.name}/${data.id}/show`);
+              },
+            }}
+          />
+        </div>
       </Toolbar>
     );
   };
 
   return (
     <Create {...props}>
-      <AttrForm attributes={attributes} toolbar={<Mytoolbar />} isInserting={false} />
+      <AttrForm
+        attributes={attributes}
+        toolbar={<Mytoolbar />}
+        isInserting={false}
+      />
     </Create>
-  );
-};
-
-export const DynResource = (props) => {
-  const conf = useConf();
-  window.addEventListener("storage", () => window.location.reload());
-  const [, updateState] = React.useState();
-  const [resource_conf, setConf] = useState(conf.resources[props.name]);
-  const List = useMemo(
-    () => gen_DynResourceList(resource_conf),
-    [resource_conf]
-  );
-  const Create = useMemo(
-    () => gen_DynResourceCreate(resource_conf),
-    [resource_conf]
-  );
-  const Edit = useMemo(
-    () => gen_DynResourceEdit(resource_conf),
-    [resource_conf]
-  );
-  const Show = useMemo(
-    () => gen_DynResourceShow(resource_conf),
-    [resource_conf]
-  );
-  return (
-    <Resource
-      key={props.name}
-      list={List}
-      edit={Edit}
-      create={Create}
-      show={Show}
-      options={(() => {
-        if (
-          resource_conf.label &&
-          resource_conf.label !=
-            resource_conf.name
-        ) {
-          return {label:resource_conf.label};
-        } return {label:resource_conf.type}
-      })()}
-      {...props}
-    />
   );
 };

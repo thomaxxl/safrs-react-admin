@@ -8,7 +8,7 @@ import { useConf } from '../Config';
 import {Loading,
     TextInput,
     useRecordContext,
-    useQueryWithStore
+    useGetList
 } from 'react-admin'
 import { useForm } from 'react-final-form';
 import Radio from '@mui/material/Radio';
@@ -16,8 +16,6 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
-import DBForm from './DBForm';
-import { red } from '@material-ui/core/colors';
 
 const boxStyle = {
   position: 'absolute',
@@ -40,7 +38,6 @@ const useStyles = makeStyles({
     left:'10%',
     overflow:'scroll',
     height:'100%',
-    display:'block',
     fontWeight : "0.6em",
     display: 'flex'
   },
@@ -148,8 +145,6 @@ export const ApiGenerateField = (props) => {
 }
 
 export const ApiShow = (props) => {
-    const record = useRecordContext();
-    console.log(record)   
     return <>
                 <div>xxxx</div>
                 {props.show}
@@ -157,7 +152,6 @@ export const ApiShow = (props) => {
 }
 
 const DBConnectionEdit = (props) => {
-    console.log(props)
     const form = useForm();
     const record = useRecordContext();
     let value = record ? record["connection_string"] : "";
@@ -165,7 +159,7 @@ const DBConnectionEdit = (props) => {
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    const [box_style, setBoxStyle] = React.useState(boxStyle);
+    const [box_style,] = React.useState(boxStyle);
     const [other, setOther] = React.useState(value);
     const [username, setUsername] = React.useState("user");
     const [password, setPassword] = React.useState("pass");
@@ -323,7 +317,6 @@ export const DBConnection = (props) => {
     let value = record ? record["connection_string"] : "";
     
     if(props.mode !== "edit" && props.mode !== "create"){
-        console.log(props)
         return <Typography>{value}</Typography>
     }
     return <DBConnectionEdit {...props} />
@@ -337,7 +330,6 @@ const api_url = (props) => {
 
 export const ApiURL = (props) => {
     const record = useRecordContext();
-    const conf = useConf()
     if(!record.id){
         return null
     }
@@ -347,13 +339,11 @@ export const ApiURL = (props) => {
 
 export const ApiAdminHome = (props) => {
 
-    const {loaded, error, data} = useQueryWithStore({
-        type: 'getList',
-            resource: "Apis",
-            payload: {pagination : {page: 0, perPage: 100}}
-        })
+    const {data} = useGetList(
+            "Apis",
+            {pagination : {page: 0, perPage: 100}}
+        )
     
-    console.log(data)
     const apis = data?.map(api => <li>{api_url(api)}</li>)
 
     return <>

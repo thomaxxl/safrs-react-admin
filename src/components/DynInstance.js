@@ -1,5 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
-import { Datagrid, EditButton, useNotify, useRedirect } from "react-admin";
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-eval */
+/* eslint-disable no-throw-literal */
+import { useState, useEffect} from "react";
+import { Datagrid, EditButton, useGetOne, useNotify, useRedirect } from "react-admin";
 
 import Grid from "@material-ui/core/Grid";
 import { TabbedShowLayout, Tab } from "react-admin";
@@ -18,23 +21,20 @@ import EditIcon from "@material-ui/icons/Edit";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import { useConf } from "../Config.js";
 import Button from "@material-ui/core/Button";
-import { useQueryWithStore, Loading, Error } from "react-admin";
+import { Loading, Error } from "react-admin";
 import { makeStyles } from "@material-ui/core/styles";
 import { type2resource } from "../util.js";
 import { ShowAttrField } from "./DynFields.js";
 import { attr_fields } from "./DynFields.js";
 import { DynPagination } from "../util";
 import {
-  ListActions as RAListActions,
-  FilterButton,
   TopToolbar,
-  CreateButton,
-  ExportButton,
 } from "react-admin";
 import InfoModal from "./InfoModal.js";
 import get_Component from "../get_Component.js";
 import BlockIcon from "@mui/icons-material/Block";
 import DynReferenceCreate from "./DynReferenceCreate.js";
+import {useInfoToggle} from '../InfoToggleContext'
 
 const useStyles = makeStyles({
   join_attr: { color: "#3f51b5" },
@@ -67,19 +67,18 @@ export const DetailPanel = ({ attributes, path }) => {
   );
 };
 
-export const ShowRecordField = ({ source, tabs, path }) => {
+export const ShowRecordField = ({ source, tabs, path, id }) => {
   const record = useRecordContext();
   const refresh = useRefresh();
-  const classes = useStyles();
   const redirect = useRedirect();
   const notify = useNotify();
   const attr_name = source.name;
-  const label = source.label || attr_name;
   let value = record[attr_name];
+  // eslint-disable-next-line no-unused-vars
   const isInserting = false;
   if (source.show_when) {
     try {
-      const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+      const pattern1 = /record\["[a-zA-Z]+"] (==|!=) "[a-zA-Z]+"/;
       const pattern2 = /isInserting (==|!=) (true|false)/;
       const arr = source.show_when.split(/&&|\|\|/);
       let index = -1;
@@ -94,7 +93,7 @@ export const ShowRecordField = ({ source, tabs, path }) => {
         }
       }
 
-      if (index == -1) {
+      if (index === -1) {
         if (!eval(source.show_when)) {
           return <></>;
         }
@@ -122,17 +121,18 @@ export const ShowRecordField = ({ source, tabs, path }) => {
     const Component = get_Component(source.component);
     return <Component attr={source} value={value} mode="show" />;
   }
-  return <ShowAttrField attr={source} value={value} />;
+  return <ShowAttrField attr={source} value={value} id={id} />;
 };
 
 const ShowInstance = ({
   attributes,
   tab_groups,
   resource_name,
-  id,
-  basePath,
 }) => {
+  const record = useRecordContext()
   const classes = useStyles();
+  const id = record?.id;
+  const basePath = `/${resource_name}`
   const title = (
     <Typography variant="h5" component="h5" className={classes.instance_title}>
       {resource_name}
@@ -140,6 +140,7 @@ const ShowInstance = ({
     </Typography>
   );
 
+  // eslint-disable-next-line array-callback-return
   const tabs = tab_groups?.map((tab) => {
     if (tab.component) {
       const Component = get_Component(tab.component);
@@ -154,9 +155,7 @@ const ShowInstance = ({
       return DynRelationshipMany(resource_name, id, tab, basePath);
     }
     if (tab.direction === "toone") {
-      return id !== undefined
-        ? DynRelationshipOne(resource_name, id, tab)
-        : null;
+      return  DynRelationshipOne(resource_name, id, tab)
     }
   });
 
@@ -170,6 +169,7 @@ const ShowInstance = ({
             source={attr}
             tabs={tabs}
             path={basePath}
+            id={id}
           />
         ))}
       </Grid>
@@ -189,14 +189,10 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
   const [rel_data, setRelData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rel_error, setRelError] = useState(false);
-  const { loaded, error, data } = useQueryWithStore({
-    type: "getOne",
-    resource: resource_name,
-    payload: { id: id },
-  });
+  const dataProvider = useDataProvider()
+  const { data, error } = useGetOne(resource_name,{ id: id });
   const rel_id =
     data && relationship.fks.map((fk) => (data[fk] ? data[fk] : "")).join("_");
-  const dataProvider = useDataProvider();
   let tab_content = " - ";
   useEffect(() => {
     if (rel_id === undefined || rel_id === "") {
@@ -215,7 +211,6 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
         setLoading(false);
       });
   }, [data]);
-
   if (!rel_data) {
     tab_content = loading ? (
       <Loading key={relationship.name} />
@@ -223,8 +218,6 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
       <BlockIcon style={{ fill: "#ccc" }} title="No data" />
     );
   } else if (error || rel_error) {
-    console.log({ resource_name }, { id }, { relationship }, relationship.name);
-    console.log({ data }, { rel_data });
     tab_content = <Error key={relationship.name} error={error || rel_error} />;
   } else if (rel_data) {
     tab_content = <RelatedInstance instance={rel_data} />;
@@ -243,9 +236,7 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
       // todo: might be obsolote, tbd
       // todo: fix the data provider so we can simplify this conditional and use <RelatedInstance> instead
       const rel_resource = type2resource(data[relationship.name].data?.type);
-      const rel_id = data[relationship.name]?.data?.id;
       if (!rel_resource) {
-        console.log(data);
         console.warn(
           `Related resource not found ${resource_name}.${relationship.name}`
         );
@@ -266,9 +257,9 @@ const DynRelationshipOne = (resource_name, id, relationship) => {
 };
 
 const DynRelationshipMany = (resource_name, id, relationship, path) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState();
-  const [related, setRelated] = useState(false);
+  const [,setLoading] = useState(true);
+  const [, setError] = useState();
+  const [, setRelated] = useState(false);
   const dataProvider = useDataProvider();
   const classes = useStyles();
   const conf = useConf();
@@ -309,7 +300,7 @@ const DynRelationshipMany = (resource_name, id, relationship, path) => {
   ); // ignore relationships pointing back to the parent resource
   attributes = relationship.attributes
     ? attributes.filter((attr) =>
-        relationship.attributes.find((r_attr) => r_attr.name == attr.name)
+        relationship.attributes.find((r_attr) => r_attr.name === attr.name)
       )
     : attributes;
 
@@ -317,7 +308,6 @@ const DynRelationshipMany = (resource_name, id, relationship, path) => {
   const col_nr = target_resource.max_list_columns;
   const fk = relationship.fks.join("_");
   const label = relationship.label || relationship.name;
-
   return (
     <Tab label={label} key={relationship.name} className={classes.many_tab}>
       <ReferenceManyField
@@ -333,7 +323,7 @@ const DynRelationshipMany = (resource_name, id, relationship, path) => {
             <DetailPanel attributes={target_resource.attributes} path={path} />
           }
         >
-          {fields.slice(0, col_nr)}
+        {fields.slice(0, col_nr)}
           <EditButton />
         </Datagrid>
       </ReferenceManyField>
@@ -359,7 +349,6 @@ export const RelatedInstance = ({ instance }) => {
 
   const resource_conf = conf.resources[resource_name];
   const attributes = resource_conf?.attributes || [];
-  const relationships = resource_conf?.relationships || [];
 
   // ugly manual styling because adding to TabbedShowLayout didn't work
   const result = (
@@ -406,25 +395,40 @@ export const RelatedInstance = ({ instance }) => {
   return result;
 };
 
+const ShowInfoContent = (props) => {
+  const [infoToggle,] = useInfoToggle()
+  const content = props.resource[`info_show`]
+  return (
+    <>
+    {infoToggle?<div>
+    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+    <div id="info_content" dangerouslySetInnerHTML={{ __html: content}} />
+    </Typography>
+    </div>:<></>}
+    </>
+  )
+}
+
 const ShowActions = ({ basePath, data, resource }) => {
   return (
+    <>
+    <ShowInfoContent resource={resource}/>
     <TopToolbar>
       <InfoModal resource={resource} mode="show" />
       <EditButton basePath={basePath} record={data} />
     </TopToolbar>
+    </>
   );
 };
 
-export const gen_DynResourceShow = (resource_conf) => (props) => {
+export const gen_DynResourceShow = (resource_conf) => {
   const attributes = resource_conf.attributes;
   const tab_groups = resource_conf.tab_groups;
   let show = (
     <ShowInstance
       attributes={attributes}
       tab_groups={tab_groups}
-      resource_name={props.resource}
-      id={props.id}
-      {...props}
+      resource_name={resource_conf.name}
     />
   );
   if (resource_conf.components?.show) {
@@ -436,7 +440,6 @@ export const gen_DynResourceShow = (resource_conf) => (props) => {
     <Show
       title={<ResourceTitle resource={resource_conf} />}
       actions={<ShowActions resource={resource_conf} />}
-      {...props}
     >
       {show}
     </Show>

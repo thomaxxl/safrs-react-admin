@@ -1,6 +1,5 @@
 import React from "react";
 import { Typography } from '@material-ui/core';
-import { useConf } from "./Config";
 import {Pagination }  from 'react-admin'
 import loadable from '@loadable/component'
 import Popover from '@material-ui/core/Popover';

@@ -4,8 +4,9 @@ import {
   NumberInput,
   PasswordInput,
   required,
+  BooleanInput,
 } from "react-admin";
-import React, { useState, useRef, memo, useEffect } from "react";
+import { useState, memo, useEffect } from "react";
 import Grid from "@material-ui/core/Grid";
 import { useConf } from "../Config.js";
 import get_Component from "../get_Component";
@@ -14,18 +15,17 @@ import DynReferenceInput from "./DynReferenceInput.js";
 const DynInput = ({
   renderSwitch,
   setRecords,
+  myfocusRef,
   attribute,
-  resource,
   xs,
   currentid,
-  currentParent,
 }) => {
-  const id = useRef(null);
   const [selected_ref, setSelected_ref] = useState(false);
   const conf = useConf();
   useEffect(()=>{
     if(attribute.show_when){
-    setRecords({ [attribute]: "" })}
+    setRecords(attribute,"" )}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
   const label = attribute.label || attribute.name;
   const input_props = {
@@ -40,8 +40,7 @@ const DynInput = ({
   const attr_type = attribute.type?.toLowerCase();
 
   const dynamicRender = (name, value) => {
-    id.current = name;
-    setRecords({ [name]: value });
+    setRecords(name, value);
   };
 
   if (attribute.show_when && !renderSwitch.includes(attribute.name)) {
@@ -53,11 +52,12 @@ const DynInput = ({
         onChange={(e) => {
           dynamicRender(attribute.name, e.target.value);
         }}
+        defaultValue={null}
         source={attribute.name}
         fullWidth
         multiline={attribute.multiline}
         {...input_props}
-        autoFocus={attribute.name === id.current}
+        autoFocus={attribute.name === myfocusRef}
       />
     </GridWrap>
   );
@@ -66,58 +66,77 @@ const DynInput = ({
     const Component = get_Component(attribute.component);
     return <Component attr={attribute} mode="edit" />;
   }
-  if (attr_type == "date") {
+  if (attr_type === "date") {
     result = (
       <GridWrap>
         <DateInput
           onChange={(e) => {
             dynamicRender(attribute.name, e.target.value);
           }}
+          defaultValue={null}
           source={attribute.name}
           fullWidth
-          autoFocus={attribute.name === id.current}
-        />
+          autoFocus={attribute.name === myfocusRef}
+          />
       </GridWrap>
     );
   }
-  if (attr_type == "password") {
+  if (attr_type === "password") {
     result = (
       <GridWrap>
         <PasswordInput
           onChange={(e) => {
             dynamicRender(attribute.name, e.target.value);
           }}
+          defaultValue={null}
           source={attribute.name}
           key={attribute.name}
-          autoFocus={attribute.name === id.current}
-        />
+          autoFocus={attribute.name === myfocusRef}
+          />
       </GridWrap>
     );
   }
-  if (attr_type == "number" || attr_type == "decimal") {
+  if (attr_type === "number" || attr_type === "decimal") {
     result = (
       <GridWrap>
         <NumberInput
           onChange={(e) => {
             dynamicRender(attribute.name, e.target.value);
           }}
+          defaultValue={null}
           source={attribute.name}
           fullWidth={false}
           {...input_props}
-          autoFocus={attribute.name === id.current}
-        />
+          autoFocus={attribute.name === myfocusRef}
+          />
       </GridWrap>
     );
   }
-
+  
+  if(attr_type === "boolean") {
+    result = (
+      <GridWrap>
+         <BooleanInput 
+            onChange={(e) => {
+              dynamicRender(attribute.name, e.target.value);
+            }}
+            defaultValue={false}
+            source={attribute.name}
+            {...input_props}
+            autoFocus={attribute.name === myfocusRef}
+          />
+      </GridWrap>
+    );
+  }
+  
   if (
-    attribute.relationship?.direction == "toone" &&
+    attribute.relationship?.direction === "toone" &&
     attribute.relationship.target
   ) {
     let optionText = "";
     let optionValue = "id";
     if (
-      attribute.relationship.fks?.length != 1 &&
+      attribute.relationship.fks?.length !== 1 &&
       attribute.relationship.fks?.includes(attribute.name)
     ) {
       optionText = attribute.name.toLowerCase();
@@ -127,7 +146,7 @@ const DynInput = ({
         conf.resources[attribute.relationship.target].search_cols;
       if (!search_cols) {
         console.error("no searchable attributes configured");
-      } else if (search_cols.length == 0) {
+      } else if (search_cols.length === 0) {
         console.warn(
           `no searchable attributes configured for ${attribute.relationship.target}`
         );
@@ -135,13 +154,6 @@ const DynInput = ({
         optionText = search_cols[0].name;
       }
     }
-    /*result = <ReferenceInput source={attribute.name}
-                                 label={`${attribute.relationship.name} (${attribute.name})`}
-                                 reference={attribute.relationship.target}
-                                 resource={attribute.relationship.resource}
-                                 fullWidth>
-                    <AutocompleteInput optionText={optionText} key={attribute.name} id={0}/>
-                </ReferenceInput>*/
     const ri_props = {};
     if (selected_ref) {
       ri_props["defaultValue"] = selected_ref;

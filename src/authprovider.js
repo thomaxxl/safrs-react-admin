@@ -1,5 +1,3 @@
-import { showNotification } from 'react-admin';
-import { connect } from 'react-redux';
 import {getConf} from './Config'
 import {resetConf} from "./components/ConfigurationUI";
 
@@ -8,9 +6,10 @@ const dummy_auth = () => {
     localStorage.setItem('username','admin')
 }
 
-const conf ={}
+
 
 const authProvider = {
+
     login: ({ username, password }) =>  {
         const conf = getConf()
         if(! conf.api_root?.includes("/admin/api")){
@@ -29,11 +28,11 @@ const authProvider = {
         }
         return fetch(login_url, requestOptions)
             .then(response => {
-                if(response.status == 403){
+                if(response.status === 403){
                     console.log("403 - Not logged in - redirect")
                     document.location.href = "/#/login"
                 }
-                else if(response.status != 200){
+                else if(response.status !== 200){
                     alert(`Unknown Status '${response.statusText}'`)
                 }
                 return response.json()

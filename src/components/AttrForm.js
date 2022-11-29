@@ -1,10 +1,11 @@
+/* eslint-disable no-eval */
+/* eslint-disable no-throw-literal */
 import React, { useRef, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import DynInput from "./DynInput.js";
 import { SimpleForm } from "react-admin";
 import { useRedirect, useRefresh, useNotify } from "react-admin";
 import Grid from "@material-ui/core/Grid";
-import { isJsxFragment } from "typescript";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
@@ -12,19 +13,25 @@ const useStyles = makeStyles({
 
 const AttrForm = ({ attributes, ...props }) => {
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const isValidExp = useRef(false);
+  const recordRef = useRef({})
+  const focusRef = useRef(null)
   const redirect = useRedirect();
   const notify = useNotify();
   const refresh = useRefresh();
+  // eslint-disable-next-line no-unused-vars
   const isInserting = props.isInserting;
-  const setRecords = (record) => {
+  const setRecords = (name, value) => {
+    focusRef.current = name;
+    recordRef.current = {...recordRef.current, [name]: value};
+    // eslint-disable-next-line no-unused-vars
+    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr) =>
           attr.show_when &&
           (()=>{
             try {
-              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) "[a-zA-Z]+"/;
               const pattern2 = /isInserting (==|!=) (true|false)/;
               const arr = attr.show_when.split(/&&|\|\|/);
               let index = -1;
@@ -38,10 +45,10 @@ const AttrForm = ({ attributes, ...props }) => {
                   throw "invalid expression";
                 }
               }
-              if (index == -1) {
+              if (index === -1) {
                 return eval(attr.show_when)
               } else {
-                if (attr.resource.attributes.find((object)=> object.name == arr[index].split(/'|"/)[1])) {
+                if (attr.resource.attributes.find((object)=> object.name === arr[index].split(/'|"/)[1])) {
                   return eval(attr.show_when)
                 } else {
                   throw "invalid attribute name";
@@ -83,6 +90,7 @@ const AttrForm = ({ attributes, ...props }) => {
             <DynInput
               renderSwitch={renderSwitch}
               setRecords={setRecords}
+              myfocusRef = {focusRef.current}
               attribute={attr}
               key={attr.name}
               xs={4}
@@ -103,6 +111,7 @@ const AttrForm = ({ attributes, ...props }) => {
               <DynInput
                 renderSwitch={renderSwitch}
                 setRecords={setRecords}
+                myfocusRef = {focusRef.current}
                 attribute={attr}
                 xs={5}
               />

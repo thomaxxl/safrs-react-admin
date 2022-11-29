@@ -1,3 +1,5 @@
+/* eslint-disable no-eval */
+/* eslint-disable no-throw-literal */
 import {
   ReferenceInput,
   AutocompleteInput,
@@ -5,45 +7,60 @@ import {
   useNotify,
   Button,
   SaveButton,
-  FormWithRedirect,
   useRedirect,
   useRefresh,
+  SimpleForm,
+  Toolbar,
+  Create,
 } from "react-admin";
-import { useForm } from "react-final-form";
-import React, { useState, useCallback, memo } from "react";
-import { useFormState } from "react-final-form";
+import { useRef } from "react";
+import { useState, useCallback, memo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import IconContentAdd from "@material-ui/icons/Add";
 import IconCancel from "@material-ui/icons/Cancel";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogActions from "@material-ui/core/DialogActions";
 import Grid from "@material-ui/core/Grid";
 import { useConf } from "../Config.js";
 import QuickPreviewButton from "./QuickPreviewButton.js";
 import DynInput from "./DynInput.js";
 
+const useStyles = makeStyles({
+  edit_grid: { width: "100%" },
+  root: {
+    display: "flex",
+    alignItems: "center",
+  },
+  toolbar: { display: "flex", justifyContent: "space-between" },
+});
+
 function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
+  const recordRef = useRef({});
+  const focusRef = useRef(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [create, { loading }] = useCreate(resource_name);
+  const [, { loading }] = useCreate(resource_name);
   const notify = useNotify();
-  const form = useForm();
   const conf = useConf();
   const redirect = useRedirect();
   const refresh = useRefresh();
   const resource = conf.resources[resource_name];
   const attributes = resource?.attributes || [];
+  // eslint-disable-next-line no-unused-vars
   const isInserting = true;
-  const setRecords = (record) => {
+  const setRecords = (name, value) => {
+    focusRef.current = name;
+    recordRef.current = { ...recordRef.current, [name]: value };
+    // eslint-disable-next-line no-unused-vars
+    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr) =>
           attr.show_when &&
-          (()=>{
+          (() => {
             try {
-              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) \"[a-zA-Z]+"/;
+              const pattern1 = /record\["[a-zA-Z]+"] (==|!=) "[a-zA-Z]+"/;
               const pattern2 = /isInserting (==|!=) (true|false)/;
               const arr = attr.show_when.split(/&&|\|\|/);
               let index = -1;
@@ -57,11 +74,15 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
                   throw "invalid expression";
                 }
               }
-              if (index == -1) {
-                return eval(attr.show_when)
+              if (index === -1) {
+                return eval(attr.show_when);
               } else {
-                if (attr.resource.attributes.find((object)=> object.name == arr[index].split(/'|"/)[1])) {
-                  return eval(attr.show_when)
+                if (
+                  attr.resource.attributes.find(
+                    (object) => object.name === arr[index].split(/'|"/)[1]
+                  )
+                ) {
+                  return eval(attr.show_when);
                 } else {
                   throw "invalid attribute name";
                 }
@@ -94,25 +115,35 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
     setShowDialog(false);
   };
 
-  const handleSubmit = async (values) => {
-    create(
-      { payload: { data: values } },
-      {
-        onSuccess: ({ data }) => {
-          setShowDialog(false);
-          // Update the form to target the newly created item
-          // Updating the ReferenceInput value will force it to reload the available posts
-          form.change("id", data.id);
-          cb_set_id(data.id);
-          onChange();
-        },
-        onFailure: ({ error }) => {
-          notify(error.message, "error");
-        },
-      }
+  const title = `Create ${resource.type}`;
+  const classes = useStyles();
+
+  const Mytoolbar = (props) => {
+    return (
+      <Toolbar {...props} className={classes.toolbar}>
+        <Button
+          label="ra.action.cancel"
+          onClick={handleCloseClick}
+          disabled={loading}
+        >
+          <IconCancel />
+        </Button>
+
+        <SaveButton
+          type="button"
+          label="save"
+          submitOnEnter={true}
+          mutationOptions={{
+            onSuccess: () => {
+              handleCloseClick();
+              refresh();
+            },
+          }}
+        />
+      </Toolbar>
     );
   };
-  const title = `Create ${resource.type}`;
+
   return (
     <>
       <Button onClick={handleClick} label="ra.action.create">
@@ -126,74 +157,58 @@ function QuickCreateButton({ onChange, resource_name, cb_set_id, basePath }) {
         aria-label={title}
       >
         <DialogTitle>{title}</DialogTitle>
-
-        <FormWithRedirect
-          resource={resource_name}
-          save={handleSubmit}
-          render={({ handleSubmitWithRedirect, pristine, saving }) => (
-            <>
-              <DialogContent>
-                <Grid container spacing={2} margin={2} m={40}>
-                  {attributes
-                    .filter((attr) => !attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                      />
-                    ))}
-                </Grid>
-                <Grid container spacing={2} margin={2} m={40} xs={4}>
-                  {attributes
-                    .filter((attr) => attr.relationship)
-                    .map((attr) => (
-                      <DynInput
-                        renderSwitch={renderSwitch}
-                        setRecords={setRecords}
-                        attribute={attr}
-                        key={attr.name}
-                        xs={8}
-                      />
-                    ))}
-                </Grid>
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  label="ra.action.cancel"
-                  onClick={handleCloseClick}
-                  disabled={loading}
-                >
-                  <IconCancel />
-                </Button>
-                <SaveButton
-                  handleSubmitWithRedirect={handleSubmitWithRedirect}
-                  pristine={pristine}
-                  saving={saving}
-                  disabled={loading}
-                />
-              </DialogActions>
-            </>
-          )}
-        />
+        <DialogContent>
+          <Create resource={resource_name}>
+            <SimpleForm toolbar={<Mytoolbar />}>
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => !attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      myfocusRef={focusRef.current}
+                      attribute={attr}
+                      key={attr.name}
+                    />
+                  ))}
+              </Grid>
+              <Grid
+                container
+                spacing={2}
+                margin={2}
+                m={40}
+                className={classes.edit_grid}
+              >
+                {attributes
+                  .filter((attr) => attr.relationship)
+                  .map((attr) => (
+                    <DynInput
+                      renderSwitch={renderSwitch}
+                      setRecords={setRecords}
+                      myfocusRef={focusRef.current}
+                      attribute={attr}
+                      key={attr.name}
+                      xs={8}
+                    />
+                  ))}
+              </Grid>
+            </SimpleForm>
+          </Create>
+        </DialogContent>
       </Dialog>
     </>
   );
 }
 
-const useStyles = makeStyles({
-  root: {
-    display: "flex",
-    alignItems: "center",
-  },
-});
-
-const spySubscription = { values: true };
-
 const DynReferenceInput = (props) => {
   const [version, setVersion] = useState(0);
-  const { valuetyius } = useFormState({ subscription: spySubscription });
   const [selected, setSelected] = useState(props.selected);
   const handleChange = useCallback(
     (event) => setVersion(version + 1),
@@ -205,11 +220,13 @@ const DynReferenceInput = (props) => {
       <Grid item xs={4} spacing={4} margin={5}>
         <ReferenceInput key={version} {...props}>
           <AutocompleteInput
-          translateChoice={false}
+            defaultValue={null}
+            translateChoice={false}
             optionText={props.optionText}
             optionValue={props.optionValue}
             key={props.source}
-            onChange={(evt) => setSelected(evt.target.value)}
+            source={props.source}
+            onChange={(evt) => setSelected(evt.target)}
           />
         </ReferenceInput>
       </Grid>

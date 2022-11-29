@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { FormControl } from '@mui/material';
 import {useRecordContext, useDataProvider} from "react-admin";
-import {httpAuthClient} from "../../rav3-jsonapi-client/ra-jsonapi-client"
+import {httpAuthClient} from "../../rav4-jsonapi-client/ra-jsonapi-client"
 import { useConf } from "../../Config";
 import { useNotify } from 'react-admin';
 

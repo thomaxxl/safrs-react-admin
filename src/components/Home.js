@@ -1,4 +1,3 @@
-import * as React from "react";
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import { Title } from 'react-admin';
@@ -9,26 +8,17 @@ import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import {resetConf} from "./ConfigurationUI";
 import ALSDesc from "./ValH"
-import { useDataProvider } from 'react-admin';
 import get_Component from '../get_Component.js';
 
 import {
-  BrowserRouter as Router,
-  Link,
-  useLocation
+  Link
 } from "react-router-dom";
 
-function useQuery() {
-    const { search } = useLocation();
-  
-    return React.useMemo(() => new URLSearchParams(search), [search]);
-}
 
 const styles = {
     home: {fontFamily : '"Roboto", "Helvetica", "Arial", sans-serif'},
 };
-//import universal from 'react-universal-component'
-//const UniversalComponent = universal(props => import(`https://my.internet.com/imager/comp.js`))
+
 
 const Demo = ({ready, config}) => {
 
@@ -41,12 +31,9 @@ const Demo = ({ready, config}) => {
 
 const Home = (props) => {
     document.title = ""
-    const { classes } = props;
     const config = useConf()
     const [scriptLoaded, setScriptLoaded] = useState(false);
     const [initialized, setInitialized] = useState(false)
-    const [resourcesLoaded, setResourcesLoaded] = useState([])
-    const dataProvider = useDataProvider();
 	/* for(let [resource_name, resource] of Object.entries(config.resources)){
         console.log(`prefetch ${resource_name}`)
         dataProvider.getList(resource.name, 

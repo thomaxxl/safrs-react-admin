@@ -4,12 +4,12 @@ import merge from 'deepmerge';
 import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
 import {getConf} from '../Config'
-import { number } from 'prop-types';
 
 const conf : { [ key: string] : any } = getConf();
 const duration = 2000;
 
-const prepareAttributes = (attributes : any, resource : any) => {
+const prepareAttributes = (attributes : any, resource_en : any) => {
+    const resource = decodeURI(resource_en)
     // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
     const resource_attr_rels = conf.resources[resource].attributes?.map( (attr : any) => attr.relationship ? attr.name : null)    
     const m_attrs = Object.assign({}, attributes)
@@ -69,9 +69,8 @@ export const jsonapiClient = (
      * getList
      *******************************************************************************************/
     getList: (resource, params) => {
-      console.log(params)
       /*todo: rename resource to resource_name*/
-      const resource_name = resource;
+      const resource_name = decodeURI(resource);
       const { page, perPage } = params.pagination;
       
       const resource_conf : any = conf.resources[resource_name];
@@ -160,8 +159,8 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getOne
     ********************************************************************************************/
-    getOne: (resource: any, params: { id: any }) => {
-      
+    getOne: (resource_en: any, params: { id: any }) => {
+      const resource = decodeURI(resource_en)
       if(params.id === null || params.id === undefined){
           console.debug(`params.id is '${params.id}'`)
           return new Promise(()=>{return {data: {}}})
@@ -179,7 +178,6 @@ export const jsonapiClient = (
 
         let { id, attributes, relationships, type } = json.data;
         if(id === undefined){
-          console.log(id, attributes)
           return {data:{}}
         }
         Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
@@ -199,10 +197,10 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getMany
     ********************************************************************************************/
-    getMany: (resource, params: any) => {
-      resource = capitalize(resource);
-      console.log('getMany:',resource, params)
-      let query = `filter{"id":[${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}]}`
+    getMany: (resource_en, params: any) => {
+      const  resource_de = decodeURI(resource_en)
+      const  resource = capitalize(resource_de);
+      let query = `filter[id]=${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}`
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url, {}).then(({ json }) => {
         console.log('getMany', json);
@@ -230,8 +228,8 @@ export const jsonapiClient = (
     /*******************************************************************************************
       getManyReference
     ********************************************************************************************/
-    getManyReference: (resource_name, params : any) => {
-      
+    getManyReference: (resource_name_en, params : any) => {
+      const resource_name = decodeURI(resource_name_en)
       const { page, perPage } = params.pagination;
       const { field, order } = params.sort;
 
@@ -242,13 +240,12 @@ export const jsonapiClient = (
         query.sort = `${prefix}${field}`;
       }
       
-      console.log(params)
+
       let fks = params.target.split('_')
       //const ids = fks.length > 1 ? params.id.split('_') : params.id
       let ids = params.id.split('_')
 
       if(ids.length != fks.length){
-          console.log(resource_name, params)
           console.warn("Wrong FK length ", ids, fks)
           fks = [params.target]
           ids = [params.id]
@@ -264,7 +261,6 @@ export const jsonapiClient = (
       const rel_conf = resource_conf?.relationships || [];
       const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
       const url = `${apiUrl}/${resource_name}?${stringify(query)}&include=${includes}`
-      console.log(query)
       return httpClient(url, options).then(({ headers, json }) => {
         if (!headers.has(countHeader)) {
           console.debug(
@@ -290,42 +286,40 @@ export const jsonapiClient = (
       });
     },
 
-    update: (resource_name : string, params: any) => {
+    update: async(resource_name_en : string, params: any) => {
+      console.log(params)
+      const resource_name = decodeURI(resource_name_en)
       let type = conf["resources"][resource_name].type || resource_name;
-      /*const arr = settings.endpointToTypeStripLastLetters;
-      for (const i in arr) {
-        if (resource_name.endsWith(arr[i])) {
-          type = resource_name.slice(0, arr[i].length * -1);
-          break; // quit after first hit
-        }
-      }*/
-      const data = {
-        data: {
-          id: params.id,
-          type: type,
-          attributes: params.data
-        }
-      };
-
-      return httpClient(`${apiUrl}/${resource_name}/${params.id}`, {
-        method: settings.updateMethod,
-        body: JSON.stringify(data)
-      })
-        .then(({ json }) => {
-          const { id, attributes } = json.data;
-          return {
-            data: {
-              id,
-              ...attributes
-            }
-          };
+      
+        const data = {
+          data: {
+            id:  params.id,
+            type: type,
+            attributes:  params.data
+          }
+        };
+  
+        return httpClient(`${apiUrl}/${resource_name}/${params.id}`, {
+          method: settings.updateMethod,
+          body: JSON.stringify(data)
         })
-        .catch((err: HttpError) => {
-          console.log('catch Error', err.body);
-          const errorHandler = settings.errorHandler;
-          return Promise.reject(errorHandler(err));
-        });
-    },
+          .then(({ json }) => {
+            const { id, attributes } = json.data;
+            return {
+              data: {
+                id,
+                ...attributes
+              }
+            };
+          })
+          .catch((err: HttpError) => {
+            console.log('catch Error', err.body);
+            const errorHandler = settings.errorHandler;
+            return Promise.reject(errorHandler(err));
+          });
+      },
+      
+    // },
 
     // simple-rest doesn't handle provide an updateMany route, so we fallback to calling update n times instead
     updateMany: (resource_name, params) =>
@@ -338,7 +332,7 @@ export const jsonapiClient = (
               attributes: params.data
             }
           };
-          return httpClient(`${apiUrl}/${resource_name}/${id}`, {
+          return httpClient(`${apiUrl}/${decodeURI(resource_name)}/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(params.data)
           })
@@ -347,7 +341,8 @@ export const jsonapiClient = (
       .then((responses) => ({ data: responses.map(({ json }) => json.id) }))
       ,
 
-    create: (resource_name : string, params: any) => {
+    create: (resource_name_en : string, params: any) => {
+      const resource_name = decodeURI(resource_name_en)
       let type = conf["resources"][resource_name].type || resource_name;
       
       /*let type = resource;
@@ -385,7 +380,7 @@ export const jsonapiClient = (
     },
 
     delete: (resource, params) =>
-      httpClient(`${apiUrl}/${resource}/${params.id}`, {
+      httpClient(`${apiUrl}/${decodeURI(resource)}/${params.id}`, {
         method: 'DELETE',
         headers: new Headers({
           'Content-Type': 'text/plain'
@@ -396,7 +391,7 @@ export const jsonapiClient = (
     deleteMany: (resource, params) =>
       Promise.all(
         params.ids.map((id) =>
-          httpClient(`${apiUrl}/${resource}/${id}`, {
+          httpClient(`${apiUrl}/${decodeURI(resource)}/${id}`, {
             method: 'DELETE',
             headers: new Headers({
               'Content-Type': 'text/plain'
@@ -404,7 +399,7 @@ export const jsonapiClient = (
           })
         )
       ).then((responses) => ({
-        data: responses.map(({ json }) => json.id)
+        data: responses.map(({ json }) => json)
       })),
 
     getResources: () => {

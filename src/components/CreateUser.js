@@ -1,4 +1,3 @@
-import { React } from "react";
 import {
     Create,
     SimpleForm,
@@ -6,7 +5,6 @@ import {
     TextInput
 } from "react-admin"
 import Grid from '@material-ui/core/Grid';
-import DynInput from "./DynInput";
 import {useConf} from '../Config.js'
 
 export const CreateUser  = ({resource_name, ...props}) => {

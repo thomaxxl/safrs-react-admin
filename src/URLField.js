@@ -1,4 +1,3 @@
-import React from 'react'
 import { useRecordContext } from 'react-admin';
 import { makeStyles } from '@material-ui/core/styles';
 import LaunchIcon from '@material-ui/icons/Launch';
