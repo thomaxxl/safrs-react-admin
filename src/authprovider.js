@@ -2,7 +2,8 @@ import {getConf} from './Config'
 import {resetConf} from "./components/ConfigurationUI";
 
 const dummy_auth = () => {
-    localStorage.setItem('auth_token','xxxx')
+    const conf = getConf()
+    localStorage.setItem('auth_token',conf.authentication?.token)
     localStorage.setItem('username','admin')
 }
 
@@ -12,11 +13,14 @@ const authProvider = {
 
     login: ({ username, password }) =>  {
         const conf = getConf()
+        console.log(conf)
+        console.log(conf.authentication)
         if(! conf.api_root?.includes("/admin/api")){
-            dummy_auth()
+            //dummy_auth()
             return Promise.resolve()
         }
-        const login_url = `${conf.api_root}/Users/login_user`
+        //const login_url = `${conf.api_root}/Users/login_user`
+        const login_url = `${conf.authentication?.endpoint}`
         
         const requestOptions = {
             method: 'POST',
