@@ -46,7 +46,7 @@ export function LoginPage(props) {
   const submit = (e) => {
     e.preventDefault();
     const credentials = { username, password };
-    login(credentials).catch(notify('Invalid email or password'))
+    login(credentials).catch(err=> {console.warn(err); notify('Invalid email or password')})
     
   };
   const classes = useStyles();
