@@ -41,8 +41,8 @@ export function LoginPage(props) {
   const login = useLogin();
   const notify = useNotify()
 
-  //fetch(`https://jsonapi.hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
-
+  fetch(`https://hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
+  
   const submit = (e) => {
     e.preventDefault();
     const credentials = { username, password };
@@ -50,7 +50,7 @@ export function LoginPage(props) {
     
   };
   const classes = useStyles();
-
+  
   return (
     <MuiThemeProvider>
       <Container component="main" maxWidth="xs">

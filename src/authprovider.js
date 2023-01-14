@@ -1,17 +1,7 @@
 import {getConf} from './Config'
 import {resetConf} from "./components/ConfigurationUI";
 
-const dummy_auth = () => {
-    const conf = getConf()
-    return
-    localStorage.setItem('auth_token',conf.authentication?.token)
-    localStorage.setItem('username','admin')
-}
-
-
-
 const authProvider = {
-
     login: ({ username, password }) =>  {
         const conf = getConf()
         
@@ -54,58 +44,27 @@ const authProvider = {
             })
     },
     logout: () => {
-        localStorage.removeItem('auth_token')
-        const cookies = document.cookie.split(";");
-        for (const cookie of cookies) {
-            const eqPos = cookie.indexOf("=");
-            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        }
-        document.location.href = "/#/login"
-        return Promise.reject();
+        localStorage.removeItem('auth_token');
+        return Promise.resolve();
     },
-    checkError: (error) => {
-        console.warn(`Auth error ${error}`)
-        //authProvider.login(0,0)
-        return Promise.reject();
-
+    checkAuth: () =>
+        localStorage.getItem('auth_token') ? Promise.resolve() : Promise.reject(),
+    checkError:  (error) => {
+        const status = error.status;
+        if (status === 401 || status === 403) {
+            localStorage.removeItem('username');
+            localStorage.removeItem('auth_token');
+            return Promise.reject();
+        }
+        // other error code (404, 500, etc): no need to log out
+        return Promise.resolve();
     },
-    checkAuth: () => {
-        const conf = getConf()
-        if(!conf.authentication){
-            return Promise.resolve()
-        }
-        
-        const token = localStorage.getItem('auth_token')
-        try{
-            const iat = JSON.parse(atob(token.split('.')[0])).iat
-            const token_age = Date.now() / 1000 - iat
-            if(token_age > 5*60){
-                // refresh tokens older than 5 min
-                console.warn('token expiring')
-                //authProvider.login(0,0)
-            }
-        }
-        catch(exc){
-            console.warn('checkAuth')
-            console.debug(exc)
-            //authProvider.login(0,0)
-            //localStorage.removeItem('auth_token');
-        }
-        
-        return localStorage.getItem('auth_token')
-            ? Promise.resolve()
-            : Promise.reject();
-    },
-    getPermissions: () => Promise.resolve(),
-
-}
-
-
-if(!localStorage.getItem('username')){
-    console.log('Dummy Authentication - Demo')
-    //dummy_auth()
-    resetConf()
-}
+    getIdentity: () =>
+        Promise.resolve({
+            id: 'user',
+            fullName:  localStorage.getItem('username'),
+        }),
+    getPermissions: () => Promise.resolve(''),
+};
 
 export default authProvider;

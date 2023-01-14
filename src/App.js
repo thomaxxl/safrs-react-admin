@@ -76,10 +76,11 @@ const AsyncResources = () => {
       />
       {
         resources.map((resource) => (
+          conf.resources[resource.name] ? 
           <Resource
           options = {{label:(() => {
             if (
-              conf.resources[resource.name].label &&
+              conf.resources[resource.name]?.label &&
               conf.resources[resource.name].label !==
                 conf.resources[resource.name].name
             ) {
@@ -94,7 +95,7 @@ const AsyncResources = () => {
             edit={gen_DynResourceEdit(conf.resources[resource.name])}
             show={gen_DynResourceShow(conf.resources[resource.name])}
             name={encodeURI(resource.name)}
-          />
+          /> : null
         ))
       }
     </AdminUI>

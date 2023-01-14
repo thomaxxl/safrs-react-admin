@@ -18,6 +18,10 @@ const DynEdit = (props) => {
 
 export const gen_DynResourceEdit = (resource) => {
     
+    if(!resource){
+        console.warn('Invalid resource')
+        return <span/>
+    }
     const attributes = resource.attributes;
     
     const Result = (props) => {
