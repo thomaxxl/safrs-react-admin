@@ -47,7 +47,7 @@ const AsyncResources = () => {
         setResources([]);
       });
   }, [dataProvider]);
-  const resource_conf = "a";
+  
   if (resources === false) {
     console.log("loading");
     return <div>Loading...</div>;
@@ -84,7 +84,7 @@ const AsyncResources = () => {
               conf.resources[resource.name].label !==
                 conf.resources[resource.name].name
             ) {
-              return resource_conf.label;
+              return conf.resources[resource.name].label;
             }
             else{return resource.name}
               
@@ -118,7 +118,7 @@ const App = () => {
   <InfoToggleProvider> 
     <AdminContext
       dataProvider={dataProvider}
-      authProvider={authProvider}
+      authProvider={conf.authentication ? authProvider : null}
       queryClient={queryClient}
       locale="en"
       i18nProvider={i18nProvider}
