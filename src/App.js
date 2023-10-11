@@ -19,10 +19,13 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import authProvider from "./authprovider";
 import { QueryClient } from "react-query";
 import LoginPage from "./pages/LoginPage";
+import SSOLogin from "./pages/SSOLogin"
 import gen_DynResourceList from "./components/DynList";
 import { gen_DynResourceShow } from "./components/DynInstance";
 import { gen_DynResourceEdit } from "./components/DynResourceEdit";
 import { InfoToggleProvider } from "./InfoToggleContext";
+import { ApiShow } from "./components/ApiAdmin"
+import { useLocation } from "react-router-dom";
 
 const messages = {
   'en': englishMessages,
@@ -33,6 +36,11 @@ const AsyncResources = () => {
   const [resources, setResources] = React.useState(false);
   const dataProvider = useDataProvider();
   const conf = useConf();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const admin_yaml = queryParams.get('admin_yaml');
+  const loginPage = conf.authentication.redirect ? SSOLogin : LoginPage;
+  
   React.useEffect(() => {
     dataProvider
       .getResources()
@@ -57,7 +65,7 @@ const AsyncResources = () => {
     <AdminUI
       ready={Loading}
       layout={Layout}
-      loginPage={LoginPage}
+      loginPage={loginPage}
       disableTelemetry
     >
       <Resource
@@ -74,6 +82,14 @@ const AsyncResources = () => {
         options={{ label: "Configuration" }}
         icon={SettingsIcon}
       />
+      <Resource
+        name="ApiAdmin"
+        show={ApiShow}
+        list={ApiShow}
+        options={{ label: "Home" }}
+        icon={HomeIcon}
+      />
+      
       {
         resources.map((resource) => (
           conf.resources[resource.name] ? 
