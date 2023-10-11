@@ -147,6 +147,7 @@ export const ApiGenerateField = (props) => {
 export const ApiShow = (props) => {
     return <>
                 <div>xxxx</div>
+                <ApiModal />
                 {props.show}
             </>
 }

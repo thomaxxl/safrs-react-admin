@@ -287,7 +287,7 @@ export const jsonapiClient = (
     },
 
     update: async(resource_name_en : string, params: any) => {
-      console.log(params)
+      
       const resource_name = decodeURI(resource_name_en)
       let type = conf["resources"][resource_name].type || resource_name;
       
@@ -298,6 +298,8 @@ export const jsonapiClient = (
             attributes:  params.data
           }
         };
+
+        console.log('Update ', data)
   
         return httpClient(`${apiUrl}/${resource_name}/${params.id}`, {
           method: settings.updateMethod,

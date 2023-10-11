@@ -1,8 +1,5 @@
 import { useState} from "react";
 import { MuiThemeProvider } from "@material-ui/core/styles";
-import {useLogin, useNotify } from 'react-admin'
-
-import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import TextField from "@material-ui/core/TextField";
@@ -13,6 +10,7 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import { useConf } from "../Config";
+import { Input } from "@mui/material";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -27,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.secondary.main,
   },
   form: {
-    width: "100%", // Fix IE 11 issue.
+    width: "100%",
     marginTop: theme.spacing(1),
   },
   submit: {
@@ -35,31 +33,29 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function SSOLogin(props) {
-  const [username, setusername] = useState("");
-  const [password, setpassword] = useState("");
-  const [, setLoaded] = useState(false)
-  const login = useLogin();
-  const notify = useNotify()
-  const conf = useConf();
-  
-  window.location.href = conf.authentication.redirect;
+const RedirBtn = () => {
+    const conf = useConf();
+    const classes = useStyles();  
+    const [redir, setRedir] = useState(false);
 
-  const submit = (e) => {
-    e.preventDefault();
-    const credentials = { username, password };
-    login(credentials).catch(err=> {console.warn(err); notify('Invalid email or password')})
-    
-  };
-  const classes = useStyles();
+    if(redir){
+        window.location.href = conf.authentication.redirect;
+    }
+
+    return <div className={classes.paper}>
+        
+        <Button onClick={()=>setRedir(1)} color="primary" variant="outlined" >Click to redirect to {conf.authentication.sso}</Button>
+        
+        </div>
+}
+
+export function SSOLogin(props) {
   
   return (
     <MuiThemeProvider>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
-        <div className={classes.paper}>
-          Redirecting ... 
-        </div>
+        <RedirBtn/>    
       </Container>
     </MuiThemeProvider>
   );

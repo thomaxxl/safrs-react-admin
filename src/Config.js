@@ -136,7 +136,7 @@ const json2Conf = (conf) => {
         }
         resource.max_list_columns = resource.max_list_columns || result.settings?.max_list_columns || 8
         //resource.label = resource.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
-        console.debug(`Loaded config resource ${resource_name}`, resource)
+        //console.debug(`Loaded config resource ${resource_name}`, resource)
     }
     
     if(result.settings){

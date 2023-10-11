@@ -26,7 +26,9 @@ const authProvider = {
             .then(response => {
                 if(response.status === 403){
                     console.log("403 - Not logged in - redirect")
-                    
+                    if (conf.authentication.redirect){
+                        window.location.href = conf.authentication.redirect
+                    }
                 }
                 else if(response.status !== 200){
                     return Promise.reject();

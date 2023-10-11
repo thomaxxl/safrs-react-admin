@@ -91,6 +91,7 @@ const addConf = (conf) => {
 };
 
 export const LoadYaml = (config_url, notify) => {
+  
   if (config_url == null) {
     config_url = als_yaml_url;
   }
@@ -307,7 +308,10 @@ export const resetConf = (notify) => {
   return defconf;
 };
 
-const ConfigurationUI = () => {
+
+
+const ConfigurationUI = (props) => {
+  console.log('cuip', props)
   const [value, setValue] = React.useState(0);
 
   const classes = useStyles();
@@ -343,8 +347,6 @@ const ConfigurationUI = () => {
     }
     setTaConf(text);
   };
-
-
 
   fetch(als_yaml_url, { cache: "no-store" })
   .then((response) => response.text())
@@ -407,7 +409,6 @@ const ConfigurationUI = () => {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
   return (
     <div>
       <div>

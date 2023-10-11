@@ -39,7 +39,7 @@ const AsyncResources = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const admin_yaml = queryParams.get('admin_yaml');
-  const loginPage = conf.authentication.redirect ? SSOLogin : LoginPage;
+  const loginPage = conf.authentication?.sso ? SSOLogin : LoginPage;
   
   React.useEffect(() => {
     dataProvider

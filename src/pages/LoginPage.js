@@ -41,7 +41,7 @@ export function LoginPage(props) {
   const login = useLogin();
   const notify = useNotify()
 
-  fetch(`https://hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
+  //fetch(`https://hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
   
   const submit = (e) => {
     e.preventDefault();
