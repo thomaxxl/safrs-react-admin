@@ -12,7 +12,22 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import Keycloak from 'keycloak-js';
 
+
+const loggedInPar = '?logged_in=true'
+
+let initOptions = {
+  url: 'http://localhost:8080/',
+  realm: 'kcals',
+  clientId: 'alsclient',
+  onLoad: 'check-sso', // check-sso | login-required
+  KeycloakResponseType: 'code',
+  //silentCheckSsoRedirectUri: (window.location.origin + "/silent-check-sso.html")
+  silentCheckSsoRedirectUri: '/sso',
+  redirectUri: window.location + '/#/AlsKc'
+
+}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -34,21 +49,55 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+let kc = new Keycloak(initOptions);
+
+kc.init({
+  onLoad: initOptions.onLoad,
+  KeycloakResponseType: 'code',
+  silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
+  pkceMethod: 'S256'
+}).then((auth) => {
+  console.log('kc auth', kc)
+  if(auth) {
+    console.info("Authenticated");
+    console.log('auth', auth)
+    console.log('Keycloak', kc)
+    
+    localStorage.setItem('auth_token',kc.token)
+  }
+} , () => {
+  console.error("Authenticated Failed");
+});
+
+kc.onTokenExpired = () => {
+  console.log('token expired')
+  console.log(kc.token)
+  kc.updateToken(10).then((success) => {
+    if(success){
+      console.log('refreshed token')
+      localStorage.setItem('auth_token',kc.token)
+    }
+  });
+}
+
+const SraLogin = () => {
+    
+    kc.login()
+    
+};
+
+
 export function LoginPage(props) {
   const [username, setusername] = useState("");
   const [password, setpassword] = useState("");
   const [, setLoaded] = useState(false)
-  const login = useLogin();
+  //const login = useLogin();
   const notify = useNotify()
 
   //fetch(`https://hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
   
-  const submit = (e) => {
-    e.preventDefault();
-    const credentials = { username, password };
-    login(credentials).catch(err=> {console.warn(err); notify('Invalid email or password')})
-    
-  };
+  const submit = (e) => { e.preventDefault(); SraLogin(); };
+
   const classes = useStyles();
   
   return (
@@ -62,41 +111,9 @@ export function LoginPage(props) {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Typography component="h5" variant="h5">
-            <br/>
-            Username: <b>admin</b> <br/> Password: <b>p</b>
-          </Typography>
+          
           <form className={classes.form} noValidate onSubmit={submit}>
-            <TextField
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="User name"
-              name="username"
-              value={username}
-              autoComplete="username"
-              autoFocus
-              onChange={(e) => setusername(e.target.value)}
-            />
-            <TextField
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setpassword(e.target.value)}
-              autoComplete="current-password"
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
+            
             <Button
               type="submit"
               fullWidth
@@ -104,12 +121,12 @@ export function LoginPage(props) {
               color="primary"
               className={classes.submit}
             >
-              Sign In
+              Sign In with KeyCloak
             </Button>
 
           </form>
           <Typography>
-            <i>This is a demo login page</i>
+            
           </Typography>
         </div>
       </Container>

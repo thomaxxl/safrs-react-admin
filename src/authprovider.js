@@ -1,5 +1,38 @@
 import {getConf} from './Config'
-import {resetConf} from "./components/ConfigurationUI";
+import Keycloak from 'keycloak-js';
+
+let initOptions = {
+    url: 'http://localhost:8080/',
+    realm: 'kcals',
+    clientId: 'alsclient',
+    onLoad: 'check-sso', // check-sso | login-required
+    KeycloakResponseType: 'code',
+    //silentCheckSsoRedirectUri: (window.location.origin + "/silent-check-sso.html")
+    silentCheckSsoRedirectUri: '/sso'
+}
+  
+let kc = new Keycloak(initOptions);
+window.mykc = kc
+
+if(!document.location.href.includes('session_state') && ! document.location.href.includes('login_required') ){
+    kc.init({
+    onLoad: "login-required",
+    KeycloakResponseType: 'code',
+    silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
+    pkceMethod: 'S256'
+    }).then((auth) => {
+    console.log('kc auth', kc)
+    if(auth) {
+        kc.onTokenExpired = () => {
+            console.log('token expired')
+            //kc.updateToken(10).then(()=>)
+        }
+        
+    }
+    } , () => {
+    console.error("Authenticated Failed");
+    });  
+}
 
 const authProvider = {
     login: ({ username, password }) =>  {
@@ -46,7 +79,9 @@ const authProvider = {
             })
     },
     logout: () => {
-        localStorage.removeItem('auth_token');
+        console.log('logging out')
+        //localStorage.removeItem('auth_token');
+        //kc.logout()
         return Promise.resolve();
     },
     checkAuth: () =>
@@ -54,8 +89,9 @@ const authProvider = {
     checkError:  (error) => {
         const status = error.status;
         if (status === 401 || status === 403) {
-            localStorage.removeItem('username');
-            localStorage.removeItem('auth_token');
+            console.log('invalid token')
+            //localStorage.removeItem('username');
+            //localStorage.removeItem('auth_token');
             return Promise.reject();
         }
         // other error code (404, 500, etc): no need to log out

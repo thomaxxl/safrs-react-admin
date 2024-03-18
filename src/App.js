@@ -57,7 +57,6 @@ const AsyncResources = () => {
   }, [dataProvider]);
   
   if (resources === false) {
-    console.log("loading");
     return <div>Loading...</div>;
   }
 
@@ -130,6 +129,15 @@ const App = () => {
       },
     },
   });
+
+  if(document.location.href.includes('login_required=')){
+    console.log(document.location.href)
+    window.location.href='/#/login?r='
+  }
+  if(document.location.href.includes('session_state=')){
+      console.log(document.location.href)
+      window.location.href='/#/Home'
+  }
   return (
   <InfoToggleProvider> 
     <AdminContext

@@ -44,7 +44,7 @@ export const httpAuthClient = (url: string, options : any) => {
   }
   const token : string = localStorage.getItem('auth_token') || "";
   options.headers.set('Authorization', `Bearer ${token}`);
-  return fetchUtils.fetchJson(url, options);
+  return fetchUtils.fetchJson(url, options)
 }
 
 /**
