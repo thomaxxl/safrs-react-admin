@@ -81,13 +81,6 @@ const AsyncResources = () => {
         options={{ label: "Configuration" }}
         icon={SettingsIcon}
       />
-      <Resource
-        name="ApiAdmin"
-        show={ApiShow}
-        list={ApiShow}
-        options={{ label: "Home" }}
-        icon={HomeIcon}
-      />
       
       {
         resources.map((resource) => (

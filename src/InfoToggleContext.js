@@ -1,7 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
 const ToggleContext = createContext();
 export function useInfoToggle() {
-  console.log(JSON.parse(localStorage.getItem("raconf")).info_toggle_checked);
   return useContext(ToggleContext);
 }
 export function InfoToggleProvider({ children }) {

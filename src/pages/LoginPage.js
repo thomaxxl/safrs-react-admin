@@ -13,12 +13,14 @@ import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Keycloak from 'keycloak-js';
+import { getKcUrl } from "../Config";
 
 
 const loggedInPar = '?logged_in=true'
 
+
 let initOptions = {
-  url: 'http://localhost:8080/',
+  url: getKcUrl(),
   realm: 'kcals',
   clientId: 'alsclient',
   onLoad: 'check-sso', // check-sso | login-required

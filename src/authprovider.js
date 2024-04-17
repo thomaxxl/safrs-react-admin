@@ -1,8 +1,9 @@
 import {getConf} from './Config'
 import Keycloak from 'keycloak-js';
+import { getKcUrl } from "./Config";
 
 let initOptions = {
-    url: 'http://localhost:8080/',
+    url: getKcUrl(),
     realm: 'kcals',
     clientId: 'alsclient',
     onLoad: 'check-sso', // check-sso | login-required

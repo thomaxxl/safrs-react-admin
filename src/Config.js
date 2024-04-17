@@ -179,3 +179,18 @@ export const reset_Conf = (reload) => {
 }
 
 export const default_configs = [config]
+
+export const getKcUrl = () => {
+    const conf = localStorage.getItem("raconf")
+    let authentication
+    try {
+      authentication = JSON.parse(conf).authentication
+    }
+    catch(e) {
+      console.warn('conf.authentication error')
+    }
+    if(!authentication?.kc_url){
+        console.log('No authentication.kc_url in config')
+    }
+    return authentication?.kc_url  
+}
