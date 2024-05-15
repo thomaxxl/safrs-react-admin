@@ -16,7 +16,7 @@ let kc = new Keycloak(initOptions);
 window.mykc = kc
 
 if(!document.location.href.includes('session_state') && ! document.location.href.includes('login_required') ){
-    kc.init({
+    /*kc.init({
     onLoad: "login-required",
     KeycloakResponseType: 'code',
     silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
@@ -32,7 +32,7 @@ if(!document.location.href.includes('session_state') && ! document.location.href
     }
     } , () => {
     console.error("Authenticated Failed");
-    });  
+    });*/  
 }
 
 const authProvider = {

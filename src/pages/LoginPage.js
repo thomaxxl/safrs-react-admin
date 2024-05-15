@@ -53,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
 
 let kc = new Keycloak(initOptions);
 
-kc.init({
+/*kc.init({
   onLoad: initOptions.onLoad,
   KeycloakResponseType: 'code',
   silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
@@ -81,10 +81,10 @@ kc.onTokenExpired = () => {
     }
   });
 }
-
+*/
 const SraLogin = () => {
     
-    kc.login()
+    //kc.login()
     
 };
 
