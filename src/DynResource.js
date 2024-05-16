@@ -78,7 +78,6 @@ export const gen_DynResourceCreate = (resource) => (props) => {
       <AttrForm
         attributes={attributes}
         toolbar={<Mytoolbar />}
-        isInserting={false}
       />
     </Create>
   );

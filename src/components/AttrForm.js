@@ -19,7 +19,6 @@ const AttrForm = ({ attributes, ...props }) => {
   const notify = useNotify();
   const refresh = useRefresh();
   // eslint-disable-next-line no-unused-vars
-  const isInserting = props.isInserting;
   const setRecords = (name, value) => {
     focusRef.current = name;
     recordRef.current = {...recordRef.current, [name]: value};
