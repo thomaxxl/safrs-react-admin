@@ -21,6 +21,8 @@ import { Loading } from "react-admin";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import {Confirm} from 'react-admin'
+
 const yaml = require("js-yaml");
 
 const str = window.location.href;
@@ -32,9 +34,10 @@ if (index === -1) {
 } else {
   yamlName = arr[index + 1] ?? "admin";
 }
-console.log(yamlName)
+console.log('yaml:',yamlName)
 let als_yaml_url = `/ui/admin/${yamlName}.yaml`;
-if (window.location.href.includes(":3000")) {
+if (window.location.href.includes(":3000") && !window.location.href.includes('load=')) {
+  // only for dev purposes
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
 
@@ -90,9 +93,10 @@ const addConf = (conf) => {
   return true;
 };
 
-export const LoadYaml = (config_url, notify) => {
+export const LoadYaml = (config_url, notify, save_conf) => {
   
-  if (config_url == null) {
+  alert(config_url)
+  if (!config_url) {
     config_url = als_yaml_url;
   }
 
@@ -124,11 +128,15 @@ export const LoadYaml = (config_url, notify) => {
     }
   };
 
+  alert(config_url)
+  
   fetch(config_url, { cache: "no-store" })
     .then((response) => response.text())
     .then((conf_str) => {
       localStorage.setItem('conf_cache1',conf_str)
-      saveConf(conf_str);
+      if(save_conf){
+        saveConf(conf_str);
+      }
       notify("Loaded configuration");
     })
     .catch((err) => {
@@ -214,7 +222,7 @@ const ManageModal = () => {
           />
           <Button
             className={classes.widget}
-            onClick={(evt) => LoadYaml(textFieldRef.current.value, notify)}
+            onClick={(evt) => LoadYaml(textFieldRef.current.value, notify, true)}
             color="primary"
           >
             Load
@@ -224,6 +232,29 @@ const ManageModal = () => {
     </Modal>,
   ];
 };
+
+const ExternalConf = () => {
+
+  const qpStr = window.location.hash.substr(window.location.hash.indexOf('?'))
+  const queryParams = new URLSearchParams(qpStr);
+  const loadURI = queryParams.get('load')
+  const [open, setOpen] = useState(loadURI ? true : false)
+  const handleDialogClose = () => setOpen(false)
+  const notify = useNotify()
+  const handleConfirm = () => {
+    setOpen(false)
+    LoadYaml(loadURI, notify, false)
+    const conf_str = localStorage.getItem('conf_cache1')
+    saveConfig(conf_str)
+    console.log(document.location)
+    console.log('nl', document.location.substr(document.location.indexOf('#')))
+  }
+  return <Confirm isOpen={open} label={''} content={`Do you want to load the external configuration from ${loadURI}`} 
+          onConfirm={handleConfirm}
+          onClose={handleDialogClose}
+          title={'Load external configuration'}
+          />
+}
 
 const ConfSelect = () => {
   let configs = [];
@@ -248,6 +279,7 @@ const ConfSelect = () => {
 
   return (
     <Box sx={{ minWidth: 120 }}>
+      <ExternalConf/>
       <FormControl fullWidth>
         <InputLabel id="demo-simple-select-label">
           Saved Configurations
@@ -274,11 +306,12 @@ const ConfSelect = () => {
   );
 };
 
-const saveConfig = () => {
+const saveConfig = (conf) => {
   /*
     Save the current config in raconf to raconfigs
     */
-  let current_conf = JSON.parse(localStorage.getItem("raconf"));
+  let current_conf =  JSON.parse(conf ? conf : localStorage.getItem("raconf"));
+  
   const api_root = current_conf.api_root;
   if (!api_root) {
     alert("Can't save: no 'api_root' set in config");
@@ -304,7 +337,7 @@ export const resetConf = (notify) => {
   }
   localStorage.setItem("raconf", JSON.stringify({}));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  LoadYaml(als_yaml_url, notify);
+  LoadYaml(als_yaml_url, notify, true);
   return defconf;
 };
 
