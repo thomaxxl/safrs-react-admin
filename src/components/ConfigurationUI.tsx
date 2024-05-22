@@ -188,7 +188,7 @@ const ManageModal = () => {
   ) : (
     <span />
   );
-  const textFieldRef = useRef();
+  const textFieldRef: any = useRef();
   const notify = useNotify();
   return [
     <Button
