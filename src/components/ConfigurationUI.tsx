@@ -21,7 +21,7 @@ import { Loading } from "react-admin";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import {Confirm} from 'react-admin'
+import { Confirm } from "react-admin";
 
 const yaml = require("js-yaml");
 
@@ -36,7 +36,10 @@ if (index === -1) {
 }
 // console.log(yamlName);
 let als_yaml_url = `/ui/admin/${yamlName}.yaml`;
-if (window.location.href.includes(":3000") && !window.location.href.includes('load=')) {
+if (
+  window.location.href.includes(":3000") &&
+  !window.location.href.includes("load=")
+) {
   // only for dev purposes
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
@@ -128,8 +131,8 @@ export const LoadYaml = (config_url: any, notify: any) => {
     }
   };
 
-  alert(config_url)
-  
+  alert(config_url);
+
   fetch(config_url, { cache: "no-store" })
     .then((response) => response.text())
     .then((conf_str) => {
@@ -185,7 +188,7 @@ const ManageModal = () => {
   ) : (
     <span />
   );
-  const textFieldRef = React.createRef<HTMLInputElement>();
+  const textFieldRef = useRef();
   const notify = useNotify();
   return [
     <Button
@@ -233,27 +236,30 @@ const ManageModal = () => {
 };
 
 const ExternalConf = () => {
-
-  const qpStr = window.location.hash.substr(window.location.hash.indexOf('?'))
+  const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
   const queryParams = new URLSearchParams(qpStr);
-  const loadURI = queryParams.get('load')
-  const [open, setOpen] = useState(loadURI ? true : false)
-  const handleDialogClose = () => setOpen(false)
-  const notify = useNotify()
+  const loadURI = queryParams.get("load");
+  const [open, setOpen] = useState(loadURI ? true : false);
+  const handleDialogClose = () => setOpen(false);
+  const notify = useNotify();
   const handleConfirm = () => {
-    setOpen(false)
-    LoadYaml(loadURI, notify, false)
-    const conf_str = localStorage.getItem('conf_cache1')
-    saveConfig(conf_str)
-    console.log(document.location)
-    console.log('nl', document.location.substr(document.location.indexOf('#')))
-  }
-  return <Confirm isOpen={open} label={''} content={`Do you want to load the external configuration from ${loadURI}`} 
-          onConfirm={handleConfirm}
-          onClose={handleDialogClose}
-          title={'Load external configuration'}
-          />
-}
+    setOpen(false);
+    LoadYaml(loadURI, notify);
+    const conf_str = localStorage.getItem("conf_cache1");
+    saveConfig(conf_str);
+    console.log(document.location);
+    // console.log("nl", document.location.substr(document.location.indexOf("#")));
+  };
+  return (
+    <Confirm
+      isOpen={open}
+      content={`Do you want to load the external configuration from ${loadURI}`}
+      onConfirm={handleConfirm}
+      onClose={handleDialogClose}
+      title={"Load external configuration"}
+    />
+  );
+};
 
 const ConfSelect = () => {
   let configs = [];
@@ -279,7 +285,7 @@ const ConfSelect = () => {
 
   return (
     <Box sx={{ minWidth: 120 }}>
-      <ExternalConf/>
+      <ExternalConf />
       <FormControl fullWidth>
         <InputLabel id="demo-simple-select-label">
           Saved Configurations
@@ -306,7 +312,7 @@ const ConfSelect = () => {
   );
 };
 
-const saveConfig = (conf) => {
+const saveConfig = (conf: any) => {
   /*
     Save the current config in raconf to raconfigs
     */
@@ -345,7 +351,7 @@ export const resetConf = (notify: any) => {
   }
   localStorage.setItem("raconf", JSON.stringify({}));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  LoadYaml(als_yaml_url, notify, true);
+  LoadYaml(als_yaml_url, notify);
   return defconf;
 };
 
@@ -477,7 +483,7 @@ const ConfigurationUI = (props: any) => {
         </Button>
         <Button
           className={classes.widget}
-          onClick={() => saveConfig()}
+          onClick={() => saveConfig("")}
           color="primary"
         >
           Save
