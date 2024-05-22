@@ -88,7 +88,7 @@ export const jsonapiClient = (
       }
 
       console.debug(params)
-      console.log(resource_conf)
+      // console.log(resource_conf)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
           // search is requested by react-admin
