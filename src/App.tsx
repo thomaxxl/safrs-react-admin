@@ -5,6 +5,7 @@ import {
   AdminUI,
   Loading,
   Resource,
+  Title,
   TranslationMessages,
   useDataProvider,
 } from "react-admin";
@@ -27,6 +28,8 @@ import { gen_DynResourceEdit } from "./components/DynResourceEdit";
 import { InfoToggleProvider } from "./InfoToggleContext";
 import { ApiShow } from "./components/ApiAdmin";
 import { useLocation } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const messages: { [key: string]: TranslationMessages } = {
   en: englishMessages,
@@ -37,6 +40,7 @@ const AsyncResources: React.FC = () => {
   const [resources, setResources] = React.useState<any[]>([]);
   const dataProvider = useDataProvider();
   const conf = useConf();
+  console.log("conf: ", conf);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const admin_yaml = queryParams.get("admin_yaml");
@@ -113,12 +117,23 @@ const AsyncResources: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const showError = () => {
+    toast.error("api_root must be a string", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  };
   ConfigurationUI({});
   const conf = useConf();
   if (typeof conf.api_root !== "string") {
-    throw new Error("api_root must be a string");
+    showError();
   }
-  const dataProvider = jsonapiClient(conf.api_root, { conf: {} });
+  const dataProvider = jsonapiClient(conf.api_root as any, { conf: {} });
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -145,6 +160,7 @@ const App: React.FC = () => {
         // locale="en"
         i18nProvider={i18nProvider}
       >
+        <ToastContainer />
         <AsyncResources />
       </AdminContext>
     </InfoToggleProvider>

@@ -47,15 +47,13 @@ const TruncatedTextField = (props: any) => {
   const record = useRecordContext();
   const source = props.source;
   if (!record || !source) {
-    return <span></span>;
+    return <span>-</span>; // Return "-" when there is no record or source
   }
   let value = record[source];
   if (value && !React.isValidElement(value) && typeof value == "object") {
     try {
-      // console.log(`Converting value :${value}`);
       value = JSON.stringify(value);
     } catch (err) {
-      // console.log(`Invalid element value :${value}`);
       console.warn(err);
       value = "Value Error";
     }
@@ -66,7 +64,7 @@ const TruncatedTextField = (props: any) => {
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
-    return <span>{value}</span>;
+    return <span>{value ? value : "-"}</span>; // Return "-" when value is null or undefined
   }
   return <span>{value.slice(0, 128) + "..."}</span>;
 };
@@ -207,6 +205,19 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
   return fields;
 };
 
+const BooleanFieldToString = ({
+  record,
+  source,
+}: {
+  record: any;
+  source: string;
+}) => {
+  console.log("BooleanFieldToStringsource: ", source);
+  console.log("BooleanFieldToStringrecord: ", record);
+  const value = record[source];
+  return <span>{value ? "Yes" : "No"}</span>;
+};
+
 const AttrField = ({
   attribute,
   mode,
@@ -215,16 +226,23 @@ const AttrField = ({
   attribute: any;
   mode: any;
 }) => {
-  /* Attribute fields
-        Return a component that will be filled in depending on the record context
-    */
-  const component: any = attribute.component; // component name to be loaded
-  const style = attribute.style || {};
-  /*if(attribute.hidden === mode || attribute.hidden === true){
-        return null
-    }*/
+  const record = useRecordContext();
+  const conf = useConf(); // Moved the hook to the top level
 
-  const conf = useConf();
+  console.log("AttrField attribute: ", attribute);
+  if (attribute.type === "Boolean") {
+    return (
+      <BooleanFieldToString
+        source={attribute.name}
+        record={attribute.resource}
+        {...props}
+      />
+    );
+  }
+
+  const component: any = attribute.component;
+  const style = attribute.style || {};
+
   let result = (
     <TruncatedTextField
       source={attribute.name}

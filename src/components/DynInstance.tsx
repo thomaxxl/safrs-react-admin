@@ -498,7 +498,7 @@ const ShowActions = ({ resource }: { resource: any }) => {
       <ShowInfoContent resource={resource} />
       <TopToolbar>
         <InfoModal resource={resource} mode="show" />
-        <EditButton resource={resource} />
+        <EditButton />
       </TopToolbar>
     </>
   );

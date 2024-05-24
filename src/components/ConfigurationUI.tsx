@@ -333,16 +333,8 @@ const saveConfig = (conf: any) => {
 };
 
 export const resetConf = (notify: any) => {
-  interface DefConf {
-    api_root: string;
-    // other properties...
-  }
-
-  interface Configs {
-    [key: string]: DefConf;
-  }
-  const configs: Configs = {};
-  let defconf: DefConf =
+  const configs: any = {};
+  let defconf: any =
     default_configs.length > 0 ? default_configs[0] : { api_root: "" };
 
   for (defconf of default_configs) {

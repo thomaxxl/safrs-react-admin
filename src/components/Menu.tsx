@@ -121,11 +121,15 @@ const ConfigurationMenu = forwardRef<any, any>((props, ref) => {
       classes={{}}
       slot=""
       defaultChecked={false}
-      onPointerEnterCapture={() => {}}
-      onPointerLeaveCapture={() => {}}
+      onPointerEnterCapture={handlePointerLeave}
+      onPointerLeaveCapture={handlePointerLeave}
     />
   );
 });
+
+const handlePointerLeave = () => {
+  console.log("Pointer leave");
+};
 
 const CustomUserMenu = (props: any) => (
   <UserMenu {...props}>
@@ -144,8 +148,8 @@ const CustomUserMenu = (props: any) => (
       primaryText={preval`module.exports = new Date().toString().split(' ').slice(1,3).join('');`}
       to="/#/info"
       leftIcon={<InfoIcon />}
-      onPointerEnterCapture={() => console.log("Pointer entered")}
-      onPointerLeaveCapture={() => {}}
+      onPointerEnterCapture={handlePointerLeave}
+      onPointerLeaveCapture={handlePointerLeave}
     />
     <MyLogoutButton />
   </UserMenu>
@@ -187,6 +191,9 @@ export const Menu = (props: any) => {
   const resources = Object.keys(resourcesDefinitions).map(
     (name) => resourcesDefinitions[name]
   );
+  const handlePointerLeave = () => {
+    console.log("Pointer leave");
+  };
   // const open = true;
   return (
     <RAMenu {...props}>
@@ -200,8 +207,8 @@ export const Menu = (props: any) => {
           leftIcon={resource.icon ? <resource.icon /> : <DefaultIcon />}
           onClick={onMenuClick}
           sidebarIsOpen={true}
-          onPointerEnterCapture={() => {}}
-          onPointerLeaveCapture={() => {}}
+          onPointerEnterCapture={handlePointerLeave}
+          onPointerLeaveCapture={handlePointerLeave}
         />
       ))}
     </RAMenu>
