@@ -7,6 +7,7 @@ import {
   Resource,
   TranslationMessages,
   useDataProvider,
+  AuthProvider
 } from "react-admin";
 import englishMessages from "ra-language-english";
 import polyglotI18nProvider from "ra-i18n-polyglot";
@@ -27,21 +28,54 @@ import { gen_DynResourceEdit } from "./components/DynResourceEdit";
 import { InfoToggleProvider } from "./InfoToggleContext";
 import { ApiShow } from "./components/ApiAdmin";
 import { useLocation } from "react-router-dom";
+import Keycloak, {
+  KeycloakConfig,
+  KeycloakTokenParsed,
+  KeycloakInitOptions,
+} from 'keycloak-js';
+import { keycloakAuthProvider } from 'ra-keycloak';
+
+
+
+const config: KeycloakConfig = {
+  url: 'http://localhost:8080/',
+  realm: 'kcals',
+  clientId: 'alsclient'
+};
+
+
+const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false };
+
+
+const getPermissions = (decoded: KeycloakTokenParsed) => {
+  const roles = decoded?.realm_access?.roles;
+  console.log(roles)
+  if (!roles) {
+      return false;
+  }
+  if (roles.includes('admin')) return 'admin';
+  if (roles.includes('user')) return 'user';
+  return 'admin';
+};
+
+const raKeycloakOptions = {
+  onPermissions: getPermissions,
+};
 
 const messages: { [key: string]: TranslationMessages } = {
   en: englishMessages,
 };
 const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 
-const AsyncResources: React.FC = () => {
+const AsyncResources: React.FC = (keycloak: Keycloak) => {
+
   const [resources, setResources] = React.useState<any[]>([]);
-  const dataProvider = useDataProvider();
   const conf = useConf();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const admin_yaml = queryParams.get("admin_yaml");
-  const loginPage = conf.authentication?.sso ? SSOLogin : LoginPage;
-
+  //const loginPage = conf.authentication?.sso ? SSOLogin : <LoginPage keycloak={keycloak}/>;
+  const dataProvider = useDataProvider();
   React.useEffect(() => {
     dataProvider
       .getResources()
@@ -57,7 +91,8 @@ const AsyncResources: React.FC = () => {
       });
   }, [dataProvider]);
 
-  if (resources.length === 0) {
+
+  if (resources.length === 0 || keycloak === undefined){
     return <div>Loading...</div>;
   }
 
@@ -65,7 +100,7 @@ const AsyncResources: React.FC = () => {
     <AdminUI
       ready={Loading}
       layout={Layout}
-      // loginPage={loginPage}
+      //loginPage={loginPage}
       disableTelemetry
     >
       <Resource
@@ -113,12 +148,14 @@ const AsyncResources: React.FC = () => {
 };
 
 const App: React.FC = () => {
+
   ConfigurationUI({});
   const conf = useConf();
   if (typeof conf.api_root !== "string") {
     throw new Error("api_root must be a string");
   }
-  const dataProvider = jsonapiClient(conf.api_root, { conf: {} });
+  const [keycloak, setKeycloak] = React.useState<Keycloak>(undefined);
+  const dataProvider = jsonapiClient(conf.api_root, { conf: {} }, keycloak);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -127,15 +164,27 @@ const App: React.FC = () => {
       },
     },
   });
+  
+  const authProvider = React.useRef<AuthProvider>(undefined);
+  
+  React.useEffect(() => {
+      const initKeyCloakClient = async () => {
+          const keycloakClient = new Keycloak(config);
+          initOptions.redirectUri = 'http://localhost:3000/admin-app/#/Home?'//document.location.href + '?'
+          await keycloakClient.init(initOptions);
+          authProvider.current = keycloakAuthProvider(
+            keycloakClient,
+            raKeycloakOptions
+          );
+          dataProvider.current = jsonapiClient(conf.api_root, { conf: {} }, keycloakClient);
+          setKeycloak(keycloakClient);
+      };
+      if (!keycloak) {
+          initKeyCloakClient();
+      }
+  }, [keycloak]);
 
-  if (document.location.href.includes("login_required=")) {
-    // console.log(document.location.href);
-    window.location.href = "/#/login?r=";
-  }
-  if (document.location.href.includes("session_state=")) {
-    // console.log(document.location.href);
-    window.location.href = "/#/Home";
-  }
+  
   return (
     <InfoToggleProvider>
       <AdminContext

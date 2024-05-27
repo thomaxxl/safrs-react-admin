@@ -173,6 +173,9 @@ const json2Conf = (conf: Config) => {
 
 export const useConf = (): Config => {
   let conf = getLSConf();
+  if(conf === {} ){
+    alert()
+  }
   return json2Conf(conf);
 };
 

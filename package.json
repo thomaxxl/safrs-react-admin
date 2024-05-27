@@ -25,6 +25,7 @@
     "ra-data-json-server": "^4.3.0",
     "ra-i18n-polyglot": "^4.3.4",
     "ra-jsonapi-client": "^0.9.0",
+    "ra-keycloak": "^1.0.1",
     "ra-language-english": "^4.3.4",
     "react": "^18.2.0",
     "react-admin": "^4.16.17",

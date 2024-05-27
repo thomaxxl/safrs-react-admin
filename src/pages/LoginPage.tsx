@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import { MuiThemeProvider } from "@material-ui/core/styles";
+import { createTheme } from '@material-ui/core/styles'
 import { useLogin, useNotify } from "react-admin";
 
 import Avatar from "@material-ui/core/Avatar";
@@ -12,13 +13,17 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
-import Keycloak from "keycloak-js";
 import { getKcUrl } from "../Config";
 import * as React from "react";
+import Keycloak, {
+  KeycloakConfig,
+  KeycloakTokenParsed,
+  KeycloakInitOptions,
+} from 'keycloak-js';
 
 const loggedInPar = "?logged_in=true";
 
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     primary: {
       main: "#ffffff",
@@ -29,16 +34,6 @@ const theme = createMuiTheme({
   },
 });
 
-let initOptions = {
-  url: getKcUrl(),
-  realm: "kcals",
-  clientId: "alsclient",
-  onLoad: "check-sso", // check-sso | login-required
-  KeycloakResponseType: "code",
-  //silentCheckSsoRedirectUri: (window.location.origin + "/silent-check-sso.html")
-  silentCheckSsoRedirectUri: "/sso",
-  redirectUri: window.location + "/#/AlsKc",
-};
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -60,39 +55,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false, redirectUri : "http://localhost:3000/admin-app/#/Home?" };
 let kc = new Keycloak(initOptions as Keycloak.KeycloakConfig);
 
-/*kc.init({
-  onLoad: initOptions.onLoad,
-  KeycloakResponseType: 'code',
-  silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
-  pkceMethod: 'S256'
-}).then((auth) => {
-  console.log('kc auth', kc)
-  if(auth) {
-    console.info("Authenticated");
-    console.log('auth', auth)
-    console.log('Keycloak', kc)
-    
-    localStorage.setItem('auth_token',kc.token)
-  }
-} , () => {
-  console.error("Authenticated Failed");
-});
+console.log('kclogin')
 
-kc.onTokenExpired = () => {
-  console.log('token expired')
-  console.log(kc.token)
-  kc.updateToken(10).then((success) => {
-    if(success){
-      console.log('refreshed token')
-      localStorage.setItem('auth_token',kc.token)
-    }
-  });
-}
+/*
 */
-const SraLogin = () => {
-  //kc.login()
+const SraLogin = (keycloak: Keycloak) => {
+  console.log('sral',keycloak)
+  keycloak.login()
 };
 
 export function LoginPage(props: any) {
@@ -102,11 +74,10 @@ export function LoginPage(props: any) {
   //const login = useLogin();
   const notify = useNotify();
 
-  //fetch(`https://hardened.be/p4?load=${document.location.hostname}`).finally(()=>setLoaded(true))
-
+  console.log('kcloginpage', props)
   const submit = (e: any) => {
     e.preventDefault();
-    SraLogin();
+    SraLogin(props.kc);
   };
 
   const classes = useStyles();
