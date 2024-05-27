@@ -9,6 +9,7 @@ import {
   TranslationMessages,
   useDataProvider,
 } from "react-admin";
+import { useNotify } from "react-admin";
 import englishMessages from "ra-language-english";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { jsonapiClient } from "./rav4-jsonapi-client/ra-jsonapi-client";
@@ -39,6 +40,7 @@ const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 const AsyncResources: React.FC = () => {
   const [resources, setResources] = React.useState<any[]>([]);
   const dataProvider = useDataProvider();
+  const notify = useNotify();
   const conf = useConf();
   console.log("conf: ", conf);
   const location = useLocation();
@@ -63,6 +65,14 @@ const AsyncResources: React.FC = () => {
 
   if (resources.length === 0) {
     return <div>Loading...</div>;
+  }
+  if (typeof conf.api_root !== "string") {
+    notify("api most be string", { type: "error" });
+    console.log("window.location.href: ", window.location.href);
+    let value = window.location.href.split("/");
+    if (!value.includes("Configuration")) {
+      window.location.href = "/#/Configuration";
+    }
   }
 
   return (
@@ -117,22 +127,10 @@ const AsyncResources: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const showError = () => {
-    toast.error("api_root must be a string", {
-      position: "bottom-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  };
-  ConfigurationUI({});
+  const notify = useNotify();
   const conf = useConf();
-  if (typeof conf.api_root !== "string") {
-    showError();
-  }
+  ConfigurationUI({});
+
   const dataProvider = jsonapiClient(conf.api_root as any, { conf: {} });
   const queryClient = new QueryClient({
     defaultOptions: {

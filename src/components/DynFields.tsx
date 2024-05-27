@@ -205,19 +205,11 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
   return fields;
 };
 
-const BooleanFieldToString = ({
-  record,
-  source,
-}: {
-  record: any;
-  source: string;
-}) => {
-  console.log("BooleanFieldToStringsource: ", source);
-  console.log("BooleanFieldToStringrecord: ", record);
+const BooleanFieldToString = ({ source }: { source: string }) => {
+  const record = useRecordContext();
   const value = record[source];
-  return <span>{value ? "Yes" : "No"}</span>;
+  return <span>{value != null ? (value ? "Yes" : "No") : "-"}</span>;
 };
-
 const AttrField = ({
   attribute,
   mode,
@@ -227,17 +219,11 @@ const AttrField = ({
   mode: any;
 }) => {
   const record = useRecordContext();
-  const conf = useConf(); // Moved the hook to the top level
+  const conf = useConf();
 
   console.log("AttrField attribute: ", attribute);
   if (attribute.type === "Boolean") {
-    return (
-      <BooleanFieldToString
-        source={attribute.name}
-        record={attribute.resource}
-        {...props}
-      />
-    );
+    return <BooleanFieldToString source={attribute.name} />;
   }
 
   const component: any = attribute.component;
@@ -325,6 +311,7 @@ const ShowField = ({
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
+    shown = value === true ? "Yes" : value === false ? "No" : value;
   } else {
     shown = (
       <>
