@@ -29,8 +29,7 @@ import { gen_DynResourceEdit } from "./components/DynResourceEdit";
 import { InfoToggleProvider } from "./InfoToggleContext";
 import { ApiShow } from "./components/ApiAdmin";
 import { useLocation } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { BrowserRouter as Router } from "react-router-dom";
 
 const messages: { [key: string]: TranslationMessages } = {
   en: englishMessages,
@@ -40,18 +39,21 @@ const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 const AsyncResources: React.FC = () => {
   const [resources, setResources] = React.useState<any[]>([]);
   const dataProvider = useDataProvider();
+  console.log("dataProvider: ", dataProvider);
   const notify = useNotify();
   const conf = useConf();
-  console.log("conf: ", conf);
+  console.log("AsyncResources conf: ", conf);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const admin_yaml = queryParams.get("admin_yaml");
+  console.log("admin_yaml: ", admin_yaml);
   const loginPage = conf.authentication?.sso ? SSOLogin : LoginPage;
 
   React.useEffect(() => {
     dataProvider
       .getResources()
       .then((response: any) => {
+        console.log("response: ", response);
         let res = Object.keys(response.data.resources).map((resource_name) => {
           return { name: resource_name };
         });
@@ -63,6 +65,7 @@ const AsyncResources: React.FC = () => {
       });
   }, [dataProvider]);
 
+  console.log("resources: ", resources);
   if (resources.length === 0) {
     return <div>Loading...</div>;
   }
@@ -77,9 +80,10 @@ const AsyncResources: React.FC = () => {
 
   return (
     <AdminUI
-      ready={Loading}
+      ready={() => (
+        <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />
+      )}
       layout={Layout}
-      // loginPage={loginPage}
       disableTelemetry
     >
       <Resource
@@ -127,11 +131,12 @@ const AsyncResources: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const notify = useNotify();
   const conf = useConf();
+  console.log("App conf: ", conf);
   ConfigurationUI({});
 
   const dataProvider = jsonapiClient(conf.api_root as any, { conf: {} });
+  console.log("dataProvider: ", dataProvider);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -140,6 +145,7 @@ const App: React.FC = () => {
       },
     },
   });
+  console.log("queryClient: ", queryClient);
 
   if (document.location.href.includes("login_required=")) {
     // console.log(document.location.href);
@@ -158,8 +164,9 @@ const App: React.FC = () => {
         // locale="en"
         i18nProvider={i18nProvider}
       >
-        <ToastContainer />
-        <AsyncResources />
+        <Router>
+          <AsyncResources />
+        </Router>
       </AdminContext>
     </InfoToggleProvider>
   );
