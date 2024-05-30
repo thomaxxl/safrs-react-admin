@@ -100,7 +100,7 @@ const addConf = (conf: any) => {
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  // window.location.reload();
+  window.location.reload();
   return true;
 };
 
@@ -251,6 +251,11 @@ const ManageModal = () => {
 };
 
 const ExternalConf = () => {
+  const [isFirstRender, setIsFirstRender] = useState(true);
+  React.useEffect(() => {
+    setIsFirstRender(false);
+  }, []);
+
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
   console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
@@ -260,23 +265,34 @@ const ExternalConf = () => {
   const [open, setOpen] = useState(loadURI ? true : false);
   const handleDialogClose = () => setOpen(false);
   const notify = useNotify();
+
+  const apiUrl = window.location.href;
+  const apiurl_split = apiUrl.split("/");
+  let temp_localstorage_raconf = localStorage.getItem("raconf");
+
+  const shouldShowConfirm =
+    isFirstRender ||
+    !temp_localstorage_raconf?.includes("apilogicserver.pythonanywhere.com");
+  console.log("shouldShowConfirm: ", shouldShowConfirm);
+
   const handleConfirm = () => {
     setOpen(false);
     LoadYaml(loadURI, notify);
     const conf_str = localStorage.getItem("conf_cache1");
     console.log("conf_str: ", conf_str);
     saveConfig(conf_str);
-    console.log(document.location);
-    // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
+
   return (
-    <Confirm
-      isOpen={open}
-      content={`Do you want to load the external configuration from ${loadURI}`}
-      onConfirm={handleConfirm}
-      onClose={handleDialogClose}
-      title={"Load external configuration"}
-    />
+    shouldShowConfirm && (
+      <Confirm
+        isOpen={open}
+        content={`Do you want to load the external configuration from ${loadURI}`}
+        onConfirm={handleConfirm}
+        onClose={handleDialogClose}
+        title={"Load external configuration"}
+      />
+    )
   );
 };
 
@@ -379,10 +395,11 @@ const ConfigurationUI = (props: any) => {
   const saveYaml = (ystr: any, ev: any) => {
     try {
       const jj = yaml.load(ystr);
-      console.log("jj: ", jj);
-      if (jj !== undefined) {
+
+      if (localStorage.getItem("raconf") !== jj && jj !== undefined) {
         saveEdit(JSON.stringify(jj));
       }
+
       setBgColor("black");
     } catch (e) {
       console.warn(`Failed to process`, ystr);
@@ -413,8 +430,16 @@ const ConfigurationUI = (props: any) => {
   fetch(als_yaml_url, { cache: "no-store" })
     .then((response) => response.text())
     .then((conf_str) => {
-      if (localStorage.getItem("conf_cache1") !== conf_str) {
-        resetConf(() => {});
+      let temp_localstorage_variable = localStorage.getItem("raconf");
+
+      const shouldShowConfirm = !temp_localstorage_variable?.includes(
+        "apilogicserver.pythonanywhere.com"
+      );
+
+      if (shouldShowConfirm) {
+        if (localStorage.getItem("conf_cache1") !== conf_str) {
+          resetConf(() => {});
+        }
       }
     })
     .catch((err) => {
