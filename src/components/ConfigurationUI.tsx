@@ -26,16 +26,22 @@ import { Confirm } from "react-admin";
 const yaml = require("js-yaml");
 
 const str = window.location.href;
+console.log("str: ", str);
 const arr = str.split("/");
+console.log("arr: ", arr);
 const index = arr.findIndex((e) => e === "admin");
+console.log("index: ", index);
 let yamlName;
+console.log("yamlName: ", yamlName);
 if (index === -1) {
   yamlName = "admin";
 } else {
   yamlName = arr[index + 1] ?? "admin";
 }
-// console.log(yamlName);
-let als_yaml_url = `/ui/admin/${yamlName}.yaml`;
+const yarm = yamlName.split(".");
+console.log("yarm: ", yarm);
+console.log(yamlName);
+let als_yaml_url = `/ui/admin/${yarm[0]}.yaml`;
 if (
   window.location.href.includes(":3000") &&
   !window.location.href.includes("load=")
@@ -69,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const DeleteConf = (conf_name: any) => {
-  console.log("conf_name: ", conf_name);
+  console.log(" DeleteConf conf_name: ", conf_name);
   if (!window.confirm(`Delete configuration "${conf_name}" ?`)) {
     return;
   }
@@ -85,7 +91,7 @@ const DeleteConf = (conf_name: any) => {
 };
 
 const addConf = (conf: any) => {
-  console.log("conf: ", conf);
+  console.log("addConf conf: ", conf);
   const configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
   if (!conf.api_root) {
     console.warn("Config has no api_root", conf);
@@ -94,19 +100,22 @@ const addConf = (conf: any) => {
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  window.location.reload();
+  // window.location.reload();
   return true;
 };
 
 export const LoadYaml = (config_url: any, notify: any) => {
+  console.log("LoadYaml config_url: ", config_url);
   if (config_url == null) {
     config_url = als_yaml_url;
   }
 
   const saveConf = (conf_str: any) => {
+    console.log("conf_str: ", conf_str);
     // first try to parse as json, if this doesn't work, try yaml
     try {
       const conf = JSON.parse(conf_str);
+      console.log("conf: ", conf);
       if (typeof conf !== "object") {
         saveYaml(conf_str);
         return;
@@ -120,6 +129,7 @@ export const LoadYaml = (config_url: any, notify: any) => {
   };
 
   const saveYaml = (ystr: any) => {
+    console.log("ystr: ", ystr);
     try {
       const conf = yaml.load(ystr);
       if (!addConf(conf) && notify) {
@@ -134,7 +144,10 @@ export const LoadYaml = (config_url: any, notify: any) => {
   alert(config_url);
 
   fetch(config_url, { cache: "no-store" })
-    .then((response) => response.text())
+    .then((response) => {
+      console.log("response", response);
+      return response.text();
+    })
     .then((conf_str) => {
       localStorage.setItem("conf_cache1", conf_str);
       saveConf(conf_str);
@@ -190,55 +203,60 @@ const ManageModal = () => {
   );
   const textFieldRef: any = useRef();
   const notify = useNotify();
-  return [
-    <Button
-      className={classes.widget}
-      onClick={() => handleOpen()}
-      color="primary"
-    >
-      Manage
-    </Button>,
-    <Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      {/* Add the necessary JSX elements inside the children prop */}
-      <Box sx={modal_style}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          Manage Configurations
-        </Typography>
-        <Typography id="modal-modal-description" component="div">
-          <ul>{config_list}</ul>
-        </Typography>
+  return (
+    <>
+      <Button
+        className={classes.widget}
+        onClick={() => handleOpen()}
+        color="primary"
+      >
+        Manage
+      </Button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        {/* Add the necessary JSX elements inside the children prop */}
+        <Box sx={modal_style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Manage Configurations
+          </Typography>
+          <Typography id="modal-modal-description" component="div">
+            <ul>{config_list}</ul>
+          </Typography>
 
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          Load Configuration from URL
-        </Typography>
-        <Typography id="modal-modal-description" component="div">
-          <TextField
-            label="Config URL"
-            style={{ margin: 16, width: "100%" }}
-            inputRef={textFieldRef}
-          />
-          <Button
-            className={classes.widget}
-            onClick={(evt) => LoadYaml(textFieldRef?.current?.value, notify)}
-            color="primary"
-          >
-            Load
-          </Button>
-        </Typography>
-      </Box>
-    </Modal>,
-  ];
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Load Configuration from URL
+          </Typography>
+          <Typography id="modal-modal-description" component="div">
+            <TextField
+              label="Config URL"
+              style={{ margin: 16, width: "100%" }}
+              inputRef={textFieldRef}
+            />
+            <Button
+              className={classes.widget}
+              onClick={(evt) => LoadYaml(textFieldRef?.current?.value, notify)}
+              color="primary"
+            >
+              Load
+            </Button>
+          </Typography>
+        </Box>
+      </Modal>
+    </>
+  );
 };
 
 const ExternalConf = () => {
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
+  console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
+  console.log("queryParams: ", queryParams);
   const loadURI = queryParams.get("load");
+  console.log("loadURI: ", loadURI);
   const [open, setOpen] = useState(loadURI ? true : false);
   const handleDialogClose = () => setOpen(false);
   const notify = useNotify();
@@ -246,6 +264,7 @@ const ExternalConf = () => {
     setOpen(false);
     LoadYaml(loadURI, notify);
     const conf_str = localStorage.getItem("conf_cache1");
+    console.log("conf_str: ", conf_str);
     saveConfig(conf_str);
     console.log(document.location);
     // console.log("nl", document.location.substr(document.location.indexOf("#")));
@@ -317,13 +336,16 @@ const saveConfig = (conf: any) => {
     Save the current config in raconf to raconfigs
     */
   let current_conf = JSON.parse(localStorage.getItem("raconf") || "");
+  console.log("current_conf: ", current_conf);
   const api_root = current_conf.api_root;
+  console.log("api_root: ", api_root);
   if (!api_root) {
     alert("Can't save: no 'api_root' set in config");
     //console.log(current_conf)
     return;
   }
   let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
+  console.log("configs: ", configs);
   if (!configs) {
     configs = {};
   }
@@ -357,7 +379,10 @@ const ConfigurationUI = (props: any) => {
   const saveYaml = (ystr: any, ev: any) => {
     try {
       const jj = yaml.load(ystr);
-      saveEdit(JSON.stringify(jj));
+      console.log("jj: ", jj);
+      if (jj !== undefined) {
+        saveEdit(JSON.stringify(jj));
+      }
       setBgColor("black");
     } catch (e) {
       console.warn(`Failed to process`, ystr);
@@ -513,7 +538,7 @@ const ConfigurationUI = (props: any) => {
                 }}
                 height="1000px"
                 style={{ borderLeft: `8px solid ${bgColor}` }}
-                onChange={(ystr, ev) => saveYaml(ystr, ev)}
+                onChange={(taConf, ev) => saveYaml(taConf, ev)}
               />
             </Suspense>
           </TabPanel>

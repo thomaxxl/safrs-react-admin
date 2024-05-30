@@ -121,8 +121,6 @@ const ConfigurationMenu = forwardRef<any, any>((props, ref) => {
       classes={{}}
       slot=""
       defaultChecked={false}
-      onPointerEnterCapture={handlePointerLeave}
-      onPointerLeaveCapture={handlePointerLeave}
     />
   );
 });
@@ -148,8 +146,6 @@ const CustomUserMenu = (props: any) => (
       primaryText={preval`module.exports = new Date().toString().split(' ').slice(1,3).join('');`}
       to="/#/info"
       leftIcon={<InfoIcon />}
-      onPointerEnterCapture={handlePointerLeave}
-      onPointerLeaveCapture={handlePointerLeave}
     />
     <MyLogoutButton />
   </UserMenu>
@@ -207,8 +203,6 @@ export const Menu = (props: any) => {
           leftIcon={resource.icon ? <resource.icon /> : <DefaultIcon />}
           onClick={onMenuClick}
           sidebarIsOpen={true}
-          onPointerEnterCapture={handlePointerLeave}
-          onPointerLeaveCapture={handlePointerLeave}
         />
       ))}
     </RAMenu>
