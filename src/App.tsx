@@ -35,17 +35,7 @@ import Keycloak, {
 } from 'keycloak-js';
 import { keycloakAuthProvider } from 'ra-keycloak';
 
-
-
-const config: KeycloakConfig = {
-  url: 'http://localhost:8080/',
-  realm: 'kcals',
-  clientId: 'alsclient'
-};
-
-
 const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false };
-
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
   const roles = decoded?.realm_access?.roles;
@@ -59,7 +49,7 @@ const getPermissions = (decoded: KeycloakTokenParsed) => {
 };
 
 const raKeycloakOptions = {
-  onPermissions: getPermissions,
+  onPermissions: getPermissions
 };
 
 const messages: { [key: string]: TranslationMessages } = {
@@ -164,13 +154,20 @@ const App: React.FC = () => {
       },
     },
   });
+
+  const kcConfig: KeycloakConfig = conf.authentication?.keycloak ? conf.authentication.keycloak : {
+    url: 'http://localhost:8080/',
+    realm: 'kcals',
+    clientId: 'alsclient'
+  };
   
   const authProvider = React.useRef<AuthProvider>(undefined);
   
   React.useEffect(() => {
       const initKeyCloakClient = async () => {
-          const keycloakClient = new Keycloak(config);
-          initOptions.redirectUri = 'http://localhost:3000/admin-app/#/Home?'//document.location.href + '?'
+          console.log('init kc', kcConfig)
+          const keycloakClient = new Keycloak(kcConfig);
+          initOptions.redirectUri = document.location.href + '?'
           await keycloakClient.init(initOptions);
           authProvider.current = keycloakAuthProvider(
             keycloakClient,
@@ -189,7 +186,7 @@ const App: React.FC = () => {
     <InfoToggleProvider>
       <AdminContext
         dataProvider={dataProvider}
-        authProvider={conf.authentication ? authProvider : undefined}
+        authProvider={conf.authentication ? authProvider.current : undefined}
         queryClient={queryClient}
         // locale="en"
         i18nProvider={i18nProvider}
