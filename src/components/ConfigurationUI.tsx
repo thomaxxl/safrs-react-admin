@@ -50,6 +50,10 @@ if (
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
 
+// if (window.location.href.includes("load=")) {
+//   als_yaml_url = window.location.href.split("load=")[1];
+// }
+
 const useStyles = makeStyles((theme) => ({
   widget: {
     border: "1px solid #3f51b5",
@@ -100,7 +104,7 @@ const addConf = (conf: any) => {
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  window.location.reload();
+  // window.location.reload();
   return true;
 };
 
@@ -152,6 +156,7 @@ export const LoadYaml = (config_url: any, notify: any) => {
       localStorage.setItem("conf_cache1", conf_str);
       saveConf(conf_str);
       notify("Loaded configuration");
+      window.location.reload();
     })
     .catch((err) => {
       if (notify) {
@@ -250,38 +255,28 @@ const ManageModal = () => {
   );
 };
 
-const ExternalConf = () => {
-  const [isFirstRender, setIsFirstRender] = useState(true);
-  React.useEffect(() => {
-    setIsFirstRender(false);
-  }, []);
-
-  const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
-  console.log("qpStr: ", qpStr);
-  const queryParams = new URLSearchParams(qpStr);
-  console.log("queryParams: ", queryParams);
+const ExternalConf = (props: any) => {
+  const queryParams = new URLSearchParams(window.location.search);
   const loadURI = queryParams.get("load");
   console.log("loadURI: ", loadURI);
   const [open, setOpen] = useState(loadURI ? true : false);
   const handleDialogClose = () => setOpen(false);
   const notify = useNotify();
-
-  const apiUrl = window.location.href;
-  const apiurl_split = apiUrl.split("/");
-  let temp_localstorage_raconf = localStorage.getItem("raconf");
-
-  const shouldShowConfirm =
-    isFirstRender ||
-    !temp_localstorage_raconf?.includes("apilogicserver.pythonanywhere.com");
-  console.log("shouldShowConfirm: ", shouldShowConfirm);
-
   const handleConfirm = () => {
     setOpen(false);
     LoadYaml(loadURI, notify);
     const conf_str = localStorage.getItem("conf_cache1");
     console.log("conf_str: ", conf_str);
     saveConfig(conf_str);
+    console.log(document.location);
+    // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
+
+  let temp_localstorage_raconf = localStorage.getItem("raconf");
+
+  const shouldShowConfirm = !temp_localstorage_raconf?.includes(
+    "apilogicserver.pythonanywhere.com"
+  );
 
   return (
     shouldShowConfirm && (
@@ -316,6 +311,8 @@ const ConfSelect = () => {
     }
     localStorage.setItem("raconf", JSON.stringify(new_conf));
     window.location.reload();
+
+    window.location.href = "/";
   };
 
   return (
@@ -367,7 +364,7 @@ const saveConfig = (conf: any) => {
   }
   configs[api_root] = current_conf;
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  window.location.reload();
+  // window.location.reload();
 };
 
 export const resetConf = (notify: any) => {
@@ -395,11 +392,10 @@ const ConfigurationUI = (props: any) => {
   const saveYaml = (ystr: any, ev: any) => {
     try {
       const jj = yaml.load(ystr);
-
-      if (localStorage.getItem("raconf") !== jj && jj !== undefined) {
+      console.log("jj: ", jj);
+      if (jj !== undefined) {
         saveEdit(JSON.stringify(jj));
       }
-
       setBgColor("black");
     } catch (e) {
       console.warn(`Failed to process`, ystr);
@@ -432,11 +428,11 @@ const ConfigurationUI = (props: any) => {
     .then((conf_str) => {
       let temp_localstorage_variable = localStorage.getItem("raconf");
 
-      const shouldShowConfirm = !temp_localstorage_variable?.includes(
+      const shouldShowConfirm = temp_localstorage_variable?.includes(
         "apilogicserver.pythonanywhere.com"
       );
 
-      if (shouldShowConfirm) {
+      if (!shouldShowConfirm) {
         if (localStorage.getItem("conf_cache1") !== conf_str) {
           resetConf(() => {});
         }

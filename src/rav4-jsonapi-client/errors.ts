@@ -1,17 +1,17 @@
-import { HttpError, useNotify } from 'react-admin';
+import { HttpError, useNotify } from "react-admin";
 
 export class NotImplementedError extends Error {
   constructor(message: string) {
     super(message);
     this.message = message;
-    this.name = 'NotImplementedError';
+    this.name = "NotImplementedError";
   }
 }
 
 export class SafrsHttpError extends HttpError {
   constructor(message: string, status: number, body: any) {
     super(message, status, body);
-    this.name = 'SafrsHttpError';
+    this.name = "SafrsHttpError";
   }
 }
 
@@ -33,17 +33,25 @@ export const safrsErrorHandler: HttpErrorHandler = (
     detail: string;
     code: string;
   }
-  
+
   const errors: { errors: err[] } = httpError.body; // JSON.parse(httpError.body.stringify);
   if (errors?.errors?.length > 0) {
-    alert("Data error "+ errors.errors[0].title)
+    alert("Data error " + errors.errors[0].title);
     return new SafrsHttpError(
       errors.errors[0].title,
       httpError.status,
       errors.errors[0].code
     );
   } else {
-    console.log('Unsopported Http Error Body', httpError.body);
+    console.log("Unsopported Http Error Body", httpError.body.msg);
+    console.log(" window.location.href: ", window.location.pathname);
+    if (
+      httpError.body.msg ===
+        "Bad Authorization header. Expected 'Authorization: Bearer <JWT>'" &&
+      window.location.pathname !== "/login"
+    ) {
+      window.location.href = "/login";
+    }
     return httpError;
   }
 };
