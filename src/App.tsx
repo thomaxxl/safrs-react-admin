@@ -155,19 +155,25 @@ const App: React.FC = () => {
     },
   });
 
-  const kcConfig: KeycloakConfig = conf.authentication?.keycloak ? conf.authentication.keycloak : {
-    url: 'http://localhost:8080/',
-    realm: 'kcals',
-    clientId: 'alsclient'
-  };
+  
+  const redirURL = (): string => {
+
+    let result = document.location.href.split('?')[0]
+    if(! result.includes('#')){
+      result+= '/#/'
+    }
+    result += '?'
+    console.log('redirurl', result)
+    return result
+  }
   
   const authProvider = React.useRef<AuthProvider>(undefined);
   
   React.useEffect(() => {
       const initKeyCloakClient = async () => {
-          console.log('init kc', kcConfig)
+          const kcConfig: KeycloakConfig = conf.authentication?.keycloak
           const keycloakClient = new Keycloak(kcConfig);
-          initOptions.redirectUri = document.location.href + '?'
+          initOptions.redirectUri = redirURL()
           await keycloakClient.init(initOptions);
           authProvider.current = keycloakAuthProvider(
             keycloakClient,
@@ -176,7 +182,7 @@ const App: React.FC = () => {
           dataProvider.current = jsonapiClient(conf.api_root, { conf: {} }, keycloakClient);
           setKeycloak(keycloakClient);
       };
-      if (!keycloak) {
+      if (conf.authentication?.keycloak && !keycloak) {
           initKeyCloakClient();
       }
   }, [keycloak]);
