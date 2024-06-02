@@ -50,6 +50,10 @@ if (
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
 
+// if (window.location.href.includes("load=")) {
+//   als_yaml_url = window.location.href.split("load=")[1];
+// }
+
 const useStyles = makeStyles((theme) => ({
   widget: {
     border: "1px solid #3f51b5",
@@ -152,6 +156,7 @@ export const LoadYaml = (config_url: any, notify: any) => {
       localStorage.setItem("conf_cache1", conf_str);
       saveConf(conf_str);
       notify("Loaded configuration");
+      window.location.reload();
     })
     .catch((err) => {
       if (notify) {
@@ -250,11 +255,8 @@ const ManageModal = () => {
   );
 };
 
-const ExternalConf = () => {
-  const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
-  console.log("qpStr: ", qpStr);
-  const queryParams = new URLSearchParams(qpStr);
-  console.log("queryParams: ", queryParams);
+const ExternalConf = (props: any) => {
+  const queryParams = new URLSearchParams(window.location.search);
   const loadURI = queryParams.get("load");
   console.log("loadURI: ", loadURI);
   const [open, setOpen] = useState(loadURI ? true : false);
@@ -269,14 +271,23 @@ const ExternalConf = () => {
     console.log(document.location);
     // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
+
+  let temp_localstorage_raconf = localStorage.getItem("raconf");
+
+  const shouldShowConfirm = !temp_localstorage_raconf?.includes(
+    "apilogicserver.pythonanywhere.com"
+  );
+
   return (
-    <Confirm
-      isOpen={open}
-      content={`Do you want to load the external configuration from ${loadURI}`}
-      onConfirm={handleConfirm}
-      onClose={handleDialogClose}
-      title={"Load external configuration"}
-    />
+    shouldShowConfirm && (
+      <Confirm
+        isOpen={open}
+        content={`Do you want to load the external configuration from ${loadURI}`}
+        onConfirm={handleConfirm}
+        onClose={handleDialogClose}
+        title={"Load external configuration"}
+      />
+    )
   );
 };
 
@@ -300,6 +311,8 @@ const ConfSelect = () => {
     }
     localStorage.setItem("raconf", JSON.stringify(new_conf));
     window.location.reload();
+
+    window.location.href = "/";
   };
 
   return (
@@ -351,7 +364,7 @@ const saveConfig = (conf: any) => {
   }
   configs[api_root] = current_conf;
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  window.location.reload();
+  // window.location.reload();
 };
 
 export const resetConf = (notify: any) => {
@@ -413,8 +426,16 @@ const ConfigurationUI = (props: any) => {
   fetch(als_yaml_url, { cache: "no-store" })
     .then((response) => response.text())
     .then((conf_str) => {
-      if (localStorage.getItem("conf_cache1") !== conf_str) {
-        resetConf(() => {});
+      let temp_localstorage_variable = localStorage.getItem("raconf");
+
+      const shouldShowConfirm = temp_localstorage_variable?.includes(
+        "apilogicserver.pythonanywhere.com"
+      );
+
+      if (!shouldShowConfirm) {
+        if (localStorage.getItem("conf_cache1") !== conf_str) {
+          resetConf(() => {});
+        }
       }
     })
     .catch((err) => {
