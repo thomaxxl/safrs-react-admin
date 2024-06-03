@@ -3,6 +3,7 @@ import { fetchUtils, DataProvider, HttpError } from 'react-admin';
 import merge from 'deepmerge';
 import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
+import Keycloak from 'keycloak-js';
 import {getConf} from '../Config'
 
 const conf : { [ key: string] : any } = getConf();
@@ -38,6 +39,20 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
   }
 }
 
+export const getKeycloakHeaders = (
+  token: string | null,
+  options: fetchUtils.Options | undefined
+): Headers => {
+  const headers = ((options && options.headers) ||
+      new Headers({
+          Accept: 'application/json',
+      })) as Headers;
+  if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+};
+
 export const httpAuthClient = (url: string, options : any) => {
   if (!options.headers) {
       options.headers = new Headers({ Accept: 'application/json' });
@@ -47,6 +62,27 @@ export const httpAuthClient = (url: string, options : any) => {
   return fetchUtils.fetchJson(url, options)
 }
 
+const createKCHttpAuthClient = (keycloak: Keycloak) => (
+  url: any,
+  options: fetchUtils.Options | undefined
+) => {
+  console.log('KCHttpClient', keycloak)
+  if(keycloak.isTokenExpired()){
+      console.log(keycloak)
+      keycloak.updateToken(10)
+  }
+  const requestHeaders = getKeycloakHeaders(keycloak.token, options);
+  return fetchUtils.fetchJson(url, {
+      ...options,
+      headers: requestHeaders,
+  });
+};
+
+const kcErrorHandler = (err : HttpError) => {
+  if(err){
+    console.log('kc err', err)
+  }
+}
 /**
  * Based on
  * 
@@ -57,9 +93,14 @@ export const httpAuthClient = (url: string, options : any) => {
 export const jsonapiClient = (
   apiUrl: string,
   userSettings = {conf : {}},
+  keycloak: Keycloak| null = null,
   httpClient = httpAuthClient,//fetchUtils.fetchJson,
-  countHeader: string = 'Content-Range'
+  countHeader: string = 'Content-Range',
 ): DataProvider => {
+  console.log('kcjac,',keycloak)
+  if(keycloak){
+      httpClient = createKCHttpAuthClient(keycloak)
+  }
   const settings = merge(defaultSettings, userSettings);
   const conf__ = userSettings.conf;
 

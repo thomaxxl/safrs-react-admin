@@ -88,7 +88,7 @@ const authProvider = {
       });
   },
   logout: () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem("auth_token");
     return Promise.resolve();
   },
   checkAuth: () =>
