@@ -65,6 +65,7 @@ const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const [resources, setResources] = React.useState<any[]>([]);
   const conf = useConf();
+  const notify = useNotify();
   console.log("AsyncResources conf: ", conf);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -155,9 +156,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 const App: React.FC = () => {
   ConfigurationUI({});
   const conf = useConf();
-  if (typeof conf.api_root !== "string") {
-    throw new Error("api_root must be a string");
-  }
+
   const [keycloak, setKeycloak] = React.useState<Keycloak>(undefined);
   const dataProvider = jsonapiClient(conf.api_root, { conf: {} }, keycloak);
   const queryClient = new QueryClient({
