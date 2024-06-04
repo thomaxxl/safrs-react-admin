@@ -3,7 +3,11 @@ import config from "./Config.json";
 interface Config {
   api_root: object;
   authentication?: {
-    kc_url: string;
+    keycloak?: {
+      url: string;
+      realm: string;
+      clientId: string;
+    }
     endpoint: string;
     redirect: any;
     sso: any;
@@ -173,6 +177,7 @@ const json2Conf = (conf: Config) => {
 
 export const useConf = (): Config => {
   let conf = getLSConf();
+  
   return json2Conf(conf);
 };
 

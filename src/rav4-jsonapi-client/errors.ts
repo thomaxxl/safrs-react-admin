@@ -43,15 +43,6 @@ export const safrsErrorHandler: HttpErrorHandler = (
       errors.errors[0].code
     );
   } else {
-    console.log("Unsopported Http Error Body", httpError.body.msg);
-    console.log(" window.location.href: ", window.location.pathname);
-    if (
-      httpError.body.msg ===
-        "Bad Authorization header. Expected 'Authorization: Bearer <JWT>'" &&
-      window.location.pathname !== "/login"
-    ) {
-      window.location.href = "/login";
-    }
     return httpError;
   }
 };

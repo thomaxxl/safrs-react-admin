@@ -145,8 +145,6 @@ export const LoadYaml = (config_url: any, notify: any) => {
     }
   };
 
-  alert(config_url);
-
   fetch(config_url, { cache: "no-store" })
     .then((response) => {
       console.log("response", response);
