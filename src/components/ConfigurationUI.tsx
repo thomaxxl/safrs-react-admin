@@ -22,6 +22,7 @@ import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Confirm } from "react-admin";
+import { useNavigate } from "react-router-dom";
 
 const yaml = require("js-yaml");
 
@@ -49,10 +50,6 @@ if (
   // only for dev purposes
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
-
-// if (window.location.href.includes("load=")) {
-//   als_yaml_url = window.location.href.split("load=")[1];
-// }
 
 const useStyles = makeStyles((theme) => ({
   widget: {
@@ -103,8 +100,8 @@ const addConf = (conf: any) => {
   }
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
+  console.log("conf: ", conf);
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  // window.location.reload();
   return true;
 };
 
@@ -165,6 +162,7 @@ export const LoadYaml = (config_url: any, notify: any) => {
 };
 
 const ManageModal = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e?: any) => {
     setOpen(true);
@@ -241,7 +239,14 @@ const ManageModal = () => {
             />
             <Button
               className={classes.widget}
-              onClick={(evt) => LoadYaml(textFieldRef?.current?.value, notify)}
+              onClick={(evt) => {
+                LoadYaml(textFieldRef?.current?.value, notify);
+                navigate(
+                  `?load=${encodeURIComponent(
+                    textFieldRef?.current?.value || ""
+                  )}`
+                );
+              }}
               color="primary"
             >
               Load
@@ -253,45 +258,53 @@ const ManageModal = () => {
   );
 };
 
-const ExternalConf = (props: any) => {
-  const queryParams = new URLSearchParams(window.location.search);
+const ExternalConf = () => {
+  const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
+  console.log("qpStr: ", qpStr);
+  const queryParams = new URLSearchParams(qpStr);
+  console.log("queryParams: ", queryParams);
   const loadURI = queryParams.get("load");
   console.log("loadURI: ", loadURI);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(loadURI ? true : false);
-  const handleDialogClose = () => setOpen(false);
+  const handleDialogClose = () => {
+    setOpen(false);
+    window.location.href = "/";
+    LoadYaml("http://localhost:5656/ui/admin/admin.yaml", notify);
+  };
   const notify = useNotify();
   const handleConfirm = () => {
-    setOpen(false);
-    LoadYaml(loadURI, notify);
-    const conf_str = localStorage.getItem("conf_cache1");
-    console.log("conf_str: ", conf_str);
-    saveConfig(conf_str);
-    console.log(document.location);
-    // console.log("nl", document.location.substr(document.location.indexOf("#")));
+    let temp_localstorage_raconf = localStorage.getItem("raconf");
+
+    const shouldShowConfirm = temp_localstorage_raconf?.includes(
+      "apilogicserver.pythonanywhere.com"
+    );
+    if (shouldShowConfirm) {
+      setOpen(false);
+    } else {
+      LoadYaml(loadURI, notify);
+      const conf_str = localStorage.getItem("conf_cache1");
+      console.log("conf_str: ", conf_str);
+      saveConfig(conf_str);
+      console.log(document.location);
+      // console.log("nl", document.location.substr(document.location.indexOf("#")));
+    }
   };
 
-  let temp_localstorage_raconf = localStorage.getItem("raconf");
-
-  const shouldShowConfirm = !temp_localstorage_raconf?.includes(
-    "apilogicserver.pythonanywhere.com"
-  );
-
   return (
-    shouldShowConfirm && (
-      <Confirm
-        isOpen={open}
-        content={`Do you want to load the external configuration from ${loadURI}`}
-        onConfirm={handleConfirm}
-        onClose={handleDialogClose}
-        title={"Load external configuration"}
-      />
-    )
+    <Confirm
+      isOpen={open}
+      content={`Do you want to load the external configuration from ${loadURI}`}
+      onConfirm={handleConfirm}
+      onClose={handleDialogClose}
+      title={"Load external configuration"}
+    />
   );
 };
 
 const ConfSelect = () => {
   let configs = [];
-
+  const notify = useNotify();
   try {
     const storedConfigs = localStorage.getItem("raconfigs");
     configs = storedConfigs ? JSON.parse(storedConfigs) : {};
@@ -307,6 +320,7 @@ const ConfSelect = () => {
     if (!new_conf) {
       return;
     }
+    console.log("new_conf: ", new_conf);
     localStorage.setItem("raconf", JSON.stringify(new_conf));
     window.location.reload();
 
@@ -362,7 +376,7 @@ const saveConfig = (conf: any) => {
   }
   configs[api_root] = current_conf;
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  // window.location.reload();
+  window.location.reload();
 };
 
 export const resetConf = (notify: any) => {
@@ -421,23 +435,32 @@ const ConfigurationUI = (props: any) => {
     setTaConf(text);
   };
 
+  if (
+    !als_yaml_url.includes("http") &&
+    !window.location.href.includes("load=")
+  ) {
+    als_yaml_url = `http://localhost:5656${als_yaml_url}`;
+  }
+  if (window.location.href.includes("load=")) {
+    const qpStr = window.location.hash.substr(
+      window.location.hash.indexOf("?")
+    );
+    const queryParams = new URLSearchParams(qpStr);
+    const loadURI = queryParams.get("load");
+    als_yaml_url = loadURI;
+  }
+
   fetch(als_yaml_url, { cache: "no-store" })
     .then((response) => response.text())
     .then((conf_str) => {
-      let temp_localstorage_variable = localStorage.getItem("raconf");
-
-      const shouldShowConfirm = temp_localstorage_variable?.includes(
-        "apilogicserver.pythonanywhere.com"
-      );
-
-      if (!shouldShowConfirm) {
-        if (localStorage.getItem("conf_cache1") !== conf_str) {
-          resetConf(() => {});
-        }
+      if (localStorage.getItem("conf_cache1") !== conf_str) {
+        resetConf(() => {});
       }
     })
     .catch((err) => {
       console.log(err);
+      notify("Can't Load configuration file");
+      window.location.href = "/#/Configuration";
     });
 
   let conf =
