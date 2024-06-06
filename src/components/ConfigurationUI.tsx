@@ -80,11 +80,22 @@ const DeleteConf = (conf_name: any) => {
   if (!window.confirm(`Delete configuration "${conf_name}" ?`)) {
     return;
   }
-
   try {
     let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
     delete configs[conf_name];
     localStorage.setItem("raconfigs", JSON.stringify(configs));
+
+    let url = new URL(window.location.href);
+    let hashParts = url.hash.split("?");
+
+    if (hashParts.length > 1) {
+      let params = new URLSearchParams(hashParts[1]);
+      if (params.has("load")) {
+        params.delete("load");
+        url.hash = hashParts[0] + "?" + params.toString();
+        window.location.href = url.toString();
+      }
+    }
     window.location.reload();
   } catch (e) {
     alert("Localstorage error");
@@ -122,6 +133,11 @@ export const LoadYaml = (config_url: any, notify: any) => {
         return;
       }
       if (!addConf(conf) && notify) {
+        let url = new URL(window.location.href);
+        let params = new URLSearchParams(url.search);
+        params.delete("load");
+        url.search = params.toString();
+        window.location.href = url.toString();
         notify("Failed to load config", "warning");
       }
     } catch (e) {
@@ -148,10 +164,15 @@ export const LoadYaml = (config_url: any, notify: any) => {
       return response.text();
     })
     .then((conf_str) => {
-      localStorage.setItem("conf_cache1", conf_str);
-      saveConf(conf_str);
-      notify("Loaded configuration");
-      window.location.reload();
+      if (conf_str.includes("api_root")) {
+        localStorage.setItem("conf_cache1", conf_str);
+        saveConf(conf_str);
+        notify("Loaded configuration");
+        window.location.reload();
+      } else {
+        notify("cannot load configuration ");
+        window.location.href = "/#/Configuration";
+      }
     })
     .catch((err) => {
       if (notify) {
@@ -240,7 +261,7 @@ const ManageModal = () => {
             <Button
               className={classes.widget}
               onClick={(evt) => {
-                LoadYaml(textFieldRef?.current?.value, notify);
+                setOpen(false);
                 navigate(
                   `?load=${encodeURIComponent(
                     textFieldRef?.current?.value || ""
@@ -263,32 +284,102 @@ const ExternalConf = () => {
   console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
   console.log("queryParams: ", queryParams);
-  const loadURI = queryParams.get("load");
+  let loadURI = queryParams.get("load");
   console.log("loadURI: ", loadURI);
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(loadURI ? true : false);
+  const [open, setOpen] = useState(false);
+
+  let url,
+    hostname,
+    local_data,
+    api_root_hostname,
+    api_root_hostname_1 = [];
+
+  const notify = useNotify();
+
+  React.useEffect(() => {
+    try {
+      if (loadURI) {
+        url = new URL(decodeURIComponent(loadURI));
+        hostname = url.hostname;
+      }
+    } catch (e) {
+      notify("cannot load configuration from: " + loadURI);
+      setOpen(false);
+      loadURI = null;
+      let url = new URL(window.location.href);
+      let hashParts = url.hash.split("?");
+
+      if (hashParts.length > 1) {
+        let params = new URLSearchParams(hashParts[1]);
+        params.delete("load");
+        url.hash = hashParts[0] + "?" + params.toString();
+      }
+
+      window.location.href = url.toString();
+    }
+  }, [loadURI]);
+
+  try {
+    let raconf = localStorage.getItem("raconf");
+    let raconfigs = localStorage.getItem("raconfigs");
+    if (raconf) {
+      let parsedData = JSON.parse(raconf);
+      if (parsedData && parsedData.api_root) {
+        api_root_hostname = new URL(parsedData.api_root).hostname;
+      }
+    }
+    if (raconfigs) {
+      let parsedData = JSON.parse(raconfigs);
+      if (parsedData) {
+        for (let key in parsedData) {
+          if (parsedData[key] && parsedData[key].api_root) {
+            try {
+              let hostname = new URL(parsedData[key].api_root).hostname;
+              api_root_hostname_1.push(hostname);
+            } catch (_) {
+              // Ignore the error if the URL is invalid
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  if (
+    (api_root_hostname && loadURI?.includes(api_root_hostname)) ||
+    (loadURI &&
+      api_root_hostname_1.some((hostname) => loadURI?.includes(hostname)))
+  ) {
+    local_data = true;
+  } else {
+    local_data = false;
+  }
+
+  React.useEffect(() => {
+    if (loadURI) {
+      setOpen(true);
+    }
+    if (local_data) {
+      setOpen(false);
+    }
+  }, [loadURI]);
+
+  console.log("url: ", url);
+  console.log("open: ", open);
   const handleDialogClose = () => {
     setOpen(false);
     window.location.href = "/";
     LoadYaml("http://localhost:5656/ui/admin/admin.yaml", notify);
   };
-  const notify = useNotify();
   const handleConfirm = () => {
-    let temp_localstorage_raconf = localStorage.getItem("raconf");
+    setOpen(false);
+    LoadYaml(loadURI, notify);
+    const conf_str = localStorage.getItem("conf_cache1");
+    console.log("conf_str: ", conf_str);
+    saveConfig(conf_str);
+    console.log(document.location);
 
-    const shouldShowConfirm = temp_localstorage_raconf?.includes(
-      "apilogicserver.pythonanywhere.com"
-    );
-    if (shouldShowConfirm) {
-      setOpen(false);
-    } else {
-      LoadYaml(loadURI, notify);
-      const conf_str = localStorage.getItem("conf_cache1");
-      console.log("conf_str: ", conf_str);
-      saveConfig(conf_str);
-      console.log(document.location);
-      // console.log("nl", document.location.substr(document.location.indexOf("#")));
-    }
+    // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
 
   return (
@@ -376,7 +467,8 @@ const saveConfig = (conf: any) => {
   }
   configs[api_root] = current_conf;
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  window.location.reload();
+
+  // window.location.reload();
 };
 
 export const resetConf = (notify: any) => {
@@ -396,6 +488,7 @@ export const resetConf = (notify: any) => {
 
 const ConfigurationUI = (props: any) => {
   // console.log("cuip", props);
+  const [data, setData] = useState(null);
   const [value, setValue] = React.useState(0);
 
   const classes = useStyles();
@@ -417,6 +510,9 @@ const ConfigurationUI = (props: any) => {
   };
 
   const saveEdit = (text: any) => {
+    if (text === "{}") {
+      LoadYaml("http://localhost:5656/ui/admin/admin.yaml", notify);
+    }
     try {
       if (text) {
         const parsed_conf = JSON.parse(text);
@@ -450,18 +546,23 @@ const ConfigurationUI = (props: any) => {
     als_yaml_url = loadURI;
   }
 
-  fetch(als_yaml_url, { cache: "no-store" })
-    .then((response) => response.text())
-    .then((conf_str) => {
-      if (localStorage.getItem("conf_cache1") !== conf_str) {
-        resetConf(() => {});
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      notify("Can't Load configuration file");
-      window.location.href = "/#/Configuration";
-    });
+  React.useEffect(() => {
+    if (!data) {
+      fetch(als_yaml_url, { cache: "no-store" })
+        .then((response) => response.text())
+        .then((conf_str) => {
+          if (localStorage.getItem("conf_cache1") !== conf_str) {
+            resetConf(() => {});
+          }
+          setData(conf_str); // Store the fetched data in state
+        })
+        .catch((err) => {
+          console.log(err);
+          notify("Can't Load configuration file");
+          window.location.href = "/#/Configuration";
+        });
+    }
+  }, [data]);
 
   let conf =
     localStorage.getItem("raconf") || JSON.stringify(resetConf(() => {}));
@@ -545,7 +646,7 @@ const ConfigurationUI = (props: any) => {
           onClick={() => saveConfig("")}
           color="primary"
         >
-          Save
+          Save 
         </Button>
         <FormControlLabel
           control={

@@ -3,9 +3,10 @@
 import React, { useRef, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import DynInput from "./DynInput";
-import { SimpleForm } from "react-admin";
+import { DeleteButton, SaveButton, SimpleForm, Toolbar } from "react-admin";
 import { useRedirect, useRefresh, useNotify } from "react-admin";
 import Grid from "@material-ui/core/Grid";
+import { useLocation } from "react-router";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
@@ -25,6 +26,35 @@ const AttrForm = ({
   const redirect = useRedirect();
   const notify = useNotify();
   const refresh = useRefresh();
+
+  const CustomToolbar = (props: any) => {
+    const location = useLocation();
+
+    return (
+      <Toolbar {...props}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "-webkit-fill-available",
+          }}
+        >
+          <SaveButton
+            type="button"
+            label="save"
+            variant="outlined"
+            mutationOptions={{
+              onSuccess: (data) => {
+                notify("Element updated");
+                redirect(`${location.pathname}/show`);
+              },
+            }}
+          />
+          <DeleteButton />
+        </div>
+      </Toolbar>
+    );
+  };
 
   interface resource {
     relationship: [];
@@ -95,7 +125,7 @@ const AttrForm = ({
 
   const classes = useStyles();
   return (
-    <SimpleForm {...props}>
+    <SimpleForm {...props} toolbar={<CustomToolbar />}>
       <Grid
         container
         spacing={2}
