@@ -92,7 +92,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     return <div>Loading...</div>;
   }
   if (typeof conf.api_root !== "string") {
-    notify("api_rooot must be string", { type: "error" });
+    notify("api_root must be string", { type: "error" });
     console.log("window.location.href: ", window.location.href);
     let value = window.location.href.split("/");
     if (!value.includes("Configuration")) {
