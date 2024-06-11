@@ -116,70 +116,72 @@ const addConf = (conf: any) => {
   return true;
 };
 
-export const LoadYaml = (config_url: any, notify: any) => {
-  console.log("LoadYaml config_url: ", config_url);
-  if (config_url == null) {
-    config_url = als_yaml_url;
-  }
+export const LoadYaml = (config_url: any, notify: any, state: any) => {
+  if (state) {
+    console.log("LoadYaml config_url: ", config_url);
+    if (config_url == null) {
+      config_url = als_yaml_url;
+    }
 
-  const saveConf = (conf_str: any) => {
-    console.log("conf_str: ", conf_str);
-    // first try to parse as json, if this doesn't work, try yaml
-    try {
-      const conf = JSON.parse(conf_str);
-      console.log("conf: ", conf);
-      if (typeof conf !== "object") {
+    const saveConf = (conf_str: any) => {
+      console.log("conf_str: ", conf_str);
+      // first try to parse as json, if this doesn't work, try yaml
+      try {
+        const conf = JSON.parse(conf_str);
+        console.log("conf: ", conf);
+        if (typeof conf !== "object") {
+          saveYaml(conf_str);
+          return;
+        }
+        if (!addConf(conf) && notify) {
+          let url = new URL(window.location.href);
+          let params = new URLSearchParams(url.search);
+          params.delete("load");
+          url.search = params.toString();
+          window.location.href = url.toString();
+          notify("Failed to load config", "warning");
+        }
+      } catch (e) {
         saveYaml(conf_str);
-        return;
       }
-      if (!addConf(conf) && notify) {
-        let url = new URL(window.location.href);
-        let params = new URLSearchParams(url.search);
-        params.delete("load");
-        url.search = params.toString();
-        window.location.href = url.toString();
-        notify("Failed to load config", "warning");
-      }
-    } catch (e) {
-      saveYaml(conf_str);
-    }
-  };
+    };
 
-  const saveYaml = (ystr: any) => {
-    console.log("ystr: ", ystr);
-    try {
-      const conf = yaml.load(ystr);
-      if (!addConf(conf) && notify) {
-        notify("Failed to load config", "warning");
+    const saveYaml = (ystr: any) => {
+      console.log("ystr: ", ystr);
+      try {
+        const conf = yaml.load(ystr);
+        if (!addConf(conf) && notify) {
+          notify("Failed to load config", "warning");
+        }
+      } catch (e) {
+        console.warn(`Failed to load yaml`, ystr);
+        console.error(e);
       }
-    } catch (e) {
-      console.warn(`Failed to load yaml`, ystr);
-      console.error(e);
-    }
-  };
+    };
 
-  fetch(config_url, { cache: "no-store" })
-    .then((response) => {
-      console.log("response", response);
-      return response.text();
-    })
-    .then((conf_str) => {
-      if (conf_str.includes("api_root")) {
-        localStorage.setItem("conf_cache1", conf_str);
-        saveConf(conf_str);
-        notify("Loaded configuration");
-        window.location.reload();
-      } else {
-        notify("cannot load configuration ");
-        window.location.href = "/#/Configuration";
-      }
-    })
-    .catch((err) => {
-      if (notify) {
-        notify("Failed to load yaml", { type: "warning" });
-      }
-      console.error(`Failed to load yaml from ${config_url}: ${err}`);
-    });
+    fetch(config_url, { cache: "no-store" })
+      .then((response) => {
+        console.log("response", response);
+        return response.text();
+      })
+      .then((conf_str) => {
+        if (conf_str.includes("api_root")) {
+          localStorage.setItem("conf_cache1", conf_str);
+          saveConf(conf_str);
+          notify("Loaded configuration");
+          window.location.reload();
+        } else {
+          notify("cannot load configuration ");
+          window.location.href = "/#/Configuration";
+        }
+      })
+      .catch((err) => {
+        if (notify) {
+          notify("Failed to load yaml", { type: "warning" });
+        }
+        console.error(`Failed to load yaml from ${config_url}: ${err}`);
+      });
+  }
 };
 
 const ManageModal = () => {
@@ -369,11 +371,11 @@ const ExternalConf = () => {
   const handleDialogClose = () => {
     setOpen(false);
     window.location.href = "/";
-    LoadYaml("http://localhost:5656/ui/admin/admin.yaml", notify);
+    LoadYaml("/ui/admin/admin.yaml", notify);
   };
   const handleConfirm = () => {
     setOpen(false);
-    LoadYaml(loadURI, notify);
+    LoadYaml(loadURI, notify, true);
     const conf_str = localStorage.getItem("conf_cache1");
     console.log("conf_str: ", conf_str);
     saveConfig(conf_str);
@@ -482,7 +484,13 @@ export const resetConf = (notify: any) => {
   }
   localStorage.setItem("raconf", JSON.stringify({}));
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-  LoadYaml(als_yaml_url, notify);
+  let value = window.location.href.split("/");
+  let check_load = window.location.href.includes("load");
+  if (!check_load) {
+    LoadYaml(als_yaml_url, notify, true);
+  } else {
+    LoadYaml(als_yaml_url, notify, false);
+  }
   return defconf;
 };
 
@@ -510,9 +518,15 @@ const ConfigurationUI = (props: any) => {
   };
 
   const saveEdit = (text: any) => {
-    if (text === "{}") {
-      LoadYaml("http://localhost:5656/ui/admin/admin.yaml", notify);
+    let value = window.location.href.split("/");
+    if (!window.location.href.includes("load")) {
+      if (!value.includes("Configuration")) {
+        if (text === "{}") {
+          LoadYaml("/ui/admin/admin.yaml", notify, true);
+        }
+      }
     }
+
     try {
       if (text) {
         const parsed_conf = JSON.parse(text);
@@ -531,12 +545,6 @@ const ConfigurationUI = (props: any) => {
     setTaConf(text);
   };
 
-  if (
-    !als_yaml_url.includes("http") &&
-    !window.location.href.includes("load=")
-  ) {
-    als_yaml_url = `http://localhost:5656${als_yaml_url}`;
-  }
   if (window.location.href.includes("load=")) {
     const qpStr = window.location.hash.substr(
       window.location.hash.indexOf("?")
@@ -646,7 +654,7 @@ const ConfigurationUI = (props: any) => {
           onClick={() => saveConfig("")}
           color="primary"
         >
-          Save 
+          Save
         </Button>
         <FormControlLabel
           control={
