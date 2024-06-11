@@ -64,6 +64,12 @@ const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 
 const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const [resources, setResources] = React.useState<any[]>([]);
+  let value = window.location.href.split("/");
+  if (window.location.href.includes("load")) {
+    if (value.includes("Configuration")) {
+      window.location.reload();
+    }
+  }
   const conf = useConf();
   const notify = useNotify();
   console.log("AsyncResources conf: ", conf);
@@ -92,11 +98,17 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     return <div>Loading...</div>;
   }
   if (typeof conf.api_root !== "string") {
+    if (window.location.href.includes("load")) {
+      localStorage.removeItem("raconf");
+      window.location.href = window.location.href;
+    }
     notify("api_root must be string", { type: "error" });
     console.log("window.location.href: ", window.location.href);
     let value = window.location.href.split("/");
-    if (!value.includes("Configuration")) {
-      window.location.href = "/#/Configuration";
+    if (!window.location.href.includes("load")) {
+      if (!value.includes("Configuration")) {
+        window.location.reload();
+      }
     }
   }
 
