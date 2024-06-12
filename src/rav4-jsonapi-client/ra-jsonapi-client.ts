@@ -58,6 +58,9 @@ export const httpAuthClient = (url: string, options : any) => {
       options.headers = new Headers({ Accept: 'application/json' });
   }
   const token : string = localStorage.getItem('auth_token') || "";
+  if(token){
+    options.headers.set('Authorization', `Bearer ${token}`);
+  }
   options.headers.set('Authorization', `Bearer ${token}`);
   return fetchUtils.fetchJson(url, options)
 }
