@@ -23,6 +23,13 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { Confirm } from "react-admin";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  CircularProgress,
+} from "@mui/material";
+import { IMonacoEditor } from "@uiw/react-monacoeditor";
 
 const yaml = require("js-yaml");
 
@@ -75,6 +82,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const LoadingModal = () => (
+  <Dialog open={true}>
+    <DialogTitle>Loading</DialogTitle>
+    <DialogContent>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </div>
+    </DialogContent>
+  </Dialog>
+);
+
 const DeleteConf = (conf_name: any) => {
   console.log(" DeleteConf conf_name: ", conf_name);
   if (!window.confirm(`Delete configuration "${conf_name}" ?`)) {
@@ -116,7 +134,12 @@ const addConf = (conf: any) => {
   return true;
 };
 
-export const LoadYaml = (config_url: any, notify: any, state: any) => {
+export const LoadYaml = (
+  config_url: any,
+  notify: any,
+  state: any,
+  handleLoader: any = null
+) => {
   if (state) {
     console.log("LoadYaml config_url: ", config_url);
     if (config_url == null) {
@@ -173,6 +196,7 @@ export const LoadYaml = (config_url: any, notify: any, state: any) => {
         } else {
           notify("cannot load configuration ");
           window.location.href = "/#/Configuration";
+          handleLoader();
         }
       })
       .catch((err) => {
@@ -289,6 +313,7 @@ const ExternalConf = () => {
   let loadURI = queryParams.get("load");
   console.log("loadURI: ", loadURI);
   const [open, setOpen] = useState(false);
+  const [loader, setLoader] = useState(false);
 
   let url,
     hostname,
@@ -374,8 +399,9 @@ const ExternalConf = () => {
     LoadYaml("/ui/admin/admin.yaml", notify);
   };
   const handleConfirm = () => {
+    setLoader(true);
     setOpen(false);
-    LoadYaml(loadURI, notify, true);
+    LoadYaml(loadURI, notify, true, handleLoader);
     const conf_str = localStorage.getItem("conf_cache1");
     console.log("conf_str: ", conf_str);
     saveConfig(conf_str);
@@ -384,14 +410,33 @@ const ExternalConf = () => {
     // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
 
+  const handleLoader = () => {
+    console.log("@@@@@@@@@@@@@@@@@@@@");
+    setLoader(false);
+  };
+
   return (
-    <Confirm
-      isOpen={open}
-      content={`Do you want to load the external configuration from ${loadURI}`}
-      onConfirm={handleConfirm}
-      onClose={handleDialogClose}
-      title={"Load external configuration"}
-    />
+    <div>
+      <Confirm
+        isOpen={open}
+        content={`Do you want to load the external configuration from ${loadURI}`}
+        onConfirm={handleConfirm}
+        onClose={handleDialogClose}
+        title={"Load external configuration"}
+      />
+      {!loader ? null : (
+        <Dialog
+          open={loader}
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
+            color: "white", // white text color
+            borderRadius: "10px", // rounded corners
+          }}
+        >
+          <Loading />
+        </Dialog>
+      )}
+    </div>
   );
 };
 
@@ -494,52 +539,40 @@ export const resetConf = (notify: any) => {
   return defconf;
 };
 
-const ConfigurationUI = (props: any) => {
-  // console.log("cuip", props);
+const ConfigurationUI = (props) => {
   const [data, setData] = useState(null);
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
+  const cancelToken = useRef(null);
+  const editorRef = useRef<IMonacoEditor | null>(null);
 
   const classes = useStyles();
   const notify = useNotify();
 
-  const saveYaml = (ystr: any, ev: any) => {
+  const saveYaml = (ystr, ev) => {
     try {
       const jj = yaml.load(ystr);
-      console.log("jj: ", jj);
       if (jj !== undefined) {
         saveEdit(JSON.stringify(jj));
       }
       setBgColor("black");
     } catch (e) {
       console.warn(`Failed to process`, ystr);
-      //notify(`${e}`, { type: "warning"})
       setBgColor("red");
     }
   };
 
-  const saveEdit = (text: any) => {
-    let value = window.location.href.split("/");
-    if (!window.location.href.includes("load")) {
-      if (!value.includes("Configuration")) {
-        if (text === "{}") {
-          LoadYaml("/ui/admin/admin.yaml", notify, true);
-        }
-      }
-    }
-
+  const saveEdit = (text) => {
     try {
       if (text) {
         const parsed_conf = JSON.parse(text);
         setApiroot(parsed_conf.api_root);
       }
       setBgColor("#ddeedd");
-      //localStorage.setItem("raconf", JSON.stringify(text, null, 4));
       localStorage.setItem("raconf", text);
       if (!taConf) {
         window.location.reload();
       }
     } catch (e) {
-      //setBgColor("#eedddd");
       setBgColor("red");
     }
     setTaConf(text);
@@ -562,7 +595,7 @@ const ConfigurationUI = (props: any) => {
           if (localStorage.getItem("conf_cache1") !== conf_str) {
             resetConf(() => {});
           }
-          setData(conf_str); // Store the fetched data in state
+          setData(conf_str);
         })
         .catch((err) => {
           console.log(err);
@@ -577,19 +610,24 @@ const ConfigurationUI = (props: any) => {
   const [taConf, setTaConf] = useState(
     conf ? JSON.stringify(JSON.parse(conf), null, 4) : ""
   );
+  console.log("taConf", taConf);
   const [bgColor, setBgColor] = useState("black");
   const [autosave, setAutosave] = useState(true);
   const [, setApiroot] = useState(JSON.parse(conf)?.api_root);
 
-  const handleAutoSaveChange = (event: any) => {
+  const handleAutoSaveChange = (event) => {
     setAutosave(event.target.checked);
   };
 
-  const Editor = useMemo(
-    () => React.lazy(() => import("@uiw/react-monacoeditor")),
-    []
+  const Editor = React.memo(
+    React.lazy(() => import("@uiw/react-monacoeditor")),
+    (prevProps, nextProps) => {
+      // Only re-render if the value prop has changed
+      return prevProps.value === nextProps.value;
+    }
   );
-  const TabPanel = (props: any) => {
+
+  const TabPanel = (props) => {
     const { children, value, index, ...other } = props;
     return (
       <div
@@ -614,15 +652,48 @@ const ConfigurationUI = (props: any) => {
     value: PropTypes.number.isRequired,
   };
 
-  function a11yProps(index: any) {
+  function a11yProps(index) {
     return {
       id: `simple-tab-${index}`,
       "aria-controls": `simple-tabpanel-${index}`,
     };
   }
-  const handleChange = (event: any, newValue: any) => {
+
+  const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const [showButton, setShowButton] = useState(false);
+  const [currentYaml, setCurrentYaml] = useState(
+    yaml.dump(JSON.parse(localStorage?.getItem("raconf")))
+  );
+
+  const handleEdit = (newtaConf: any, ev: any) => {
+    // Store the edited configuration in the ref
+    editorRef.current = newtaConf;
+    console.log("newtaConf", newtaConf);
+    const newContent = newtaConf;
+    const currentContent = currentYaml;
+    console.log("currentContent", currentContent);
+
+    setShowButton(true);
+  };
+
+  const handleSave = (newContent: any, ev: any) => {
+    // setEditedContent(true);
+    // Use the edited configuration from the ref
+    console.log("Edited configuration", editorRef.current);
+    saveYaml(editorRef.current, ev);
+    window.location.reload();
+  };
+
+  const handleReset = () => {
+    console.log("handleReset");
+    setShowButton(false);
+    // Implement reset logic here
+    saveYaml(currentYaml, "");
+  };
+
   return (
     <div>
       <div>
@@ -677,6 +748,31 @@ const ConfigurationUI = (props: any) => {
             >
               <Tab label="yaml" {...a11yProps(0)} />
               <Tab label="json" {...a11yProps(1)} />
+
+              {showButton ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "end",
+                    width: "100%",
+                  }}
+                >
+                  <Button
+                    className={classes.widget}
+                    color="primary"
+                    onClick={() => handleSave()}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    className={classes.widget}
+                    color="primary"
+                    onClick={() => handleReset()}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              ) : null}
             </Tabs>
           </Box>
           <TabPanel value={value} index={0}>
@@ -689,7 +785,11 @@ const ConfigurationUI = (props: any) => {
                 }}
                 height="1000px"
                 style={{ borderLeft: `8px solid ${bgColor}` }}
-                onChange={(taConf, ev) => saveYaml(taConf, ev)}
+                editorDidMount={(editor, monaco) => {
+                  const initialValue = editor.getValue();
+                  console.log("initialValue", initialValue);
+                }}
+                onChange={(taConf, ev) => handleEdit(taConf, ev)}
               />
             </Suspense>
           </TabPanel>
