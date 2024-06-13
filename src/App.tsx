@@ -20,7 +20,7 @@ import { Layout } from "./components/Layout";
 import Home from "./components/Home";
 import HomeIcon from "@material-ui/icons/Home";
 import SettingsIcon from "@material-ui/icons/Settings";
-import authProvider from "./authprovider";
+import { authProvider as sraAuthPorvider } from "./authprovider";
 import { QueryClient } from "react-query";
 import LoginPage from "./pages/LoginPage";
 import SSOLogin from "./pages/SSOLogin";
@@ -220,6 +220,9 @@ const App: React.FC = () => {
     };
     if (conf.authentication?.keycloak && !keycloak) {
       initKeyCloakClient();
+    }
+    else if (conf.authentication?.endpoint) {
+      authProvider.current = sraAuthPorvider
     }
   }, [keycloak]);
 

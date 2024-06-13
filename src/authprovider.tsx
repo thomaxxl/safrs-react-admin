@@ -1,52 +1,6 @@
 import { getConf } from "./Config";
-import Keycloak from "keycloak-js";
-import { getKcUrl } from "./Config";
 
-interface InitOptions {
-  url: string | undefined;
-  realm: string;
-  clientId: string;
-  onLoad: string;
-  KeycloakResponseType: string;
-  silentCheckSsoRedirectUri: string;
-}
-
-let initOptions: InitOptions = {
-  url: getKcUrl(),
-  realm: "kcals",
-  clientId: "alsclient",
-  onLoad: "check-sso", // check-sso | login-required
-  KeycloakResponseType: "code",
-  silentCheckSsoRedirectUri: "/sso",
-};
-
-let kc = new Keycloak(initOptions);
-(window as any).mykc = kc;
-
-if (
-  !document.location.href.includes("session_state") &&
-  !document.location.href.includes("login_required")
-) {
-  /*kc.init({
-    onLoad: "login-required",
-    KeycloakResponseType: 'code',
-    silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html", checkLoginIframe: false,
-    pkceMethod: 'S256'
-    }).then((auth) => {
-    console.log('kc auth', kc)
-    if(auth) {
-        kc.onTokenExpired = () => {
-            console.log('token expired')
-            //kc.updateToken(10).then(()=>)
-        }
-        
-    }
-    } , () => {
-    console.error("Authenticated Failed");
-    });*/
-}
-
-const authProvider = {
+export const authProvider = {
   login: ({ username, password }: { username: string; password: string }) => {
     const conf = getConf();
 
