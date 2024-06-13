@@ -95,6 +95,14 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
   }, [dataProvider]);
 
   if (resources.length === 0 || keycloak === undefined) {
+    if (!window.location.href.includes("load")) {
+      if (!value.includes("Configuration")) {
+        if (localStorage.getItem("raconf") === "{}") {
+          return <div>Failed to Load Yaml </div>;
+        }
+      }
+    }
+
     return <div>Loading...</div>;
   }
   if (typeof conf.api_root !== "string") {
