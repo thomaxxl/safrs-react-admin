@@ -9,6 +9,11 @@ import {
   TranslationMessages,
   useDataProvider,
   AuthProvider,
+  defaultTheme,
+  houseLightTheme,
+  radiantLightTheme,
+  nanoLightTheme,
+  defaultLightTheme,
 } from "react-admin";
 import { useNotify } from "react-admin";
 import englishMessages from "ra-language-english";
@@ -36,6 +41,12 @@ import Keycloak, {
   KeycloakInitOptions,
 } from "keycloak-js";
 import { keycloakAuthProvider } from "ra-keycloak";
+import { PaletteMode, createTheme, useMediaQuery } from "@mui/material";
+import { IconButton, Tooltip, ThemeProvider } from "@mui/material";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+import { Menu, MyAppBar } from "./components/Menu";
+import { ThemeColorContext, ThemeColorProvider } from "./ThemeProvider";
 
 const initOptions: KeycloakInitOptions = {
   onLoad: "login-required",
@@ -64,12 +75,7 @@ const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
 
 const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const [resources, setResources] = React.useState<any[]>([]);
-  let value = window.location.href.split("/");
-  if (window.location.href.includes("load")) {
-    if (value.includes("Configuration")) {
-      window.location.reload();
-    }
-  }
+
   const conf = useConf();
   const notify = useNotify();
   console.log("AsyncResources conf: ", conf);
@@ -96,10 +102,8 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 
   if (resources.length === 0 || keycloak === undefined) {
     if (!window.location.href.includes("load")) {
-      if (!value.includes("Configuration")) {
-        if (localStorage.getItem("raconf") === "{}") {
-          return <div>Failed to Load Yaml </div>;
-        }
+      if (localStorage.getItem("raconf") === "{}") {
+        return <div>Failed to Load Yaml </div>;
       }
     }
 
@@ -112,12 +116,10 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     }
     notify("api_root must be string", { type: "error" });
     console.log("window.location.href: ", window.location.href);
-    let value = window.location.href.split("/");
-    if (!window.location.href.includes("load")) {
-      if (!value.includes("Configuration")) {
-        window.location.reload();
-      }
-    }
+    // let value = window.location.href.split("/");
+    // if (!window.location.href.includes("load")) {
+    //   window.location.reload();
+    // }
   }
 
   return (
@@ -126,7 +128,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
         <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />
       )}
       layout={Layout}
-      //loginPage={loginPage}
+      // loginPage={LoginPage}
       disableTelemetry
     >
       <Resource
@@ -174,8 +176,29 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 };
 
 const App: React.FC = () => {
+  const { themeColor } = React.useContext(ThemeColorContext);
+
+  const ThemeColor = localStorage.getItem("ThemeColor");
+  console.log("themeColor: ", themeColor);
+  let theme;
+
+  if (themeColor === "nanoLightTheme") {
+    theme = nanoLightTheme;
+  } else if (themeColor === "radiantLightTheme") {
+    theme = radiantLightTheme;
+  } else if (themeColor === "houseLightTheme") {
+    theme = houseLightTheme;
+  } else if (themeColor === null) {
+    localStorage.setItem("ThemeColor", "defalut");
+    theme = defaultLightTheme;
+  }
+
   ConfigurationUI({});
   const conf = useConf();
+  const darkTheme = {
+    ...defaultTheme,
+    palette: { mode: "dark" as PaletteMode },
+  };
 
   const [keycloak, setKeycloak] = React.useState<Keycloak>(undefined);
   const dataProvider = jsonapiClient(conf.api_root, { conf: {} }, keycloak);
@@ -226,6 +249,9 @@ const App: React.FC = () => {
   return (
     <InfoToggleProvider>
       <AdminContext
+        theme={theme}
+        darkTheme={darkTheme}
+        defaultTheme={"light"}
         dataProvider={dataProvider}
         authProvider={conf.authentication ? authProvider.current : undefined}
         queryClient={queryClient}

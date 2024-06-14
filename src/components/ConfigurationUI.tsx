@@ -195,7 +195,7 @@ export const LoadYaml = (
           window.location.reload();
         } else {
           notify("cannot load configuration ");
-          window.location.href = "/#/Configuration";
+          // window.location.href = "/#/Configuration";
           handleLoader();
         }
       })
@@ -327,7 +327,7 @@ const ExternalConf = () => {
     try {
       if (loadURI) {
         url = new URL(decodeURIComponent(loadURI));
-        hostname = url.hostname;
+        hostname = url;
       }
     } catch (e) {
       notify("cannot load configuration from: " + loadURI);
@@ -361,7 +361,7 @@ const ExternalConf = () => {
         for (let key in parsedData) {
           if (parsedData[key] && parsedData[key].api_root) {
             try {
-              let hostname = new URL(parsedData[key].api_root).hostname;
+              let hostname = new URL(parsedData[key].api_root).href;
               api_root_hostname_1.push(hostname);
             } catch (_) {
               // Ignore the error if the URL is invalid
@@ -540,7 +540,7 @@ export const resetConf = (notify: any) => {
 };
 
 const ConfigurationUI = (props) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(localStorage.getItem("raconf"));
   const [value, setValue] = useState(0);
   const cancelToken = useRef(null);
   const editorRef = useRef<IMonacoEditor | null>(null);
@@ -592,15 +592,15 @@ const ConfigurationUI = (props) => {
       fetch(als_yaml_url, { cache: "no-store" })
         .then((response) => response.text())
         .then((conf_str) => {
+          setData(conf_str);
           if (localStorage.getItem("conf_cache1") !== conf_str) {
             resetConf(() => {});
           }
-          setData(conf_str);
         })
         .catch((err) => {
           console.log(err);
           notify("Can't Load configuration file");
-          window.location.href = "/#/Configuration";
+          // window.location.href = "/#/Configuration";
         });
     }
   }, [data]);
@@ -754,18 +754,19 @@ const ConfigurationUI = (props) => {
                   style={{
                     display: "flex",
                     justifyContent: "end",
+                    alignItems: "center",
                     width: "100%",
                   }}
                 >
                   <Button
-                    className={classes.widget}
+                    // className={classes.widget}
                     color="primary"
                     onClick={() => handleSave()}
                   >
                     Save
                   </Button>
                   <Button
-                    className={classes.widget}
+                    // className={classes.widget}
                     color="primary"
                     onClick={() => handleReset()}
                   >
