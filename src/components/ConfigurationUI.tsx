@@ -192,7 +192,8 @@ export const LoadYaml = (
           localStorage.setItem("conf_cache1", conf_str);
           saveConf(conf_str);
           notify("Loaded configuration");
-          window.location.reload();
+          handleLoader();
+          window.location.href = "/";
         } else {
           notify("cannot load configuration ");
           // window.location.href = "/#/Configuration";
@@ -310,88 +311,19 @@ const ExternalConf = () => {
   console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
   console.log("queryParams: ", queryParams);
-  let loadURI = queryParams.get("load");
+  let loadURI = queryParams?.get("load");
   console.log("loadURI: ", loadURI);
   const [open, setOpen] = useState(false);
   const [loader, setLoader] = useState(false);
 
-  let url,
-    hostname,
-    local_data,
-    api_root_hostname,
-    api_root_hostname_1 = [];
+  React.useEffect(() => {
+    if (window.location.href.includes("load")) {
+      setOpen(true);
+    }
+  }, [window.location.href]);
 
   const notify = useNotify();
 
-  React.useEffect(() => {
-    try {
-      if (loadURI) {
-        url = new URL(decodeURIComponent(loadURI));
-        hostname = url;
-      }
-    } catch (e) {
-      notify("cannot load configuration from: " + loadURI);
-      setOpen(false);
-      loadURI = null;
-      let url = new URL(window.location.href);
-      let hashParts = url.hash.split("?");
-
-      if (hashParts.length > 1) {
-        let params = new URLSearchParams(hashParts[1]);
-        params.delete("load");
-        url.hash = hashParts[0] + "?" + params.toString();
-      }
-
-      window.location.href = url.toString();
-    }
-  }, [loadURI]);
-
-  try {
-    let raconf = localStorage.getItem("raconf");
-    let raconfigs = localStorage.getItem("raconfigs");
-    if (raconf) {
-      let parsedData = JSON.parse(raconf);
-      if (parsedData && parsedData.api_root) {
-        api_root_hostname = new URL(parsedData.api_root).hostname;
-      }
-    }
-    if (raconfigs) {
-      let parsedData = JSON.parse(raconfigs);
-      if (parsedData) {
-        for (let key in parsedData) {
-          if (parsedData[key] && parsedData[key].api_root) {
-            try {
-              let hostname = new URL(parsedData[key].api_root).href;
-              api_root_hostname_1.push(hostname);
-            } catch (_) {
-              // Ignore the error if the URL is invalid
-            }
-          }
-        }
-      }
-    }
-  } catch (e) {}
-
-  if (
-    (api_root_hostname && loadURI?.includes(api_root_hostname)) ||
-    (loadURI &&
-      api_root_hostname_1.some((hostname) => loadURI?.includes(hostname)))
-  ) {
-    local_data = true;
-  } else {
-    local_data = false;
-  }
-
-  React.useEffect(() => {
-    if (loadURI) {
-      setOpen(true);
-    }
-    if (local_data) {
-      setOpen(false);
-    }
-  }, [loadURI]);
-
-  console.log("url: ", url);
   console.log("open: ", open);
   const handleDialogClose = () => {
     setOpen(false);
