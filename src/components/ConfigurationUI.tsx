@@ -28,8 +28,10 @@ import {
   DialogTitle,
   DialogContent,
   CircularProgress,
+  SvgIcon,
 } from "@mui/material";
 import { IMonacoEditor } from "@uiw/react-monacoeditor";
+import { ThemeColorContext } from "../ThemeProvider";
 
 const yaml = require("js-yaml");
 
@@ -80,18 +82,30 @@ const useStyles = makeStyles((theme) => ({
     p: 4,
     textAlign: "left",
   },
+  mySelectStyle: {
+    "&.MuiInputBase-root": {
+      padding: "0 8px",
+      position: "relative",
+      bottom: "-8px",
+      height: "37px",
+      border: "1px solid #3f51b5",
+      borderRadius: "4px",
+      float: "right",
+      "& div.MuiSelect-select": {
+        position: "absolute",
+        background: "transparent",
+        left: 0,
+        padding: 0,
+      },
+    },
+    "&.MuiInput-underline:before, &.MuiInput-underline:after": {
+      display: "none",
+    },
+  },
+  palletteStyle: {
+    color: "#3f51b5",
+  },
 }));
-
-const LoadingModal = () => (
-  <Dialog open={true}>
-    <DialogTitle>Loading</DialogTitle>
-    <DialogContent>
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <CircularProgress />
-      </div>
-    </DialogContent>
-  </Dialog>
-);
 
 const DeleteConf = (conf_name: any) => {
   console.log(" DeleteConf conf_name: ", conf_name);
@@ -127,6 +141,18 @@ const addConf = (conf: any) => {
     console.warn("Config has no api_root", conf);
     return false;
   }
+
+  if (!conf.ui) {
+    conf.ui = {
+      theme: {
+        name: "default",
+        palette: {
+          primary: "indigo",
+        },
+      },
+    };
+  }
+
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   console.log("conf: ", conf);
@@ -471,6 +497,90 @@ export const resetConf = (notify: any) => {
   return defconf;
 };
 
+export const ThemeSelector = () => {
+  const { themeColor, setThemeColor } = React.useContext(ThemeColorContext);
+
+  const style = useStyles();
+
+  const value: any = localStorage.getItem("ThemeColor");
+  const conf = JSON.parse(localStorage.getItem("raconf") || "{}");
+  if (!conf.ui) {
+    conf.ui = {
+      theme: {
+        name: "default",
+        palette: {
+          primary: "indigo",
+        },
+      },
+    };
+    localStorage.setItem("ThemeColor", "default");
+  }
+  if (conf.ui) {
+    localStorage.setItem("ThemeColor", conf.ui.theme.name);
+  }
+
+  console.log("value: ", value);
+  const handleColorChange = (event) => {
+    localStorage.setItem("ThemeColor", event.target.value);
+    conf.ui = {
+      theme: {
+        name: `${event.target.value}`,
+        palette: {
+          primary: event.target.value,
+        },
+      },
+    };
+    setThemeColor(event.target.value);
+    localStorage.setItem("raconf", JSON.stringify(conf));
+    window.location.reload();
+  };
+
+  return (
+    <>
+      <Select
+        value={""}
+        className={style.mySelectStyle}
+        onChange={handleColorChange}
+        disableUnderline={false}
+        IconComponent={() => (
+          <>
+            <SvgIcon
+              className={style.palletteStyle}
+              style={{
+                color:
+                  value === "radiantLightTheme"
+                    ? "black"
+                    : value === "houseLightTheme"
+                    ? "#3f51b5"
+                    : value === "nanoLightTheme"
+                    ? "black"
+                    : value === "default"
+                    ? "#3f51b5"
+                    : "#3f51b5",
+              }}
+            >
+              <svg height="20px" width="20px" viewBox="0 0 36 36">
+                <g>
+                  <path
+                    d="M32.23,14.89c-2.1-.56-4.93,1.8-6.34.3-1.71-1.82,2.27-5.53,1.86-8.92-.33-2.78-3.51-4.08-6.66-4.1A18.5,18.5,0,0,0,7.74,7.59c-6.64,6.59-8.07,16-1.37,22.48,6.21,6,16.61,4.23,22.67-1.4a17.73,17.73,0,0,0,4.22-6.54C34.34,19.23,34.44,15.49,32.23,14.89ZM9.4,10.57a2.23,2.23,0,0,1,2.87,1.21,2.22,2.22,0,0,1-1.81,2.53A2.22,2.22,0,0,1,7.59,13.1,2.23,2.23,0,0,1,9.4,10.57ZM5.07,20.82a2.22,2.22,0,0,1,1.82-2.53A2.22,2.22,0,0,1,9.75,19.5,2.23,2.23,0,0,1,7.94,22,2.24,2.24,0,0,1,5.07,20.82Zm7,8.33a2.22,2.22,0,0,1-2.87-1.21A2.23,2.23,0,0,1,11,25.41a2.23,2.23,0,0,1,2.87,1.21A2.22,2.22,0,0,1,12,29.15ZM15,8.26a2.23,2.23,0,0,1,1.81-2.53,2.24,2.24,0,0,1,2.87,1.21,2.22,2.22,0,0,1-1.82,2.53A2.21,2.21,0,0,1,15,8.26Zm5.82,22.19a2.22,2.22,0,0,1-2.87-1.21,2.23,2.23,0,0,1,1.81-2.53,2.24,2.24,0,0,1,2.87,1.21A2.22,2.22,0,0,1,20.78,30.45Zm5-10.46a3.2,3.2,0,0,1-1.69,1.76,3.53,3.53,0,0,1-1.4.3,2.78,2.78,0,0,1-2.56-1.5,2.49,2.49,0,0,1-.07-2,3.2,3.2,0,0,1,1.69-1.76,3,3,0,0,1,4,1.2A2.54,2.54,0,0,1,25.79,20Z"
+                    fill="currentColor"
+                  />
+                </g>
+              </svg>
+            </SvgIcon>
+            {/* <img src={colorpalette} style={{ width: "20px" }} /> */}
+          </>
+        )}
+      >
+        <MenuItem value="nanoLightTheme">nanoLightTheme</MenuItem>
+        <MenuItem value="radiantLightTheme">radiantLightTheme</MenuItem>
+        <MenuItem value="houseLightTheme">houseLightTheme</MenuItem>
+        <MenuItem value="default">default</MenuItem>
+      </Select>
+    </>
+  );
+};
+
 const ConfigurationUI = (props) => {
   const [data, setData] = useState(localStorage.getItem("raconf"));
   const [value, setValue] = useState(0);
@@ -669,6 +779,7 @@ const ConfigurationUI = (props) => {
           }
           label="Auto Save Config"
         />
+        <ThemeSelector />
       </div>
       <div>
         <Box sx={{ width: "100%" }}>
@@ -680,7 +791,6 @@ const ConfigurationUI = (props) => {
             >
               <Tab label="yaml" {...a11yProps(0)} />
               <Tab label="json" {...a11yProps(1)} />
-
               {showButton ? (
                 <div
                   style={{
@@ -693,16 +803,16 @@ const ConfigurationUI = (props) => {
                   <Button
                     // className={classes.widget}
                     color="primary"
-                    onClick={() => handleSave()}
+                    onClick={() => handleReset()}
                   >
-                    Save
+                    Reset
                   </Button>
                   <Button
                     // className={classes.widget}
                     color="primary"
-                    onClick={() => handleReset()}
+                    onClick={() => handleSave()}
                   >
-                    Reset
+                    Save and Apply
                   </Button>
                 </div>
               ) : null}
