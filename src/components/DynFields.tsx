@@ -166,14 +166,36 @@ type ToOneJoinProps = {
   label: React.ReactElement; // or the specific type of your label
 };
 
+const replaceNullWithDash = (obj: any, visited: any[] = []) => {
+  if (obj === null) {
+    return "-";
+  }
+
+  if (visited.includes(obj)) {
+    return; 
+  }
+
+  visited.push(obj);
+
+  for (let key in obj) {
+    if (obj[key] === null) {
+      obj[key] = "-";
+    } else if (typeof obj[key] === "object") {
+      replaceNullWithDash(obj[key], visited);
+    }
+  }
+};
 const ToOneJoin: React.FC<ToOneJoinProps> = ({
   attribute,
 }: {
   attribute: any;
 }) => {
   const record = useRecordContext();
+
+  replaceNullWithDash(record);
   const label_text =
     attribute.label || attribute.relationship.resource || attribute.name;
+
   const label = <RelLabel text={label_text} />;
   return (
     <JoinedField
@@ -192,7 +214,7 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
   }
 
   const fields = attributes.map((attr) => {
-    if (attr.hidden === mode || attr.hidden === true) {
+        if (attr.hidden === mode || attr.hidden === true) {
       //return null;
     }
     if (attr.relationship?.direction === "toone") {
