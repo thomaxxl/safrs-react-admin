@@ -243,9 +243,8 @@ const App: React.FC = () => {
     };
     if (conf.authentication?.keycloak && !keycloak) {
       initKeyCloakClient();
-    }
-    else if (conf.authentication?.endpoint) {
-      authProvider.current = sraAuthPorvider
+    } else if (conf.authentication?.endpoint) {
+      authProvider.current = sraAuthPorvider;
     }
   }, [keycloak]);
 

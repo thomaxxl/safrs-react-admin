@@ -14,7 +14,7 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: "75%",
   backgroundColor: "white",
-  border: "2px solid #000",
+  // border: "2px solid #000",
   boxShadow: "0px 0px 24px rgba(0, 0, 0, 0.2)",
   padding: 4,
   textAlign: "left" as Property.TextAlign,
@@ -56,7 +56,11 @@ const InfoModal = ({ resource, mode }: { resource: any; mode: any }) => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style} className={classes.info_modal}>
+        <Box
+          sx={style}
+          className={classes.info_modal}
+          style={{ borderRadius: "4px" }}
+        >
           <Typography
             id="modal-modal-description"
             style={{ marginTop: "2 rem" }}

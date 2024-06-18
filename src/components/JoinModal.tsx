@@ -11,7 +11,7 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: "75%",
   bgcolor: "background.paper",
-  border: "2px solid #000",
+  BorderRadius: "4px",
   boxShadow: 24,
   p: 4,
   textAlign: "left",
@@ -57,7 +57,7 @@ export default function JoinModal({
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style}>
+        <Box sx={style} style={{ borderRadius: "4px" }}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             {label}
           </Typography>
