@@ -167,12 +167,12 @@ type ToOneJoinProps = {
 };
 
 const replaceNullWithDash = (obj: any, visited: any[] = []) => {
-  if (obj === null) {
+  if (obj === null || obj === undefined) {
     return "-";
   }
 
   if (visited.includes(obj)) {
-    return; 
+    return;
   }
 
   visited.push(obj);
@@ -214,7 +214,7 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
   }
 
   const fields = attributes.map((attr) => {
-        if (attr.hidden === mode || attr.hidden === true) {
+    if (attr.hidden === mode || attr.hidden === true) {
       //return null;
     }
     if (attr.relationship?.direction === "toone") {
