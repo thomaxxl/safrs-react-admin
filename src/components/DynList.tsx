@@ -152,7 +152,9 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
   };
 
   const ListTitle = (props: any) => <>{resource_conf.name} List</>;
-  const attributes = resource_conf.attributes;
+  let attributes = resource_conf.attributes;
+  attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
+
   const fields = attr_fields(attributes, "list");
   const col_nr = resource_conf.max_list_columns;
   const sort = resource_conf.sort_attr_names

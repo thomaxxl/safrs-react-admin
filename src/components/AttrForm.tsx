@@ -10,6 +10,11 @@ import { useLocation } from "react-router";
 
 const useStyles = makeStyles({
   edit_grid: { width: "100%" },
+  textClass: {
+    "& textarea": {
+      height: "100px !important",
+    },
+  },
 });
 
 const AttrForm = ({
@@ -137,8 +142,9 @@ const AttrForm = ({
       >
         {attributes
           .filter((attr: resource) => !attr.relationship && !attr.hidden)
-          .map((attr: attributes) => (
+          .map((attr: any) => (
             <DynInput
+              className={attr.type === "textarea" ? classes.textClass : ""}
               renderSwitch={renderSwitch}
               setRecords={setRecords}
               myfocusRef={focusRef.current}
