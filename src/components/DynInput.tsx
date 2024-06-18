@@ -18,6 +18,7 @@ const DynInput = ({
   myfocusRef,
   attribute,
   xs,
+  className = "",
   currentid,
   currentParent,
 }: {
@@ -26,9 +27,11 @@ const DynInput = ({
   myfocusRef: any;
   attribute: any;
   xs: any;
+  className?: any;
   currentid: any;
   currentParent: any;
 }) => {
+  console.log("attribute: ", attribute);
   const [selected_ref, setSelected_ref] = useState(false);
   const conf = useConf();
   useEffect(() => {
@@ -38,26 +41,40 @@ const DynInput = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const label = attribute.label || attribute.name;
+  console.log("label: ", label);
   const input_props = {
     validate: attribute.required ? required() : undefined,
     label: label,
   };
   const GridWrap = (props: any) => (
-    <Grid item xs={xs || 4} spacing={4}>
+    <Grid className={className} item xs={xs || 4} spacing={4}>
       {props.children}
     </Grid>
   );
   const attr_type = attribute.type?.toLowerCase();
+  console.log("attr_type: ", attr_type);
+
+  const [validationMessage, setValidationMessage] = useState(false);
+  console.log("validationMessage: ", validationMessage);
 
   const dynamicRender = (name: any, value: any) => {
     setRecords(name, value);
+  };
+
+  const validateUrl = (name: any, value: any) => {
+    if (value && !value.startsWith("http")) {
+      setValidationMessage(true);
+      setRecords(name, "");
+    } else {
+      setValidationMessage(false);
+    }
   };
 
   if (attribute.show_when && !renderSwitch.includes(attribute.name)) {
     return <></>;
   }
   let result = (
-    <GridWrap>
+    <GridWrap xs={8}>
       <TextInput
         onChange={(e) => {
           dynamicRender(attribute.name, e.target.value);
@@ -65,6 +82,7 @@ const DynInput = ({
         defaultValue={null}
         source={attribute.name}
         fullWidth
+        rows={12}
         multiline={attribute.multiline}
         {...input_props}
         autoFocus={attribute.name === myfocusRef}
@@ -137,6 +155,49 @@ const DynInput = ({
           {...input_props}
           autoFocus={attribute.name === myfocusRef}
         />
+      </GridWrap>
+    );
+  }
+
+  if (attr_type === "textarea") {
+    result = (
+      <GridWrap>
+        <TextInput
+          source={attribute.name}
+          multiline
+          onChange={(e) => {
+            dynamicRender(attribute.name, e.target.value);
+          }}
+          {...input_props}
+          autoFocus={attribute.name === myfocusRef}
+          fullWidth
+        />
+      </GridWrap>
+    );
+  }
+
+  if (attr_type === "link") {
+    result = (
+      <GridWrap>
+        <TextInput
+          onBlur={(e) => {
+            validateUrl(attribute.name, e.target.value);
+          }}
+          defaultValue={null}
+          source={attribute.name}
+          fullWidth
+          rows={12}
+          multiline={attribute.multiline}
+          validate={attribute.required ? required() : undefined}
+          autoFocus={attribute.name === myfocusRef}
+          error={validationMessage}
+          helperText={false}
+        />
+        {validationMessage && (
+          <div style={{ color: "red", fontSize: "12px" }}>
+            Enter a Valid URL
+          </div>
+        )}
       </GridWrap>
     );
   }
