@@ -64,7 +64,7 @@ const TruncatedTextField = (props: any) => {
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
-    if (source === "Image") {
+    if (props.type === "image") {
       return (
         <>
           {value ? (
@@ -78,7 +78,7 @@ const TruncatedTextField = (props: any) => {
     return <span>{value ? value : "-"}</span>; // Return "-" when value is null or undefined
   }
 
-  if (source === "Image") {
+  if (props.type === "image") {
     return (
       <>
         {value ? (
@@ -280,6 +280,7 @@ const AttrField = ({
       key={attribute.name}
       sortBy={attribute.name}
       label={attribute.label || attribute.name}
+      type={attribute.type}
       {...props}
     />
   );
@@ -319,6 +320,7 @@ const ShowField = ({
   attr,
   mode,
   id,
+  type,
   ...props
 }: {
   label: any;
@@ -326,6 +328,7 @@ const ShowField = ({
   attr: any;
   mode: any;
   id: any;
+  type: any;
 }) => {
   // Field like it is shown in the instance /show
   // console.log(id);
@@ -385,7 +388,7 @@ const ShowField = ({
       );
     }
 
-    if (label.props.label === " Image") {
+    if (type === "image") {
       console.log("Imagevalue: ", value);
       return (
         <>
@@ -394,7 +397,7 @@ const ShowField = ({
               {label}
             </Typography>
             {value ? (
-              <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
+            <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
             ) : (
               ""
             )}
@@ -496,6 +499,7 @@ export const ShowAttrField = ({
       {...field_props}
       value={value}
       label={label}
+      type={attr.type}
       id={id}
       mode="show"
       attr
