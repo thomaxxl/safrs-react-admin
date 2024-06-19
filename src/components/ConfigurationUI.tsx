@@ -229,6 +229,7 @@ export const LoadYaml = (
       .catch((err) => {
         if (notify) {
           notify("Failed to load yaml", { type: "warning" });
+          window.location.reload();
         }
         console.error(`Failed to load yaml from ${config_url}: ${err}`);
       });
@@ -538,10 +539,11 @@ export const ThemeSelector = () => {
   return (
     <>
       <Select
-        value={""}
+        value={value}
         className={style.mySelectStyle}
         onChange={handleColorChange}
         disableUnderline={false}
+        renderValue={() => ""}
         IconComponent={() => (
           <>
             <SvgIcon
@@ -549,11 +551,11 @@ export const ThemeSelector = () => {
               style={{
                 color:
                   value === "radiantLightTheme"
-                    ? "black"
+                    ? "#3f51b5"
                     : value === "houseLightTheme"
                     ? "#3f51b5"
                     : value === "nanoLightTheme"
-                    ? "black"
+                    ? "#3f51b5"
                     : value === "default"
                     ? "#3f51b5"
                     : "#3f51b5",
@@ -568,13 +570,12 @@ export const ThemeSelector = () => {
                 </g>
               </svg>
             </SvgIcon>
-            {/* <img src={colorpalette} style={{ width: "20px" }} /> */}
           </>
         )}
       >
-        <MenuItem value="nanoLightTheme">nanoLightTheme</MenuItem>
-        <MenuItem value="radiantLightTheme">radiantLightTheme</MenuItem>
-        <MenuItem value="houseLightTheme">houseLightTheme</MenuItem>
+        <MenuItem value="nanoLightTheme">Nano Light</MenuItem>
+        <MenuItem value="radiantLightTheme">Radiant Light</MenuItem>
+        <MenuItem value="houseLightTheme">House Light</MenuItem>
         <MenuItem value="default">default</MenuItem>
       </Select>
     </>
@@ -586,6 +587,7 @@ const ConfigurationUI = (props) => {
   const [value, setValue] = useState(0);
   const cancelToken = useRef(null);
   const editorRef = useRef<IMonacoEditor | null>(null);
+  const editorJsonRef = useRef<IMonacoEditor | null>(null);
 
   const classes = useStyles();
   const notify = useNotify();
@@ -717,8 +719,39 @@ const ConfigurationUI = (props) => {
     const newContent = newtaConf;
     const currentContent = currentYaml;
     console.log("currentContent", currentContent);
-
     setShowButton(true);
+  };
+
+  const handleSaveJsonEditor = (newtext: any) => {
+    console.log("newtext: ", newtext);
+    saveEdit(editorJsonRef.current);
+    window.location.reload();
+  };
+  const TextareaAutosizeMemo = React.memo((props) => {
+    const [textAreaValue, setTextAreaValue] = useState(
+      JSON.stringify(JSON.parse(props.taConf), null, 4)
+    );
+
+    const handleTextAreaChange = (evt) => {
+      setTextAreaValue(evt.target.value);
+      editorJsonRef.current = evt.target.value;
+    };
+
+    return (
+      <TextareaAutosize
+        minRows={3}
+        style={{ width: "80%", backgroundColor: "white" }}
+        value={textAreaValue}
+        onChange={handleTextAreaChange}
+      />
+    );
+  });
+
+  const handleClickSave = () => {
+    handleSaveJsonEditor();
+    if (currentYaml !== editorRef.current) {
+      handleSave();
+    }
   };
 
   const handleSave = (newContent: any, ev: any) => {
@@ -731,7 +764,6 @@ const ConfigurationUI = (props) => {
 
   const handleReset = () => {
     console.log("handleReset");
-    setShowButton(false);
     // Implement reset logic here
     saveYaml(currentYaml, "");
   };
@@ -810,7 +842,7 @@ const ConfigurationUI = (props) => {
                   <Button
                     // className={classes.widget}
                     color="primary"
-                    onClick={() => handleSave()}
+                    onClick={() => handleClickSave()}
                   >
                     Save and Apply
                   </Button>
@@ -837,12 +869,9 @@ const ConfigurationUI = (props) => {
             </Suspense>
           </TabPanel>
           <TabPanel value={value} index={1}>
-            <TextareaAutosize
-              // variant="outlined"
-              minRows={3}
-              style={{ width: "80%", backgroundColor: "white" }}
-              value={JSON.stringify(JSON.parse(taConf), null, 4)}
-              onChange={(evt) => saveEdit(evt.target.value)}
+            <TextareaAutosizeMemo
+              taConf={taConf}
+              handleSaveJson={handleSaveJsonEditor}
             />
           </TabPanel>
         </Box>
