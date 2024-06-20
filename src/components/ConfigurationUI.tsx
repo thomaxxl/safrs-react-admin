@@ -204,6 +204,7 @@ export const LoadYaml = (
         }
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
+        window.location.href = "/#/Configuration";
         console.error(e);
       }
     };
@@ -222,13 +223,14 @@ export const LoadYaml = (
           window.location.href = "/";
         } else {
           notify("cannot load configuration ");
-          // window.location.href = "/#/Configuration";
+          window.location.href = "/#/Configuration";
           handleLoader();
         }
       })
       .catch((err) => {
         if (notify) {
           notify("Failed to load yaml", { type: "warning" });
+          window.location.href = "/#/Configuration";
           window.location.reload();
         }
         console.error(`Failed to load yaml from ${config_url}: ${err}`);
@@ -238,6 +240,7 @@ export const LoadYaml = (
 
 const ManageModal = () => {
   const navigate = useNavigate();
+  const notify = useNotify();
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e?: any) => {
     setOpen(true);
@@ -247,6 +250,21 @@ const ManageModal = () => {
   };
 
   let configs = [];
+
+  const handleClick = () => {
+    setOpen(false);
+    console.log("textFieldRef?.current?.value", textFieldRef?.current?.value);
+    try {
+      let newURL = new URL(textFieldRef?.current?.value);
+      console.log("newURL: ", newURL);
+      navigate(
+        `?load=${encodeURIComponent(textFieldRef?.current?.value || "")}`
+      );
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Invalid URL", { type: "warning" });
+    }
+  };
 
   try {
     configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
@@ -278,7 +296,7 @@ const ManageModal = () => {
     <span />
   );
   const textFieldRef: any = useRef();
-  const notify = useNotify();
+
   return (
     <>
       <Button
@@ -314,14 +332,7 @@ const ManageModal = () => {
             />
             <Button
               className={classes.widget}
-              onClick={(evt) => {
-                setOpen(false);
-                navigate(
-                  `?load=${encodeURIComponent(
-                    textFieldRef?.current?.value || ""
-                  )}`
-                );
-              }}
+              onClick={(evt) => handleClick()}
               color="primary"
             >
               Load
@@ -334,12 +345,22 @@ const ManageModal = () => {
 };
 
 const ExternalConf = () => {
+  const notify = useNotify();
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
   console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
   console.log("queryParams: ", queryParams);
-  let loadURI = queryParams?.get("load");
+  let loadURI: any = queryParams?.get("load");
   console.log("loadURI: ", loadURI);
+  if (loadURI !== null) {
+    try {
+      let newURl = new URL(loadURI);
+    } catch (error) {
+      notify("Enter a valid URL", { type: "warning" });
+      window.location.href = "/#/Configuration";
+    }
+  }
+
   const [open, setOpen] = useState(false);
   const [loader, setLoader] = useState(false);
 
@@ -348,8 +369,6 @@ const ExternalConf = () => {
       setOpen(true);
     }
   }, [window.location.href]);
-
-  const notify = useNotify();
 
   console.log("open: ", open);
   const handleDialogClose = () => {
@@ -584,6 +603,10 @@ export const ThemeSelector = () => {
 
 const ConfigurationUI = (props) => {
   const [data, setData] = useState(localStorage.getItem("raconf"));
+  const [raconfigsData, setRaconfigsData] = useState(
+    localStorage.getItem("raconfigs")
+  );
+  console.log("raconfigsData: ", raconfigsData);
   const [value, setValue] = useState(0);
   const cancelToken = useRef(null);
   const editorRef = useRef<IMonacoEditor | null>(null);
@@ -632,7 +655,7 @@ const ConfigurationUI = (props) => {
   }
 
   React.useEffect(() => {
-    if (!data) {
+    if (raconfigsData === null) {
       fetch(als_yaml_url, { cache: "no-store" })
         .then((response) => response.text())
         .then((conf_str) => {
@@ -723,9 +746,12 @@ const ConfigurationUI = (props) => {
   };
 
   const handleSaveJsonEditor = (newtext: any) => {
-    console.log("newtext: ", newtext);
-    saveEdit(editorJsonRef.current);
-    window.location.reload();
+    if (newtext === undefined) {
+    } else {
+      console.log("newtext: ", newtext);
+      saveEdit(editorJsonRef.current);
+      window.location.reload();
+    }
   };
   const TextareaAutosizeMemo = React.memo((props) => {
     const [textAreaValue, setTextAreaValue] = useState(
@@ -757,9 +783,12 @@ const ConfigurationUI = (props) => {
   const handleSave = (newContent: any, ev: any) => {
     // setEditedContent(true);
     // Use the edited configuration from the ref
-    console.log("Edited configuration", editorRef.current);
-    saveYaml(editorRef.current, ev);
-    window.location.reload();
+    if (editorRef.current === null) {
+    } else {
+      console.log("Edited configuration", editorRef.current);
+      saveYaml(editorRef.current, ev);
+      window.location.reload();
+    }
   };
 
   const handleReset = () => {
