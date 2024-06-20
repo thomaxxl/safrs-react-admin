@@ -204,6 +204,7 @@ export const LoadYaml = (
         }
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
+        window.location.href = "/#/Configuration";
         console.error(e);
       }
     };
@@ -222,13 +223,15 @@ export const LoadYaml = (
           window.location.href = "/";
         } else {
           notify("cannot load configuration ");
-          // window.location.href = "/#/Configuration";
+          window.location.href = "/#/Configuration";
           handleLoader();
         }
       })
       .catch((err) => {
         if (notify) {
           notify("Failed to load yaml", { type: "warning" });
+          window.location.href = "/#/Configuration";
+          window.location.reload();
         }
         console.error(`Failed to load yaml from ${config_url}: ${err}`);
       });
@@ -237,6 +240,7 @@ export const LoadYaml = (
 
 const ManageModal = () => {
   const navigate = useNavigate();
+  const notify = useNotify();
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e?: any) => {
     setOpen(true);
@@ -246,6 +250,21 @@ const ManageModal = () => {
   };
 
   let configs = [];
+
+  const handleClick = () => {
+    setOpen(false);
+    console.log("textFieldRef?.current?.value", textFieldRef?.current?.value);
+    try {
+      let newURL = new URL(textFieldRef?.current?.value);
+      console.log("newURL: ", newURL);
+      navigate(
+        `?load=${encodeURIComponent(textFieldRef?.current?.value || "")}`
+      );
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Invalid URL", { type: "warning" });
+    }
+  };
 
   try {
     configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
@@ -277,7 +296,7 @@ const ManageModal = () => {
     <span />
   );
   const textFieldRef: any = useRef();
-  const notify = useNotify();
+
   return (
     <>
       <Button
@@ -313,14 +332,7 @@ const ManageModal = () => {
             />
             <Button
               className={classes.widget}
-              onClick={(evt) => {
-                setOpen(false);
-                navigate(
-                  `?load=${encodeURIComponent(
-                    textFieldRef?.current?.value || ""
-                  )}`
-                );
-              }}
+              onClick={(evt) => handleClick()}
               color="primary"
             >
               Load
@@ -333,12 +345,22 @@ const ManageModal = () => {
 };
 
 const ExternalConf = () => {
+  const notify = useNotify();
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
   console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
   console.log("queryParams: ", queryParams);
-  let loadURI = queryParams?.get("load");
+  let loadURI: any = queryParams?.get("load");
   console.log("loadURI: ", loadURI);
+  if (loadURI !== null) {
+    try {
+      let newURl = new URL(loadURI);
+    } catch (error) {
+      notify("Enter a valid URL", { type: "warning" });
+      window.location.href = "/#/Configuration";
+    }
+  }
+
   const [open, setOpen] = useState(false);
   const [loader, setLoader] = useState(false);
 
@@ -347,8 +369,6 @@ const ExternalConf = () => {
       setOpen(true);
     }
   }, [window.location.href]);
-
-  const notify = useNotify();
 
   console.log("open: ", open);
   const handleDialogClose = () => {
@@ -538,10 +558,11 @@ export const ThemeSelector = () => {
   return (
     <>
       <Select
-        value={""}
+        value={value}
         className={style.mySelectStyle}
         onChange={handleColorChange}
         disableUnderline={false}
+        renderValue={() => ""}
         IconComponent={() => (
           <>
             <SvgIcon
@@ -549,11 +570,11 @@ export const ThemeSelector = () => {
               style={{
                 color:
                   value === "radiantLightTheme"
-                    ? "black"
+                    ? "#3f51b5"
                     : value === "houseLightTheme"
                     ? "#3f51b5"
                     : value === "nanoLightTheme"
-                    ? "black"
+                    ? "#3f51b5"
                     : value === "default"
                     ? "#3f51b5"
                     : "#3f51b5",
@@ -568,13 +589,12 @@ export const ThemeSelector = () => {
                 </g>
               </svg>
             </SvgIcon>
-            {/* <img src={colorpalette} style={{ width: "20px" }} /> */}
           </>
         )}
       >
-        <MenuItem value="nanoLightTheme">nanoLightTheme</MenuItem>
-        <MenuItem value="radiantLightTheme">radiantLightTheme</MenuItem>
-        <MenuItem value="houseLightTheme">houseLightTheme</MenuItem>
+        <MenuItem value="nanoLightTheme">Nano Light</MenuItem>
+        <MenuItem value="radiantLightTheme">Radiant Light</MenuItem>
+        <MenuItem value="houseLightTheme">House Light</MenuItem>
         <MenuItem value="default">default</MenuItem>
       </Select>
     </>
@@ -583,9 +603,14 @@ export const ThemeSelector = () => {
 
 const ConfigurationUI = (props) => {
   const [data, setData] = useState(localStorage.getItem("raconf"));
+  const [raconfigsData, setRaconfigsData] = useState(
+    localStorage.getItem("raconfigs")
+  );
+  console.log("raconfigsData: ", raconfigsData);
   const [value, setValue] = useState(0);
   const cancelToken = useRef(null);
   const editorRef = useRef<IMonacoEditor | null>(null);
+  const editorJsonRef = useRef<IMonacoEditor | null>(null);
 
   const classes = useStyles();
   const notify = useNotify();
@@ -630,7 +655,7 @@ const ConfigurationUI = (props) => {
   }
 
   React.useEffect(() => {
-    if (!data) {
+    if (raconfigsData === null) {
       fetch(als_yaml_url, { cache: "no-store" })
         .then((response) => response.text())
         .then((conf_str) => {
@@ -717,21 +742,57 @@ const ConfigurationUI = (props) => {
     const newContent = newtaConf;
     const currentContent = currentYaml;
     console.log("currentContent", currentContent);
-
     setShowButton(true);
+  };
+
+  const handleSaveJsonEditor = (newtext: any) => {
+    if (newtext === undefined) {
+    } else {
+      console.log("newtext: ", newtext);
+      saveEdit(editorJsonRef.current);
+      window.location.reload();
+    }
+  };
+  const TextareaAutosizeMemo = React.memo((props) => {
+    const [textAreaValue, setTextAreaValue] = useState(
+      JSON.stringify(JSON.parse(props.taConf), null, 4)
+    );
+
+    const handleTextAreaChange = (evt) => {
+      setTextAreaValue(evt.target.value);
+      editorJsonRef.current = evt.target.value;
+    };
+
+    return (
+      <TextareaAutosize
+        minRows={3}
+        style={{ width: "80%", backgroundColor: "white" }}
+        value={textAreaValue}
+        onChange={handleTextAreaChange}
+      />
+    );
+  });
+
+  const handleClickSave = () => {
+    handleSaveJsonEditor();
+    if (currentYaml !== editorRef.current) {
+      handleSave();
+    }
   };
 
   const handleSave = (newContent: any, ev: any) => {
     // setEditedContent(true);
     // Use the edited configuration from the ref
-    console.log("Edited configuration", editorRef.current);
-    saveYaml(editorRef.current, ev);
-    window.location.reload();
+    if (editorRef.current === null) {
+    } else {
+      console.log("Edited configuration", editorRef.current);
+      saveYaml(editorRef.current, ev);
+      window.location.reload();
+    }
   };
 
   const handleReset = () => {
     console.log("handleReset");
-    setShowButton(false);
     // Implement reset logic here
     saveYaml(currentYaml, "");
   };
@@ -810,7 +871,7 @@ const ConfigurationUI = (props) => {
                   <Button
                     // className={classes.widget}
                     color="primary"
-                    onClick={() => handleSave()}
+                    onClick={() => handleClickSave()}
                   >
                     Save and Apply
                   </Button>
@@ -837,12 +898,9 @@ const ConfigurationUI = (props) => {
             </Suspense>
           </TabPanel>
           <TabPanel value={value} index={1}>
-            <TextareaAutosize
-              // variant="outlined"
-              minRows={3}
-              style={{ width: "80%", backgroundColor: "white" }}
-              value={JSON.stringify(JSON.parse(taConf), null, 4)}
-              onChange={(evt) => saveEdit(evt.target.value)}
+            <TextareaAutosizeMemo
+              taConf={taConf}
+              handleSaveJson={handleSaveJsonEditor}
             />
           </TabPanel>
         </Box>

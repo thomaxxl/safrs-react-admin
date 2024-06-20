@@ -64,7 +64,30 @@ const TruncatedTextField = (props: any) => {
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
+    if (props.type === "image") {
+      return (
+        <>
+          {value ? (
+            <img src={`${value}`} style={{ width: "40px", height: "40px" }} />
+          ) : (
+            ""
+          )}
+        </>
+      );
+    }
     return <span>{value ? value : "-"}</span>; // Return "-" when value is null or undefined
+  }
+
+  if (props.type === "image") {
+    return (
+      <>
+        {value ? (
+          <img src={`${value}`} style={{ width: "40px", height: "40px" }} />
+        ) : (
+          ""
+        )}
+      </>
+    );
   }
   return <span>{value.slice(0, 128) + "..."}</span>;
 };
@@ -257,6 +280,7 @@ const AttrField = ({
       key={attribute.name}
       sortBy={attribute.name}
       label={attribute.label || attribute.name}
+      type={attribute.type}
       {...props}
     />
   );
@@ -296,6 +320,7 @@ const ShowField = ({
   attr,
   mode,
   id,
+  type,
   ...props
 }: {
   label: any;
@@ -303,6 +328,7 @@ const ShowField = ({
   attr: any;
   mode: any;
   id: any;
+  type: any;
 }) => {
   // Field like it is shown in the instance /show
   // console.log(id);
@@ -359,6 +385,24 @@ const ShowField = ({
           </Typography>
           {shown ? <CheckIcon /> : <ClearIcon />}
         </Grid>
+      );
+    }
+
+    if (type === "image") {
+      console.log("Imagevalue: ", value);
+      return (
+        <>
+          <Grid item xs={3}>
+            <Typography variant="body2" color="textSecondary" component="p">
+              {label}
+            </Typography>
+            {value ? (
+            <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
+            ) : (
+              ""
+            )}
+          </Grid>
+        </>
       );
     }
 
@@ -455,6 +499,7 @@ export const ShowAttrField = ({
       {...field_props}
       value={value}
       label={label}
+      type={attr.type}
       id={id}
       mode="show"
       attr
