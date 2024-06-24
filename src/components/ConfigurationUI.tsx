@@ -220,7 +220,7 @@ export const LoadYaml = (
           saveConf(conf_str);
           notify("Loaded configuration");
           handleLoader();
-          window.location.href = "/admin-app";
+          window.location.href = "/admin-app/index.html";
         } else {
           notify("cannot load configuration ");
           window.location.href = "/#/Configuration";
@@ -480,9 +480,12 @@ const saveConfig = (conf: any) => {
   console.log("current_conf: ", current_conf);
   const api_root = current_conf.api_root;
   console.log("api_root: ", api_root);
-  if (!api_root) {
+  if (!api_root && !window.location.href.includes("load")) {
     alert("Can't save: no 'api_root' set in config");
     //console.log(current_conf)
+    return;
+  }
+  if (!api_root && window.location.href.includes("load")) {
     return;
   }
   let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
@@ -774,6 +777,7 @@ const ConfigurationUI = (props) => {
   });
 
   const handleClickSave = () => {
+    saveConfig("");
     if (editorJsonRef.current !== null) {
       saveEdit(editorJsonRef.current);
       window.location.reload();
@@ -795,9 +799,17 @@ const ConfigurationUI = (props) => {
   };
 
   const handleReset = () => {
-    console.log("handleReset");
-    // Implement reset logic here
-    saveYaml(currentYaml, "");
+    let raconfigs = localStorage.getItem("raconf");
+    if (
+      editorJsonRef.current !== null ||
+      editorRef.current !== yaml.dump(JSON.parse(raconfigs))
+    ) {
+      console.log("handleReset");
+      // Implement reset logic here
+      saveYaml(currentYaml, "");
+    } else {
+      resetConf(notify);
+    }
   };
 
   return (
@@ -815,13 +827,14 @@ const ConfigurationUI = (props) => {
         <Button
           className={classes.widget}
           onClick={() => resetConf(notify)}
+          // onClick={() => handleReset()}
           color="primary"
         >
           Reset
         </Button>
         <Button
           className={classes.widget}
-          onClick={() => window.location.reload()}
+          onClick={() => handleClickSave()}
           color="primary"
         >
           Apply
@@ -829,6 +842,7 @@ const ConfigurationUI = (props) => {
         <Button
           className={classes.widget}
           onClick={() => saveConfig("")}
+          // onClick={() => handleClickSave()}
           color="primary"
         >
           Save
@@ -855,31 +869,6 @@ const ConfigurationUI = (props) => {
             >
               <Tab label="yaml" {...a11yProps(0)} />
               <Tab label="json" {...a11yProps(1)} />
-              {showButton ? (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "end",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <Button
-                    // className={classes.widget}
-                    color="primary"
-                    onClick={() => handleReset()}
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    // className={classes.widget}
-                    color="primary"
-                    onClick={() => handleClickSave()}
-                  >
-                    Save and Apply
-                  </Button>
-                </div>
-              ) : null}
             </Tabs>
           </Box>
           <TabPanel value={value} index={0}>

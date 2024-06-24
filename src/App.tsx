@@ -109,7 +109,9 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 
     return <div>Loading...</div>;
   }
-  if (typeof conf.api_root !== "string") {
+
+  
+  if (typeof conf.api_root !== "string" && conf.api_root) {
     if (window.location.href.includes("load")) {
       localStorage.removeItem("raconf");
       window.location.href = window.location.href;
