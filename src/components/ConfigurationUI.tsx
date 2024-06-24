@@ -86,11 +86,11 @@ const useStyles = makeStyles((theme) => ({
     "&.MuiInputBase-root": {
       padding: "0 8px",
       position: "relative",
-      bottom: "-8px",
       height: "37px",
       border: "1px solid #3f51b5",
       borderRadius: "4px",
       float: "right",
+      margin: "auto 0 auto auto",
       "& div.MuiSelect-select": {
         position: "absolute",
         background: "transparent",
@@ -220,7 +220,7 @@ export const LoadYaml = (
           saveConf(conf_str);
           notify("Loaded configuration");
           handleLoader();
-          window.location.href = "/";
+          window.location.href = "/admin-app";
         } else {
           notify("cannot load configuration ");
           window.location.href = "/#/Configuration";
@@ -444,7 +444,7 @@ const ConfSelect = () => {
   };
 
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={{ minWidth: 120, width: "100%" }}>
       <ExternalConf />
       <FormControl fullWidth>
         <InputLabel id="demo-simple-select-label">
@@ -774,7 +774,10 @@ const ConfigurationUI = (props) => {
   });
 
   const handleClickSave = () => {
-    handleSaveJsonEditor();
+    if (editorJsonRef.current !== null) {
+      saveEdit(editorJsonRef.current);
+      window.location.reload();
+    }
     if (currentYaml !== editorRef.current) {
       handleSave();
     }
@@ -799,7 +802,7 @@ const ConfigurationUI = (props) => {
 
   return (
     <div>
-      <div>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
         <ConfSelect />
         <ManageModal />
         <Button

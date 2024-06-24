@@ -65,11 +65,14 @@ const DynInput = ({
   };
 
   const validateUrl = (name: any, value: any) => {
-    if (value && !value.startsWith("http")) {
+    try {
+      new URL(value);
+      setValidationMessage(false);
+      setRecords(name, value);
+    } catch (error) {
+      console.log("error: ", error);
       setValidationMessage(true);
       setRecords(name, "");
-    } else {
-      setValidationMessage(false);
     }
   };
 
