@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState} from "react";
 import { MuiThemeProvider } from "@material-ui/core/styles";
-import { createTheme } from '@material-ui/core/styles'
-import { useLogin, useNotify } from "react-admin";
+import {useLogin, useNotify } from 'react-admin'
 
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -13,26 +12,6 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
-import { getKcUrl } from "../Config";
-import * as React from "react";
-import Keycloak, {
-  KeycloakConfig,
-  KeycloakTokenParsed,
-  KeycloakInitOptions,
-} from 'keycloak-js';
-
-const loggedInPar = "?logged_in=true";
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#ffffff",
-    },
-    secondary: {
-      main: "#000000",
-    },
-  },
-});
 
 
 const useStyles = makeStyles((theme) => ({
@@ -55,35 +34,27 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false, redirectUri : "http://localhost:3000/admin-app/#/Home?" };
-let kc = new Keycloak(initOptions as Keycloak.KeycloakConfig);
-
-console.log('kclogin')
-
-/*
-*/
-const SraLogin = (keycloak: Keycloak) => {
-  console.log('sral',keycloak)
-  keycloak.login()
-};
-
-export function LoginPage(props: any) {
+export function LoginPage(props) {
   const [username, setusername] = useState("");
   const [password, setpassword] = useState("");
-  const [, setLoaded] = useState(false);
-  //const login = useLogin();
-  const notify = useNotify();
-
-  console.log('kcloginpage', props)
-  const submit = (e: any) => {
+  const [, setLoaded] = useState(false)
+  const login = useLogin();
+  const notify = useNotify()
+  
+  const submit = (e) => {
+    
     e.preventDefault();
-    SraLogin(props.kc);
+    const credentials = { username, password };
+    login(credentials)
+    .then(r => console.log('auth ok', r))
+    .catch(err=> {console.warn(err); notify('Invalid email or password')})
+    console.log('authdone')
+    
   };
-
   const classes = useStyles();
-
+  
   return (
-    <MuiThemeProvider theme={theme}>
+    <MuiThemeProvider>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div className={classes.paper}>
@@ -93,8 +64,41 @@ export function LoginPage(props: any) {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-
+          <Typography component="h5" variant="h5">
+            <br/>
+            Username: <b>admin</b> <br/> Password: <b>p</b>
+          </Typography>
           <form className={classes.form} noValidate onSubmit={submit}>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="User name"
+              name="username"
+              value={username}
+              autoComplete="username"
+              autoFocus
+              onChange={(e) => setusername(e.target.value)}
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setpassword(e.target.value)}
+              autoComplete="current-password"
+            />
+            <FormControlLabel
+              control={<Checkbox value="remember" color="primary" />}
+              label="Remember me"
+            />
             <Button
               type="submit"
               fullWidth
@@ -102,10 +106,13 @@ export function LoginPage(props: any) {
               color="primary"
               className={classes.submit}
             >
-              Sign In with KeyCloak
+              Sign In
             </Button>
+
           </form>
-          <Typography></Typography>
+          <Typography>
+            <i>This is a demo login page</i>
+          </Typography>
         </div>
       </Container>
     </MuiThemeProvider>

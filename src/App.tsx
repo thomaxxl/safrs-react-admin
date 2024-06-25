@@ -122,15 +122,15 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     //   window.location.reload();
     // }
   }
-
+  const adminUIProps = keycloak ? {} : {loginPage : LoginPage}
   return (
     <AdminUI
       ready={() => (
         <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />
       )}
       layout={Layout}
-      // loginPage={LoginPage}
       disableTelemetry
+      loginPage={LoginPage}
     >
       <Resource
         name="Home"

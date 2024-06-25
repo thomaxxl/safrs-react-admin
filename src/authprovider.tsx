@@ -13,6 +13,7 @@ export const authProvider = {
         ? JSON.stringify({ username: username, password: password })
         : "{}",
     };
+    console.log('auth: ', login_url)
     if (!username) {
       requestOptions.headers = {
         ...requestOptions.headers,
@@ -22,8 +23,7 @@ export const authProvider = {
 
     return fetch(login_url, requestOptions)
       .then((response) => {
-        if (response.status === 403) {
-          console.log("working");
+        if (response.status === 403 || response.status === 422) {
           if (conf?.authentication?.redirect) {
             window.location.href = conf.authentication.redirect;
           }
