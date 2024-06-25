@@ -109,7 +109,8 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 
     return <div>Loading...</div>;
   }
-  if (typeof conf.api_root !== "string") {
+
+  if (typeof conf.api_root !== "string" && conf.api_root) {
     if (window.location.href.includes("load")) {
       localStorage.removeItem("raconf");
       window.location.href = window.location.href;
@@ -177,6 +178,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 
 const App: React.FC = () => {
   const { themeColor } = React.useContext(ThemeColorContext);
+  const [loading, setLoading] = React.useState(false);
 
   const ThemeColor = localStorage.getItem("ThemeColor");
   console.log("themeColor: ", themeColor);
@@ -224,29 +226,32 @@ const App: React.FC = () => {
 
   const authProvider = React.useRef<AuthProvider>(undefined);
 
+  const initKeyCloakClient = async () => {
+    const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
+    const keycloakClient = new Keycloak(kcConfig);
+    initOptions.redirectUri = redirURL();
+    await keycloakClient.init(initOptions);
+
+    authProvider.current = keycloakAuthProvider(
+      keycloakClient,
+      raKeycloakOptions
+    );
+    dataProvider.current = jsonapiClient(
+      conf.api_root,
+      { conf: {} },
+      keycloakClient
+    );
+    setKeycloak(keycloakClient);
+  };
+
   React.useEffect(() => {
-    const initKeyCloakClient = async () => {
-      const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
-      const keycloakClient = new Keycloak(kcConfig);
-      initOptions.redirectUri = redirURL();
-      await keycloakClient.init(initOptions);
-      authProvider.current = keycloakAuthProvider(
-        keycloakClient,
-        raKeycloakOptions
-      );
-      dataProvider.current = jsonapiClient(
-        conf.api_root,
-        { conf: {} },
-        keycloakClient
-      );
-      setKeycloak(keycloakClient);
-    };
+   
     if (conf.authentication?.keycloak && !keycloak) {
       initKeyCloakClient();
     } else if (conf.authentication?.endpoint) {
       authProvider.current = sraAuthPorvider;
     }
-  }, [keycloak]);
+  }, []);
 
   return (
     <InfoToggleProvider>

@@ -505,7 +505,8 @@ const ShowActions = ({ resource }: { resource: any }) => {
 };
 
 export const gen_DynResourceShow = (resource_conf: any) => {
-  const attributes = resource_conf.attributes;
+  let attributes = resource_conf.attributes;
+  attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
   const tab_groups = resource_conf.tab_groups;
   let show = (
     <ShowInstance

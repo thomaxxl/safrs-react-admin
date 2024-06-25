@@ -24,6 +24,7 @@ const AttrForm = ({
   attributes: [];
   [key: string]: any;
 }) => {
+  attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
   const [renderSwitch, setRenderSwitch] = useState([]);
   const [isInserting, setIsInserting] = useState(false);
   const recordRef = useRef({});
