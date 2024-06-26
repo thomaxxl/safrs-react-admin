@@ -1,7 +1,7 @@
 import { useState} from "react";
 import { MuiThemeProvider } from "@material-ui/core/styles";
 import {useLogin, useNotify } from 'react-admin'
-
+import { useAuthProvider } from 'react-admin';
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -12,7 +12,6 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
-
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -37,20 +36,19 @@ const useStyles = makeStyles((theme) => ({
 export function LoginPage(props) {
   const [username, setusername] = useState("");
   const [password, setpassword] = useState("");
-  const [, setLoaded] = useState(false)
   const login = useLogin();
-  const notify = useNotify()
-  
-  const submit = (e) => {
-    
+  const notify = useNotify();
+  const authProvider = useAuthProvider();
+  console.log('AProv', authProvider)
+  const handleSubmit = e => {
     e.preventDefault();
-    const credentials = { username, password };
-    login(credentials)
-    .then(r => console.log('auth ok', r))
-    .catch(err=> {console.warn(err); notify('Invalid email or password')})
-    console.log('authdone')
     
+    // will call authProvider.login({ email, password })
+    login({ username, password }).catch(() =>
+          notify('Invalid email or password')
+      );
   };
+  
   const classes = useStyles();
   
   return (
@@ -68,7 +66,7 @@ export function LoginPage(props) {
             <br/>
             Username: <b>admin</b> <br/> Password: <b>p</b>
           </Typography>
-          <form className={classes.form} noValidate onSubmit={submit}>
+          <form className={classes.form} noValidate onSubmit={handleSubmit}>
             <TextField
               variant="outlined"
               margin="normal"

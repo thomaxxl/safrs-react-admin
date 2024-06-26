@@ -13,7 +13,8 @@ export const authProvider = {
         ? JSON.stringify({ username: username, password: password })
         : "{}",
     };
-    console.log('auth: ', login_url)
+    
+    console.log('authProvider url: ', login_url)
     if (!username) {
       requestOptions.headers = {
         ...requestOptions.headers,

@@ -98,10 +98,10 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
       });
   }, [dataProvider]);
 
-  if (resources.length === 0 || keycloak === undefined) {
+  if (resources.length === 0 || (conf.authentication?.keycloak && keycloak === undefined)) {
     if (!window.location.href.includes("load")) {
       if (localStorage.getItem("raconf") === "{}") {
-        return <div>Failed to Load Yaml </div>;
+        //return <div>Failed to Load Yaml </div>;
       }
     }
 
@@ -115,7 +115,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     }
     notify("api_root must be string", { type: "error" });
   }
-  
+
   const adminUIProps = conf.authentication?.keycloak !== undefined ? {} : {loginPage : LoginPage}
   
   return (
@@ -175,9 +175,8 @@ const App: React.FC = () => {
   
   const { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
-
   const ThemeColor = localStorage.getItem("ThemeColor");
-  console.log("themeColor: ", themeColor);
+  console.debug("themeColor: ", themeColor);
   let theme;
 
   if (themeColor === "nanoLightTheme") {
@@ -228,7 +227,8 @@ const App: React.FC = () => {
     
     const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
     const keycloakClient = new Keycloak(kcConfig);
-    initOptions.redirectUri = redirURL();
+    initOptions.redirectUri = redirURL(); // kc redirect url
+
     await keycloakClient.init(initOptions);
 
     authProvider.current = keycloakAuthProvider(
@@ -243,14 +243,16 @@ const App: React.FC = () => {
     setKeycloak(keycloakClient);
   };
 
-  React.useEffect(() => {
-   
-    if (conf.authentication?.keycloak && !keycloak) {
-      initKeyCloakClient();
-    } else if (conf.authentication?.endpoint) {
-      authProvider.current = sraAuthPorvider;
-    }
-  }, []);
+  if (conf.authentication?.keycloak && !keycloak) {
+    initKeyCloakClient();
+  } else if (conf.authentication?.endpoint) {
+    dataProvider.current = jsonapiClient(
+      conf.api_root,
+      { conf: {} },
+      null
+    );
+    authProvider.current = sraAuthPorvider;
+  }
 
   return (
     <InfoToggleProvider>
