@@ -16,6 +16,7 @@ import { InfoPopover } from "../util";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import * as React from "react";
+const URL = require('url-parse')
 
 const useStyles = makeStyles({
   join_attr: { color: "#3f51b5;" },
@@ -238,7 +239,7 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
 
   const fields = attributes.map((attr) => {
     if (attr.hidden === mode || attr.hidden === true) {
-      //return null;
+      return null;
     }
     if (attr.relationship?.direction === "toone") {
       const label_text = attr.label || attr.relationship.resource || attr.name;
@@ -255,6 +256,17 @@ const BooleanFieldToString = ({ source }: { source: string }) => {
   const value = record[source];
   return <span>{value != null ? (value ? "Yes" : "No") : "-"}</span>;
 };
+
+const LinkField = ({ source }: { source: string }) => {
+  const record = useRecordContext();
+  const value = record[source];
+  const url = URL(value, {})
+  if(url.protocol === 'http:' || url.protocol === 'https:'){
+    return <a href={value} >{value}</a>;
+  }
+  return <span>{value}</span>
+}
+
 const AttrField = ({
   attribute,
   mode,
@@ -266,9 +278,12 @@ const AttrField = ({
   const record = useRecordContext();
   const conf = useConf();
 
-  console.log("AttrField attribute: ", attribute);
+  console.debug("AttrField attribute: ", attribute);
   if (attribute.type === "Boolean") {
     return <BooleanFieldToString source={attribute.name} />;
+  }
+  if (attribute.type === "link") {
+    return <LinkField source={attribute.name} />;
   }
 
   const component: any = attribute.component;
