@@ -153,6 +153,14 @@ const addConf = (conf: any) => {
     };
   }
 
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.split("?")[1]);
+  let loadUrl = hashParams.get("load");
+  if (!loadUrl) {
+    loadUrl = als_yaml_url;
+  }
+  const encodedLoadUrl = btoa(loadUrl);
+  conf.conf_source = encodedLoadUrl;
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   console.log("conf: ", conf);
@@ -500,6 +508,17 @@ const saveConfig = (conf: any) => {
 };
 
 export const resetConf = (notify: any) => {
+  let raConf = localStorage.getItem("raconf");
+  if (raConf && raConf !== "{}") {
+    let raConfObj = JSON.parse(raConf);
+    if (raConfObj.conf_source) {
+      let confSource = raConfObj.conf_source;
+      let decodedConfSource = atob(confSource);
+      als_yaml_url = decodedConfSource;
+      console.log(confSource);
+    }
+  }
+
   const configs: any = {};
   let defconf: any =
     default_configs.length > 0 ? default_configs[0] : { api_root: "" };
