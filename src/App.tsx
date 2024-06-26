@@ -114,13 +114,10 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
       window.location.href = window.location.href;
     }
     notify("api_root must be string", { type: "error" });
-    console.log("window.location.href: ", window.location.href);
-    // let value = window.location.href.split("/");
-    // if (!window.location.href.includes("load")) {
-    //   window.location.reload();
-    // }
   }
-  const adminUIProps = keycloak ? {} : {loginPage : LoginPage}
+  
+  const adminUIProps = conf.authentication?.keycloak !== undefined ? {} : {loginPage : LoginPage}
+  
   return (
     <AdminUI
       ready={() => (
