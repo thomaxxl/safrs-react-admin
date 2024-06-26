@@ -51,6 +51,7 @@ import { ThemeColorContext, ThemeColorProvider } from "./ThemeProvider";
 const initOptions: KeycloakInitOptions = {
   onLoad: "login-required",
   checkLoginIframe: false,
+  
 };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
@@ -79,10 +80,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const conf = useConf();
   const notify = useNotify();
   console.log("AsyncResources conf: ", conf);
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const admin_yaml = queryParams.get("admin_yaml");
-  // const loginPage = conf.authentication?.sso ? SSOLogin : <LoginPage keycloak={keycloak}/>
+  
   const dataProvider = useDataProvider();
   React.useEffect(() => {
     dataProvider
@@ -130,7 +128,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
       )}
       layout={Layout}
       disableTelemetry
-      loginPage={LoginPage}
+      {...adminUIProps}
     >
       <Resource
         name="Home"
@@ -177,6 +175,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 };
 
 const App: React.FC = () => {
+  
   const { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
 
@@ -215,11 +214,13 @@ const App: React.FC = () => {
   console.log("queryClient: ", queryClient);
 
   const redirURL = (): string => {
-    let result = document.location.href.split("?")[0];
-    if (!result.includes("#")) {
-      result += "/#/";
+    let result
+    if(document.location.href.includes('admin-app')){
+      result = document.location.origin + "/admin-app/#/";
     }
-    result += "?";
+    else{
+      result = document.location.origin + "/#/";
+    }
     console.log("redirurl", result);
     return result;
   };
@@ -227,6 +228,7 @@ const App: React.FC = () => {
   const authProvider = React.useRef<AuthProvider>(undefined);
 
   const initKeyCloakClient = async () => {
+    
     const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
     const keycloakClient = new Keycloak(kcConfig);
     initOptions.redirectUri = redirURL();
