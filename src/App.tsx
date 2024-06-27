@@ -23,8 +23,8 @@ import { useConf } from "./Config";
 import ConfigurationUI from "./components/ConfigurationUI";
 import { Layout } from "./components/Layout";
 import Home from "./components/Home";
-import HomeIcon from "@material-ui/icons/Home";
-import SettingsIcon from "@material-ui/icons/Settings";
+import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { authProvider as sraAuthPorvider } from "./authprovider";
 import { QueryClient } from "react-query";
 import LoginPage from "./pages/LoginPage";
@@ -72,6 +72,7 @@ const messages: { [key: string]: TranslationMessages } = {
   en: englishMessages,
 };
 const i18nProvider = polyglotI18nProvider((locale) => messages[locale]);
+console.log("i18nProvider: ", i18nProvider);
 
 const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const [resources, setResources] = React.useState<any[]>([]);
@@ -245,7 +246,6 @@ const App: React.FC = () => {
   };
 
   React.useEffect(() => {
-   
     if (conf.authentication?.keycloak && !keycloak) {
       initKeyCloakClient();
     } else if (conf.authentication?.endpoint) {

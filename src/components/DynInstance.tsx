@@ -1,6 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-eval */
-/* eslint-disable no-throw-literal */
 import { useState, useEffect } from "react";
 import {
   Datagrid,
@@ -9,8 +6,7 @@ import {
   useNotify,
   useRedirect,
 } from "react-admin";
-
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import { TabbedShowLayout, Tab } from "react-admin";
 import {
   Show,
@@ -20,15 +16,14 @@ import {
   useRecordContext,
   Link,
 } from "react-admin";
-import { Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
 import { useRefresh } from "react-admin";
 import { useDataProvider } from "react-admin";
-import EditIcon from "@material-ui/icons/Edit";
-import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
+import EditIcon from "@mui/icons-material/Edit";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useConf } from "../Config";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { Loading, Error } from "react-admin";
-import { makeStyles } from "@material-ui/core/styles";
 import { type2resource } from "../util";
 import { ShowAttrField } from "./DynFields";
 import { attr_fields } from "./DynFields";
@@ -40,15 +35,6 @@ import BlockIcon from "@mui/icons-material/Block";
 import DynReferenceCreate from "./DynReferenceCreate";
 import { useInfoToggle } from "../InfoToggleContext";
 import * as React from "react";
-
-const useStyles = makeStyles({
-  join_attr: { color: "#3f51b5" },
-  delete_icon: { fill: "#3f51b5" },
-  edit_grid: { width: "100%" },
-  rel_icon: { paddingLeft: "0.4rem", color: "#666", marginBottom: "0px" },
-  many_tab: { color: "#3f51b5" },
-  instance_title: { margin: "30px 0px 30px" },
-});
 
 const ResourceTitle = ({
   record,
@@ -107,7 +93,6 @@ export const ShowRecordField = ({
   const notify = useNotify();
   const attr_name = source.name;
   let value = record[attr_name];
-  // eslint-disable-next-line no-unused-vars
   const isInserting = false;
   if (source.show_when) {
     try {
@@ -169,17 +154,15 @@ const ShowInstance = ({
   resource_name: any;
 }) => {
   const record = useRecordContext();
-  const classes = useStyles();
   const id = record?.id;
   const basePath = `/${resource_name}`;
   const title = (
-    <Typography variant="h5" component="h5" className={classes.instance_title}>
+    <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
       {resource_name}
       <i style={{ color: "#ccc" }}> #{id}</i>
     </Typography>
   );
 
-  // eslint-disable-next-line array-callback-return
   const tabs = tab_groups?.map((tab: any) => {
     if (tab.component) {
       const Component = get_Component(tab.component);
@@ -192,7 +175,6 @@ const ShowInstance = ({
       }
     }
     if (tab.direction === "tomany") {
-      // <> "toone"
       return DynRelationshipMany(resource_name, id, tab, basePath);
     }
     if (tab.direction === "toone") {
@@ -274,7 +256,6 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
   } else if (rel_data) {
     tab_content = <RelatedInstance instance={rel_data} resource_name={""} />;
   } else {
-    // Deprecated.. Delete this stmt??
     console.warn("Hit deprecated code!");
     if (data[relationship.name]?.data === null) {
       tab_content = "Empty";
@@ -290,8 +271,6 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
         />
       );
     } else if (data[relationship.name]?.data) {
-      // todo: might be obsolote, tbd
-      // todo: fix the data provider so we can simplify this conditional and use <RelatedInstance> instead
       const rel_resource = type2resource(
         data[relationship.name].data?.type,
         {}
@@ -322,11 +301,13 @@ const DynRelationshipMany = (
   relationship: any,
   path: any
 ) => {
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [, setError] = useState();
-  const [, setRelated] = useState(false);
+  const [related, setRelated] = useState(false);
   const dataProvider = useDataProvider();
-  const classes = useStyles();
+  console.log("related: ", related);
+  console.log("loading: ", loading);
+
   const conf = useConf();
 
   useEffect(() => {
@@ -334,7 +315,9 @@ const DynRelationshipMany = (
       .getOne(resource_name, { id: id })
       .then(({ data }) => {
         setRelated(data.relationships);
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
       })
       .catch((error) => {
         setError(error);
@@ -374,7 +357,7 @@ const DynRelationshipMany = (
   const fk = relationship.fks.join("_");
   const label = relationship.label || relationship.name;
   return (
-    <Tab label={label} key={relationship.name} className={classes.many_tab}>
+    <Tab label={label} key={relationship.name} style={{ color: "#3f51b5" }}>
       <ReferenceManyField
         reference={relationship.resource}
         target={fk}
@@ -387,6 +370,7 @@ const DynRelationshipMany = (
           expand={
             <DetailPanel attributes={target_resource.attributes} path={path} />
           }
+          isPending={loading}
         >
           {fields.slice(0, col_nr)}
           <EditButton />

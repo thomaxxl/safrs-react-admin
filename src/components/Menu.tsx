@@ -1,5 +1,4 @@
 import React, { forwardRef, useContext } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import {
   Menu as RAMenu,
   MenuItemLink,
@@ -7,10 +6,10 @@ import {
   useResourceDefinitions,
 } from "react-admin";
 import { AppBar, UserMenu } from "react-admin";
-import DefaultIcon from "@material-ui/icons/ViewList";
-import SettingsIcon from "@material-ui/icons/Settings";
-import InfoIcon from "@material-ui/icons/Info";
-import { Select, Typography } from "@material-ui/core";
+import DefaultIcon from "@mui/icons-material/ViewList";
+import SettingsIcon from "@mui/icons-material/Settings";
+import InfoIcon from "@mui/icons-material/Info";
+import { Select, Typography } from "@mui/material";
 import preval from "preval.macro";
 import { MenuItem, Modal, SvgIcon } from "@mui/material";
 import ExitIcon from "@mui/icons-material/PowerSettingsNew";
@@ -18,46 +17,9 @@ import Switch from "@mui/material/Switch";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Box } from "@mui/system";
 import { useInfoToggle } from "../InfoToggleContext";
-import { CSSProperties } from "@material-ui/core/styles/withStyles";
 import { ThemeColorContext } from "../ThemeProvider";
 import colorpalette from "../images/colorpalette.png";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "75%",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: "0px 3px 5px 2px rgba(0, 0, 0, 0.3)",
-  p: 4,
-  textAlign: "left",
-};
-
-const useStyles = makeStyles({
-  title: {},
-  spacer: { flex: 1 },
-  info_modal: style as CSSProperties,
-  icon: {
-    color: "#ccc",
-    "&:hover": { color: "#3f51b5" },
-  },
-  menu: {},
-  palletteStyle: {
-    color: "#fff",
-  },
-  mySelectStyle: {
-    padding: "0 8px",
-    "&.MuiInput-underline:before, &.MuiInput-underline:after": {
-      display: "none",
-    },
-    "& .MuiSelect-select": {
-      position: "absolute",
-      background: "transparent",
-    },
-  },
-});
 const InfoMenuModal = () => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e: any) => {
@@ -68,13 +30,13 @@ const InfoMenuModal = () => {
     e.stopPropagation();
     setOpen(false);
   };
-  const classes = useStyles();
-  const label = <HelpOutlineIcon className={classes.icon} />;
 
   return (
     <>
-      <span onClick={handleOpen} title={`Info`}>
-        {label}
+      <span onClick={handleOpen} title={`Info`} style={{ cursor: "pointer" }}>
+        <HelpOutlineIcon
+          sx={{ color: "#ccc", "&:hover": { color: "#3f51b5" } }}
+        />
       </span>
       <Modal
         open={open}
@@ -82,7 +44,20 @@ const InfoMenuModal = () => {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style} className={classes.info_modal}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "75%",
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: "0px 3px 5px 2px rgba(0, 0, 0, 0.3)",
+            p: 4,
+            textAlign: "left",
+          }}
+        >
           <Typography
             id="modal-modal-description"
             style={{ marginTop: "3 rem" }}
@@ -140,10 +115,6 @@ const ConfigurationMenu = forwardRef<any, any>((props, ref) => {
   );
 });
 
-const handlePointerLeave = () => {
-  console.log("Pointer leave");
-};
-
 const CustomUserMenu = (props: any) => (
   <div style={{ display: "flex", justifyContent: "space-between" }}>
     <UserMenu {...props}>
@@ -167,13 +138,11 @@ const CustomUserMenu = (props: any) => (
 
       <MyLogoutButton />
     </UserMenu>
-    {/*  */}
   </div>
 );
 
 export const CustomAppBar = (props: any) => {
   const [infoToggle, setInfoToggle] = useInfoToggle();
-  const classes = useStyles();
 
   return (
     <AppBar
@@ -182,26 +151,21 @@ export const CustomAppBar = (props: any) => {
       userMenu={
         <div>
           <CustomUserMenu
-            className={classes.menu}
             infoToggle={infoToggle}
             setInfoToggle={setInfoToggle}
           />
         </div>
       }
     >
-      <Typography
-        variant="h6"
-        color="inherit"
-        className={classes.title}
-        id="react-admin-title"
-      />
-      <span className={classes.spacer} />
+      <Typography variant="h6" color="inherit" id="react-admin-title" />
+
+      <span style={{ flex: "1" }} />
     </AppBar>
   );
 };
 
 const onMenuClick = (evt: any) => {
-  //console.log(`Menu Click`, evt);
+  console.log(`Menu Click`, evt);
 };
 
 export const Menu = (props: any) => {
@@ -209,10 +173,6 @@ export const Menu = (props: any) => {
   const resources = Object.keys(resourcesDefinitions).map(
     (name) => resourcesDefinitions[name]
   );
-  const handlePointerLeave = () => {
-    console.log("Pointer leave");
-  };
-  // const open = true;
   return (
     <>
       <RAMenu {...props}>

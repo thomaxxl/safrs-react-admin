@@ -1,12 +1,11 @@
 import { ImageField, useGetOne } from "react-admin";
 import { useRecordContext, DateField } from "react-admin";
-import Grid from "@material-ui/core/Grid";
-import { Typography } from "@material-ui/core";
+import Grid from "@mui/material/Grid";
+import { Typography } from "@mui/material";
 import { useState } from "react";
 import Tooltip from "@mui/material/Tooltip";
-import { makeStyles } from "@material-ui/core/styles";
 import DensityMediumIcon from "@mui/icons-material/DensityMedium";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { useConf } from "../Config";
 import JoinModal from "./JoinModal";
 import { load_custom_component } from "../util";
@@ -17,25 +16,22 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import * as React from "react";
 
-const useStyles = makeStyles({
-  join_attr: { color: "#3f51b5;" },
-  delete_icon: { fill: "#3f51b5" },
-  edit_grid: { width: "100%" },
-  rel_icon: { paddingLeft: "0.4rem", color: "#666", marginBottom: "0px" },
-  joined_field: { border: "2px solid red", cursor: "pointer" },
-});
-
 const RelLabel = ({ text }: { text: any }) => {
   // Relationship column header label
-  const classes = useStyles();
 
   let label = (
     <Tooltip title={text + " Relationship"} placement="top-start" arrow>
       <span style={{ display: "inline-flex" }}>
         {text}
         <DensityMediumIcon
-          className={classes.rel_icon}
-          style={{ width: "0.7rem", height: "0.7rem", paddingTop: "0.5rem" }}
+          style={{
+            paddingLeft: "0.4rem",
+            color: "#666",
+            marginBottom: "0px",
+            width: "0.7rem",
+            height: "0.7rem",
+            paddingTop: "0.5rem",
+          }}
         />
       </span>
     </Tooltip>
@@ -99,8 +95,6 @@ const NestedJoinedField = ({
   resource_name: any;
   id: any;
 }) => {
-  // Nested foins no longer have access to the right RecordContext
-  // this doesn't work for composite keys :// (because we just pass a single id)
   const conf = useConf();
   const user_key = conf?.resources?.[resource_name]?.user_key || "id";
   const { data } = useGetOne(resource_name, { id: id });
@@ -115,6 +109,7 @@ const NestedJoinedField = ({
     />
   );
 };
+
 type JoinedFieldProps = {
   attribute: any;
   pvalue: any;
@@ -152,14 +147,11 @@ const JoinedField: React.FC<JoinedFieldProps> = ({
   let label = item?.id || id;
 
   if (!item) {
-    // no item: if there is data then we're in a nested view and pvalue already holds our id
-    // without data this join is empty
     return data ? (
       <NestedJoinedField resource_name={target_resource.name} id={pvalue} />
     ) : null;
   }
   if (user_component) {
-    // user_component: custom component
     label = load_custom_component(user_component, item);
   } else if (item.attributes && user_key) {
     label = <span>{item.attributes[user_key] || item.id}</span>;
@@ -285,6 +277,7 @@ const AttrField = ({
     />
   );
 
+  console.log("result: ", result);
   if (attribute.type?.toLowerCase() === "date") {
     result = (
       <DateField
@@ -397,7 +390,7 @@ const ShowField = ({
               {label}
             </Typography>
             {value ? (
-            <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
+              <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
             ) : (
               ""
             )}
@@ -457,7 +450,6 @@ export const ShowAttrField = ({
   id: any;
 }) => {
   const attr_name = attr.name;
-  const classes = useStyles();
   let label: any = (
     <InfoPopover label={attr.label || attr_name} content={attr.info} />
   );
@@ -477,7 +469,14 @@ export const ShowAttrField = ({
       <span style={{ display: "inline-flex" }}>
         {attr.name} / {label}
         <DensityMediumIcon
-          className={classes.rel_icon}
+          style={{
+            paddingLeft: "0.4rem",
+            color: "#666",
+            marginBottom: "0px",
+            width: "0.7rem",
+            height: "0.7rem",
+            paddingTop: "0.5rem",
+          }}
           style={{ width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem" }}
         />
       </span>

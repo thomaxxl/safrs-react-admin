@@ -2,27 +2,20 @@
 /* eslint-disable no-throw-literal */
 import { useRef, useState } from "react";
 import { Create, SimpleForm, useNotify, useRedirect } from "react-admin";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import { Toolbar, useCreate, Button, SaveButton } from "react-admin";
 import { useRefresh } from "react-admin";
 import { useConf } from "../Config";
 import DynInput from "./DynInput";
-import IconContentAdd from "@material-ui/icons/Add";
-import IconCancel from "@material-ui/icons/Cancel";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
+import IconContentAdd from "@mui/icons-material/Add";
+import IconCancel from "@mui/icons-material/Cancel";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 import { memo } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
 
-const useStyles = makeStyles({
-  edit_grid: { width: "100%" },
-  toolbar: { display: "flex", justifyContent: "space-between" },
-  save_button_group: { display: "flex" },
-  button: {},
-});
 function DynReferenceCreate({
   path,
   resource_name,
@@ -48,7 +41,6 @@ function DynReferenceCreate({
   const attributes = resource?.attributes || [];
   // eslint-disable-next-line no-unused-vars
   const isInserting = true;
-
   const setRecords = (name: any, value: any) => {
     focusRef.current = name;
     recordRef.current = { ...recordRef.current, [name]: value };
@@ -106,17 +98,14 @@ function DynReferenceCreate({
       return recordsArray;
     });
   };
-
   const handleClick = () => {
     setShowDialog(true);
   };
-
   const handleCloseClick = () => {
     setShowDialog(false);
     refresh();
   };
   const title = `Create ${resource_name}`;
-  const classes = useStyles();
   const onSuccessShow = (data: any) => {
     notify(`${resource_name} created successfully`);
     redirect(`/${resource_name}/${data.id}/show`);
@@ -124,8 +113,8 @@ function DynReferenceCreate({
   const Mytoolbar = (props: any) => {
     const { reset } = useFormContext();
     return (
-      <Toolbar {...props} className={classes.toolbar}>
-        <div className={classes.button}>
+      <Toolbar {...props} style={{ display: "flex", justifyContent: "space-between" }}>
+        <div style={{}}>
           <Button
             label="ra.action.cancel"
             onClick={handleCloseClick}
@@ -134,11 +123,10 @@ function DynReferenceCreate({
             <IconCancel />
           </Button>
         </div>
-        <div className={classes.save_button_group}>
+        <div style={{ display: "flex" }}>
           <SaveButton
             type="button"
             label="save"
-            // submitOnEnter={true}
             mutationOptions={{
               onSuccess: () => {
                 handleCloseClick();
@@ -151,7 +139,6 @@ function DynReferenceCreate({
             type="button"
             label="save and add another"
             variant="outlined"
-            // redirect={false}
             mutationOptions={{
               onSuccess: () => {
                 notify(`${resource_name} created successfully`);
@@ -169,14 +156,12 @@ function DynReferenceCreate({
                 onSuccessShow(data);
               },
             }}
-            // submitOnEnter={false}
             variant="outlined"
           />
         </div>
       </Toolbar>
     );
   };
-
   const initialValue = () => {
     const attribute = attributes.find(
       (attr: any) => attr.relationship?.resource === currentParent
@@ -214,8 +199,7 @@ function DynReferenceCreate({
               <Grid
                 container
                 spacing={2}
-                style={{ margin: "2rem" }}
-                className={classes.edit_grid}
+                style={{ margin: "2rem", width: "100%" }}
               >
                 {attributes
                   .filter((attr: any) => !attr.relationship)
@@ -235,8 +219,7 @@ function DynReferenceCreate({
               <Grid
                 container
                 spacing={2}
-                style={{ margin: "2rem" }}
-                className={classes.edit_grid}
+                style={{ margin: "2rem", width: "100%" }}
               >
                 {attributes
                   .filter((attr: any) => attr.relationship)

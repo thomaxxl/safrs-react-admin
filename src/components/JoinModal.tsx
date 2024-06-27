@@ -1,8 +1,7 @@
 import * as React from "react";
-import Box from "@material-ui/core/Box";
-import Typography from "@material-ui/core/Typography";
-import Modal from "@material-ui/core/Modal";
-import { makeStyles } from "@material-ui/core/styles";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
 
 const style = {
   position: "absolute",
@@ -16,10 +15,6 @@ const style = {
   p: 4,
   textAlign: "left",
 };
-
-const useStyles = makeStyles({
-  joined_field: { cursor: "pointer", color: "#3f51b5" },
-});
 
 export default function JoinModal({
   label,
@@ -40,13 +35,13 @@ export default function JoinModal({
     setOpen(false);
   };
 
-  const classes = useStyles();
+  
 
   return (
     <span>
       <span
         onClick={handleOpen}
-        className={classes.joined_field}
+        style={{ cursor: "pointer", color: "#3f51b5" }}
         title={`${resource_name} Relationship`}
       >
         {label}{" "}

@@ -1,9 +1,6 @@
 import React from "react";
-import { Typography } from "@material-ui/core";
-import { Modal, Box } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import { Typography, Modal, Box, Button } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import Button from "@material-ui/core/Button";
 
 import { Property } from "csstype";
 
@@ -14,41 +11,39 @@ const style = {
   transform: "translate(-50%, -50%)",
   width: "75%",
   backgroundColor: "white",
-  // border: "2px solid #000",
   boxShadow: "0px 0px 24px rgba(0, 0, 0, 0.2)",
   padding: 4,
   textAlign: "left" as Property.TextAlign,
 };
-const useStyles = makeStyles({
-  info_modal: style,
-  icon: { color: "#ccc", "&:hover": { color: "#3f51b5" } },
-});
+
+const iconStyle = {
+  color: "#ccc",
+  "&:hover": { color: "#3f51b5" },
+};
 
 const InfoModal = ({ resource, mode }: { resource: any; mode: any }) => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = (e: any) => {
     setOpen(true);
     e.stopPropagation();
-    /*ReactDom.render(
-        <ReactMarkdown children={"markdown"} remarkPlugins={[]} />,
-        document.getElementById("info_content"))*/
   };
   const handleClose = (e: any) => {
     e.stopPropagation();
     setOpen(false);
   };
-  const classes = useStyles();
+
   const label = (
-    <Button>
-      <HelpOutlineIcon className={classes.icon} />
+    <Button style={iconStyle}>
+      <HelpOutlineIcon />
     </Button>
   );
+
   const content = resource[`info_${mode}`]; // modes: "show", "list", "edit"
 
   return content ? (
     <>
       <span onClick={handleOpen} title={`${resource.name} Info`}>
-        {label}{" "}
+        {label}
       </span>
       <Modal
         open={open}
@@ -57,13 +52,11 @@ const InfoModal = ({ resource, mode }: { resource: any; mode: any }) => {
         aria-describedby="modal-modal-description"
       >
         <Box
-          sx={style}
-          className={classes.info_modal}
-          style={{ borderRadius: "4px" }}
+          sx={{ ...style, borderRadius: "4px" }}
         >
           <Typography
             id="modal-modal-description"
-            style={{ marginTop: "2 rem" }}
+            sx={{ marginTop: "2rem" }}
           >
             <div
               id="info_content"

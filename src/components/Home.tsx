@@ -1,11 +1,10 @@
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import { Title } from "react-admin";
 import { useState } from "react";
 import Script from "react-load-script";
 import { useConf } from "../Config";
-import { withStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { resetConf } from "./ConfigurationUI";
 import ALSDesc from "./ValH";
 import get_Component from "../get_Component";
@@ -13,17 +12,13 @@ import * as React from "react";
 
 import { Link } from "react-router-dom";
 
-const styles = {
-  home: { fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' },
-};
-
 const Demo = ({ ready, config }: { ready: any; config: any }) => {
   const [content, setContent] = useState(false);
   if (ready && content === false && (window as any)?.getContent) {
     setContent((window as any).getContent(config));
   }
   return content ? (
-    <div dangerouslySetInnerHTML={{ __html: content }} />
+    <div dangerouslySetInnerHTML={{ __html: content }} style={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }} />
   ) : (
     <ALSDesc />
   );
@@ -55,8 +50,7 @@ const Home = (props: any) => {
 
   const init = config.settings ? null : (
     <Link to={{ pathname: "/configuration" }}>
-      <Button variant="contained" color="primary">
-        {" "}
+      <Button variant="contained" color="primary" style={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }}>
         Initialize Configuration
       </Button>
     </Link>
@@ -65,7 +59,7 @@ const Home = (props: any) => {
     <>
       <Script
         url={config.settings?.HomeJS}
-        onError={(e:any) => {
+        onError={(e: any) => {
           setScriptLoaded(true);
           console.error(e);
         }}
@@ -85,9 +79,9 @@ const Home = (props: any) => {
   return (
     <Card>
       <Title title="Home" />
-      <CardContent>{content}</CardContent>
+      <CardContent style={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }}>{content}</CardContent>
     </Card>
   );
 };
 
-export default withStyles(styles)(Home);
+export default Home;

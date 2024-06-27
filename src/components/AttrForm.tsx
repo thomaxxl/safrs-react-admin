@@ -1,22 +1,15 @@
-/* eslint-disable no-eval */
-/* eslint-disable no-throw-literal */
 import React, { useRef, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import DynInput from "./DynInput";
 import { DeleteButton, SaveButton, SimpleForm, Toolbar } from "react-admin";
-import { useRedirect, useRefresh, useNotify } from "react-admin";
-import Grid from "@material-ui/core/Grid";
+import { useRedirect, useNotify, useRefresh } from "react-admin";
+import Grid from "@mui/material/Grid";
 import { useLocation } from "react-router";
 
-const useStyles = makeStyles({
-  edit_grid: { width: "100%" },
-  textClass: {
-    "& textarea": {
-      height: "100px !important",
-    },
+const textClass = {
+  "& textarea": {
+    height: "100px !important",
   },
-});
-
+};
 const AttrForm = ({
   attributes,
   ...props
@@ -42,7 +35,7 @@ const AttrForm = ({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            width: "-webkit-fill-available",
+            width: "100%",
           }}
         >
           <SaveButton
@@ -62,20 +55,9 @@ const AttrForm = ({
     );
   };
 
-  interface resource {
-    relationship: [];
-    hidden: boolean;
-  }
-
-  interface attributes {
-    name: string;
-  }
-  // eslint-disable-next-line no-unused-vars
   const setRecords = (name: string, value: string) => {
     focusRef.current = name;
     recordRef.current = { ...recordRef.current, [name]: value };
-    // eslint-disable-next-line no-unused-vars
-    const record = recordRef.current;
     const recordsArray = attributes
       .filter(
         (attr: any) =>
@@ -129,23 +111,14 @@ const AttrForm = ({
     });
   };
 
-  const classes = useStyles();
   return (
     <SimpleForm {...props} toolbar={<CustomToolbar />}>
-      <Grid
-        container
-        spacing={2}
-        className={classes.edit_grid}
-        component="div"
-
-        // style={{ margin: "16px" }}
-        // style={{ margin: "320px" }}
-      >
+      <Grid container spacing={2} sx={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => !attr.relationship && !attr.hidden)
           .map((attr: any) => (
             <DynInput
-              className={attr.type === "textarea" ? classes.textClass : ""}
+              className={attr.type === "textarea" ? textClass : ""}
               renderSwitch={renderSwitch}
               setRecords={setRecords}
               myfocusRef={focusRef.current}
@@ -157,7 +130,7 @@ const AttrForm = ({
             />
           ))}
       </Grid>
-      <Grid container spacing={2} className={classes.edit_grid} component="div">
+      <Grid container spacing={2} style={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => attr.relationship && !attr.hidden)
           .map((attr: attributes, i: number) => (
@@ -168,7 +141,7 @@ const AttrForm = ({
                 myfocusRef={focusRef.current}
                 attribute={attr}
                 xs={5}
-                currentid={null} // Add the currentid property here
+                currentid={null}
                 currentParent
               />
               <Grid item xs={6} />

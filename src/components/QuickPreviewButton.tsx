@@ -1,8 +1,9 @@
 import { useState } from "react";
-import Drawer from "@material-ui/core/Drawer";
+import Drawer from "@mui/material/Drawer";
 import { useConf } from "../Config";
-import IconImageEye from "@material-ui/icons/RemoveRedEye";
-import IconKeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
+// import IconImageEye from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import IconKeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import { Button, SimpleShowLayout, TextField, useGetOne } from "react-admin";
 import * as React from "react";
 
@@ -31,7 +32,7 @@ const QuickPreviewButton = ({
   return (
     <>
       <Button onClick={handleClick} label="ra.action.show">
-        <IconImageEye />
+        <VisibilityIcon />
       </Button>
       <Drawer anchor="right" open={showPanel} onClose={handleCloseClick}>
         <div>

@@ -13,28 +13,17 @@ import {
   Toolbar,
   Create,
 } from "react-admin";
-import { useRef } from "react";
-import { useState, useCallback, memo } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import IconContentAdd from "@material-ui/icons/Add";
-import IconCancel from "@material-ui/icons/Cancel";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import Grid from "@material-ui/core/Grid";
+import { useRef, useState, useCallback, memo } from "react";
+import IconContentAdd from "@mui/icons-material/Add";
+import IconCancel from "@mui/icons-material/Cancel";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import Grid from "@mui/material/Grid";
 import { useConf } from "../Config";
 import QuickPreviewButton from "./QuickPreviewButton";
 import DynInput from "./DynInput";
 import * as React from "react";
-
-const useStyles = makeStyles({
-  edit_grid: { width: "100%" },
-  root: {
-    display: "flex",
-    alignItems: "center",
-  },
-  toolbar: { display: "flex", justifyContent: "space-between" },
-});
 
 function QuickCreateButton({
   onChange,
@@ -127,11 +116,9 @@ function QuickCreateButton({
   };
 
   const title = `Create ${resource.type}`;
-  const classes = useStyles();
-
   const Mytoolbar = (props: any) => {
     return (
-      <Toolbar {...props} className={classes.toolbar}>
+      <Toolbar {...props} style={{ display: "flex", justifyContent: "space-between" }}>
         <Button
           label="ra.action.cancel"
           onClick={handleCloseClick}
@@ -139,11 +126,9 @@ function QuickCreateButton({
         >
           <IconCancel />
         </Button>
-
         <SaveButton
           type="button"
           label="save"
-          // submitOnEnter={true}
           mutationOptions={{
             onSuccess: () => {
               handleCloseClick();
@@ -154,7 +139,6 @@ function QuickCreateButton({
       </Toolbar>
     );
   };
-
   return (
     <>
       <Button onClick={handleClick} label="ra.action.create">
@@ -174,8 +158,7 @@ function QuickCreateButton({
               <Grid
                 container
                 spacing={2}
-                style={{ margin: "2rem" }}
-                className={classes.edit_grid}
+                style={{ margin: "2rem", width: "100%" }}
               >
                 {attributes
                   .filter((attr: any) => !attr.relationship)
@@ -192,7 +175,7 @@ function QuickCreateButton({
                     />
                   ))}
               </Grid>
-              <Grid container spacing={2} className={classes.edit_grid}>
+              <Grid container spacing={2} style={{ width: "100%" }}>
                 {attributes
                   .filter((attr: any) => attr.relationship)
                   .map((attr: any) => (

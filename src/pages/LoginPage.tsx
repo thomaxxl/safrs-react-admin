@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { MuiThemeProvider } from "@material-ui/core/styles";
-import { createTheme } from '@material-ui/core/styles'
+import MuiThemeProvider from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 import { useLogin, useNotify } from "react-admin";
 
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
-import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import LockOutlinedIcon from "@mui/material";
+import Typography from "@mui/material/Typography";
+import { makeStyles } from "@mui/material/styles";
+import Container from "@mui/material/Container";
 import { getKcUrl } from "../Config";
 import * as React from "react";
 import Keycloak, {
   KeycloakConfig,
   KeycloakTokenParsed,
   KeycloakInitOptions,
-} from 'keycloak-js';
+} from "keycloak-js";
 
 const loggedInPar = "?logged_in=true";
 
@@ -33,7 +33,6 @@ const theme = createTheme({
     },
   },
 });
-
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -55,16 +54,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const initOptions: KeycloakInitOptions = { onLoad: 'login-required', checkLoginIframe: false, redirectUri : "http://localhost:3000/admin-app/#/Home?" };
+const initOptions: KeycloakInitOptions = {
+  onLoad: "login-required",
+  checkLoginIframe: false,
+  redirectUri: "http://localhost:3000/admin-app/#/Home?",
+};
 let kc = new Keycloak(initOptions as Keycloak.KeycloakConfig);
 
-console.log('kclogin')
+console.log("kclogin");
 
 /*
-*/
+ */
 const SraLogin = (keycloak: Keycloak) => {
-  console.log('sral',keycloak)
-  keycloak.login()
+  console.log("sral", keycloak);
+  keycloak.login();
 };
 
 export function LoginPage(props: any) {
@@ -74,13 +77,11 @@ export function LoginPage(props: any) {
   //const login = useLogin();
   const notify = useNotify();
 
-  console.log('kcloginpage', props)
+  console.log("kcloginpage", props);
   const submit = (e: any) => {
     e.preventDefault();
     SraLogin(props.kc);
   };
-
-  const classes = useStyles();
 
   return (
     <MuiThemeProvider theme={theme}>
