@@ -32,6 +32,7 @@ import {
 } from "@mui/material";
 import { IMonacoEditor } from "@uiw/react-monacoeditor";
 import { ThemeColorContext } from "../ThemeProvider";
+const URL = require('url-parse')
 
 const yaml = require("js-yaml");
 
@@ -389,27 +390,30 @@ const ExternalConf = () => {
     setOpen(false);
     LoadYaml(loadURI, notify, true, handleLoader);
     const conf_str = localStorage.getItem("conf_cache1");
-    console.log("conf_str: ", conf_str);
+    console.debug("conf_str: ", conf_str);
     saveConfig(conf_str);
-    console.log(document.location);
-
-    // console.log("nl", document.location.substr(document.location.indexOf("#")));
   };
 
   const handleLoader = () => {
-    console.log("@@@@@@@@@@@@@@@@@@@@");
     setLoader(false);
   };
 
-  return (
-    <div>
-      <Confirm
+  const url = URL(loadURI, {})
+  console.log('loadurl', url)
+  let requireConfirm = true ; // for security purposes (xss) we require a confirmation
+  const confirm = requireConfirm ?
+  <Confirm
         isOpen={open}
         content={`Do you want to load the external configuration from ${loadURI}`}
         onConfirm={handleConfirm}
         onClose={handleDialogClose}
         title={"Load external configuration"}
-      />
+      /> : null
+      
+
+  return <>
+    {confirm}
+    <div>
       {!loader ? null : (
         <Dialog
           open={loader}
@@ -423,7 +427,7 @@ const ExternalConf = () => {
         </Dialog>
       )}
     </div>
-  );
+    </>;
 };
 
 const ConfSelect = () => {
