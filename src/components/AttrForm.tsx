@@ -1,21 +1,17 @@
 /* eslint-disable no-eval */
 /* eslint-disable no-throw-literal */
 import React, { useRef, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import DynInput from "./DynInput";
 import { DeleteButton, SaveButton, SimpleForm, Toolbar } from "react-admin";
 import { useRedirect, useRefresh, useNotify } from "react-admin";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import { useLocation } from "react-router";
 
-const useStyles = makeStyles({
-  edit_grid: { width: "100%" },
-  textClass: {
-    "& textarea": {
-      height: "100px !important",
-    },
+const textClass = {
+  "& textarea": {
+    height: "100px !important",
   },
-});
+};
 
 const AttrForm = ({
   attributes,
@@ -42,7 +38,7 @@ const AttrForm = ({
           style={{
             display: "flex",
             justifyContent: "space-between",
-            width: "-webkit-fill-available",
+            width: "100%",
           }}
         >
           <SaveButton
@@ -129,23 +125,14 @@ const AttrForm = ({
     });
   };
 
-  const classes = useStyles();
   return (
     <SimpleForm {...props} toolbar={<CustomToolbar />}>
-      <Grid
-        container
-        spacing={2}
-        className={classes.edit_grid}
-        component="div"
-
-        // style={{ margin: "16px" }}
-        // style={{ margin: "320px" }}
-      >
+      <Grid container spacing={2} sx={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => !attr.relationship && !attr.hidden)
           .map((attr: any) => (
             <DynInput
-              className={attr.type === "textarea" ? classes.textClass : ""}
+              className={attr.type === "textarea" ? textClass : ""}
               renderSwitch={renderSwitch}
               setRecords={setRecords}
               myfocusRef={focusRef.current}
@@ -157,7 +144,7 @@ const AttrForm = ({
             />
           ))}
       </Grid>
-      <Grid container spacing={2} className={classes.edit_grid} component="div">
+      <Grid container spacing={2} style={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => attr.relationship && !attr.hidden)
           .map((attr: attributes, i: number) => (

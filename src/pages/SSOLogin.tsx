@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { MuiThemeProvider } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import { ThemeProvider } from "@mui/material";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import { makeStyles } from "@mui/material/styles";
+import Container from "@mui/material/Container";
 import { useConf } from "../Config";
 import { TextField } from "@mui/material";
 import * as React from "react";
+
 
 const RedirBtn = () => {
   const conf = useConf();

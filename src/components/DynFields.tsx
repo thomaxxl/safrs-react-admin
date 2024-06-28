@@ -1,12 +1,11 @@
 import { ImageField, useGetOne } from "react-admin";
 import { useRecordContext, DateField } from "react-admin";
-import Grid from "@material-ui/core/Grid";
-import { Typography } from "@material-ui/core";
+import Grid from "@mui/material/Grid";
+import { Typography } from "@mui/material";
 import { useState } from "react";
 import Tooltip from "@mui/material/Tooltip";
-import { makeStyles } from "@material-ui/core/styles";
 import DensityMediumIcon from "@mui/icons-material/DensityMedium";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { useConf } from "../Config";
 import JoinModal from "./JoinModal";
 import { load_custom_component } from "../util";
@@ -16,27 +15,24 @@ import { InfoPopover } from "../util";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import * as React from "react";
-const URL = require('url-parse')
-
-const useStyles = makeStyles({
-  join_attr: { color: "#3f51b5;" },
-  delete_icon: { fill: "#3f51b5" },
-  edit_grid: { width: "100%" },
-  rel_icon: { paddingLeft: "0.4rem", color: "#666", marginBottom: "0px" },
-  joined_field: { border: "2px solid red", cursor: "pointer" },
-});
+const URL = require("url-parse");
 
 const RelLabel = ({ text }: { text: any }) => {
   // Relationship column header label
-  const classes = useStyles();
 
   let label = (
     <Tooltip title={text + " Relationship"} placement="top-start" arrow>
       <span style={{ display: "inline-flex" }}>
         {text}
         <DensityMediumIcon
-          className={classes.rel_icon}
-          style={{ width: "0.7rem", height: "0.7rem", paddingTop: "0.5rem" }}
+          style={{
+            paddingLeft: "0.4rem",
+            color: "#666",
+            marginBottom: "0px",
+            width: "0.7rem",
+            height: "0.7rem",
+            paddingTop: "0.5rem",
+          }}
         />
       </span>
     </Tooltip>
@@ -260,12 +256,12 @@ const BooleanFieldToString = ({ source }: { source: string }) => {
 const LinkField = ({ source }: { source: string }) => {
   const record = useRecordContext();
   const value = record[source];
-  const url = URL(value, {})
-  if(url.protocol === 'http:' || url.protocol === 'https:'){
-    return <a href={value} >{value}</a>;
+  const url = URL(value, {});
+  if (url.protocol === "http:" || url.protocol === "https:") {
+    return <a href={value}>{value}</a>;
   }
-  return <span>{value}</span>
-}
+  return <span>{value}</span>;
+};
 
 const AttrField = ({
   attribute,
@@ -412,7 +408,7 @@ const ShowField = ({
               {label}
             </Typography>
             {value ? (
-            <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
+              <img src={`${value}`} style={{ width: "100%", height: "100%" }} />
             ) : (
               ""
             )}
@@ -472,7 +468,6 @@ export const ShowAttrField = ({
   id: any;
 }) => {
   const attr_name = attr.name;
-  const classes = useStyles();
   let label: any = (
     <InfoPopover label={attr.label || attr_name} content={attr.info} />
   );
@@ -492,8 +487,14 @@ export const ShowAttrField = ({
       <span style={{ display: "inline-flex" }}>
         {attr.name} / {label}
         <DensityMediumIcon
-          className={classes.rel_icon}
-          style={{ width: "0.7rem", height: "0.7rem", paddingTop: "0.3rem" }}
+          style={{
+            paddingLeft: "0.4rem",
+            color: "#666",
+            marginBottom: "0px",
+            width: "0.7rem",
+            height: "0.7rem",
+            paddingTop: "0.5rem",
+          }}
         />
       </span>
     );

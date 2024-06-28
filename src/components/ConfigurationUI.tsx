@@ -1,21 +1,20 @@
 import * as React from "react";
 import { Suspense, useMemo } from "react";
 import { useRef } from "react";
-import { TextareaAutosize, TextField } from "@material-ui/core";
-import Checkbox from "@material-ui/core/Checkbox";
-import Button from "@material-ui/core/Button";
+import { TextareaAutosize, TextField } from "@mui/material";
+import Checkbox from "@mui/material/Checkbox";
+import Button from "@mui/material/Button";
 import { useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import ClearIcon from "@material-ui/icons/Clear";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import ClearIcon from "@mui/icons-material/Clear";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { default_configs } from "../Config";
 import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import Modal from "@material-ui/core/Modal";
-import Typography from "@material-ui/core/Typography";
+import Modal from "@mui/material/Modal";
+import Typography from "@mui/material/Typography";
 import { useNotify } from "react-admin";
 import { Loading } from "react-admin";
 import PropTypes from "prop-types";
@@ -59,53 +58,6 @@ if (
   // only for dev purposes
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
 }
-
-const useStyles = makeStyles((theme) => ({
-  widget: {
-    border: "1px solid #3f51b5",
-    marginRight: "1em",
-    marginTop: "1em",
-    marginBottom: "1em",
-  },
-  textInput: {
-    width: "80%",
-  },
-  modal: {
-    position: "absolute",
-    top: "15%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "75%",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: "24px",
-    p: 4,
-    textAlign: "left",
-  },
-  mySelectStyle: {
-    "&.MuiInputBase-root": {
-      padding: "0 8px",
-      position: "relative",
-      height: "37px",
-      border: "1px solid #3f51b5",
-      borderRadius: "4px",
-      float: "right",
-      margin: "auto 0 auto auto",
-      "& div.MuiSelect-select": {
-        position: "absolute",
-        background: "transparent",
-        left: 0,
-        padding: 0,
-      },
-    },
-    "&.MuiInput-underline:before, &.MuiInput-underline:after": {
-      display: "none",
-    },
-  },
-  palletteStyle: {
-    color: "#3f51b5",
-  },
-}));
 
 const DeleteConf = (conf_name: any) => {
   console.log(" DeleteConf conf_name: ", conf_name);
@@ -212,7 +164,7 @@ export const LoadYaml = (
         }
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
-        window.location.href = "/#/Configuration";
+        window.location.href = "/admin-app/index.html";
         console.error(e);
       }
     };
@@ -231,15 +183,20 @@ export const LoadYaml = (
           window.location.href = "/admin-app/index.html";
         } else {
           notify("cannot load configuration ");
-          window.location.href = "/#/Configuration";
+          setTimeout(() => {
+            window.location.reload();
+            window.location.href = "/admin-app/index.html#/Configuration";
+          }, 500);
           handleLoader();
         }
       })
       .catch((err) => {
         if (notify) {
           notify("Failed to load yaml", { type: "warning" });
-          window.location.href = "/#/Configuration";
-          window.location.reload();
+          setTimeout(() => {
+            window.location.href = "/admin-app/index.html#/Configuration";
+            window.location.reload();
+          }, 500);
         }
         console.error(`Failed to load yaml from ${config_url}: ${err}`);
       });
@@ -280,7 +237,6 @@ const ManageModal = () => {
     alert("Localstorage error");
   }
 
-  const classes = useStyles();
   const modal_style = {
     position: "absolute",
     top: "25%",
@@ -308,7 +264,12 @@ const ManageModal = () => {
   return (
     <>
       <Button
-        className={classes.widget}
+        style={{
+          border: "1px solid #3f51b5",
+          marginRight: "1em",
+          marginTop: "1em",
+          marginBottom: "1em",
+        }}
         onClick={() => handleOpen()}
         color="primary"
       >
@@ -339,7 +300,12 @@ const ManageModal = () => {
               inputRef={textFieldRef}
             />
             <Button
-              className={classes.widget}
+              style={{
+                border: "1px solid #3f51b5",
+                marginRight: "1em",
+                marginTop: "1em",
+                marginBottom: "1em",
+              }}
               onClick={(evt) => handleClick()}
               color="primary"
             >
@@ -542,8 +508,6 @@ export const resetConf = (notify: any) => {
 export const ThemeSelector = () => {
   const { themeColor, setThemeColor } = React.useContext(ThemeColorContext);
 
-  const style = useStyles();
-
   const value: any = localStorage.getItem("ThemeColor");
   const conf = JSON.parse(localStorage.getItem("raconf") || "{}");
   if (!conf.ui) {
@@ -581,14 +545,32 @@ export const ThemeSelector = () => {
     <>
       <Select
         value={value}
-        className={style.mySelectStyle}
+        sx={{
+          "&.MuiInputBase-root": {
+            padding: "0 8px",
+            position: "relative",
+            height: "37px",
+            border: "1px solid #3f51b5",
+            borderRadius: "4px",
+            float: "right",
+            margin: "auto 0 auto auto",
+            "& div.MuiSelect-select": {
+              position: "absolute",
+              background: "transparent",
+              left: 0,
+              padding: 0,
+            },
+          },
+          "&.MuiInput-underline:before, &.MuiInput-underline:after": {
+            display: "none",
+          },
+        }}
         onChange={handleColorChange}
         disableUnderline={false}
         renderValue={() => ""}
         IconComponent={() => (
           <>
             <SvgIcon
-              className={style.palletteStyle}
               style={{
                 color:
                   value === "radiantLightTheme"
@@ -634,7 +616,6 @@ const ConfigurationUI = (props) => {
   const editorRef = useRef<IMonacoEditor | null>(null);
   const editorJsonRef = useRef<IMonacoEditor | null>(null);
 
-  const classes = useStyles();
   const notify = useNotify();
 
   const saveYaml = (ystr, ev) => {
@@ -837,14 +818,24 @@ const ConfigurationUI = (props) => {
         <ConfSelect />
         <ManageModal />
         <Button
-          className={classes.widget}
+          style={{
+            border: "1px solid #3f51b5",
+            marginRight: "1em",
+            marginTop: "1em",
+            marginBottom: "1em",
+          }}
           onClick={() => saveEdit("{}")}
           color="primary"
         >
           Clear
         </Button>
         <Button
-          className={classes.widget}
+          style={{
+            border: "1px solid #3f51b5",
+            marginRight: "1em",
+            marginTop: "1em",
+            marginBottom: "1em",
+          }}
           onClick={() => resetConf(notify)}
           // onClick={() => handleReset()}
           color="primary"
@@ -852,14 +843,24 @@ const ConfigurationUI = (props) => {
           Reset
         </Button>
         <Button
-          className={classes.widget}
+          style={{
+            border: "1px solid #3f51b5",
+            marginRight: "1em",
+            marginTop: "1em",
+            marginBottom: "1em",
+          }}
           onClick={() => handleClickSave()}
           color="primary"
         >
           Apply
         </Button>
         <Button
-          className={classes.widget}
+          style={{
+            border: "1px solid #3f51b5",
+            marginRight: "1em",
+            marginTop: "1em",
+            marginBottom: "1em",
+          }}
           onClick={() => saveConfig("")}
           // onClick={() => handleClickSave()}
           color="primary"

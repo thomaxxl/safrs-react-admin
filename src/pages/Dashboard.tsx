@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@material-ui/core";
+import { Card, CardContent, CardHeader } from "@mui/material";
 import { useConf } from "../Config";
 import * as React from "react";
 
