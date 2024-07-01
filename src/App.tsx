@@ -104,7 +104,6 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
         //return <div>Failed to Load Yaml </div>;
       }
     }
-
     return <div>Loading...</div>;
   }
 
@@ -212,11 +211,12 @@ const App: React.FC = () => {
   const redirURL = (): string => {
     let result
     if(document.location.href.includes('admin-app')){
-      result = document.location.origin + "/admin-app/#/";
+      result = document.location.origin + "/admin-app/";
     }
     else{
-      result = document.location.origin + "/#/";
+      result = document.location.origin + "/";
     }
+    result += 'index.html#/'
     console.log("redirurl", result);
     return result;
   };
