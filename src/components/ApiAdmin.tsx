@@ -1,9 +1,8 @@
 import * as React from "react";
-import { Modal, Box, Grid, TextField } from "@material-ui/core";
-import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
+import { Modal, Box, Grid, TextField } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { useConf } from "../Config";
 import { Loading, TextInput, useRecordContext, useGetList } from "react-admin";
 import { useForm } from "react-final-form";
@@ -26,43 +25,41 @@ const boxStyle = {
   textAlign: "left",
 };
 
-const useStyles = makeStyles({
-  joined_field: { cursor: "pointer", color: "#3f51b5" },
-  modalStyle: {
-    position: "absolute",
-    top: "10%",
-    left: "10%",
-    overflow: "scroll",
-    height: "100%",
-    fontWeight: 600,
-    display: "flex",
+const modalStyle = {
+  position: "absolute",
+  top: "10%",
+  left: "10%",
+  overflow: "scroll",
+  height: "100%",
+  fontWeight: 600,
+  display: "flex",
+};
+
+const joinedFieldStyle = { cursor: "pointer", color: "#3f51b5" };
+
+const dbBtnStyle = {
+  height: "80%",
+  position: "relative",
+  top: "50%",
+  transform: "translateY(-50%)",
+};
+
+const dbGridStyle = {
+  "& .MuiTextField-root": {
+    borderBottom: "4px solid white",
+    paddingBottom: "1em",
+    paddingRight: "1em",
   },
-  logdata: {
-    // Add your styles here
+};
+
+const actionsStyle = {
+  textAlign: "center",
+  "& button": {
+    width: "99%",
   },
-  db_btn: {
-    height: "80%",
-    position: "relative",
-    top: "50%",
-    "-webkit-transform": "translateY(-50%)",
-    "-ms-transform": "translateY(-50%)",
-    transform: "translateY(-50%)",
-  },
-  db_grid: {
-    "& .MuiTextField-root": {
-      borderBottom: "4px solid white",
-      paddingBottom: "1em",
-      paddingRight: "1em",
-    },
-  },
-  actions: {
-    textAlign: "center",
-    "& button": {
-      width: "99%",
-    },
-  },
-  conn_str: { backgroundColor: "#ccc", fontFamily: "Consolas" },
-});
+};
+
+const connStrStyle = { backgroundColor: "#ccc", fontFamily: "Consolas" };
 
 const C2Rpc = (url: any, data: any, options: any) => {
   const defaultOptions = {
@@ -104,19 +101,18 @@ const ApiModal = (props: any) => {
     setOpen(false);
   };
   const record = props.record;
-  const classes = useStyles();
 
   return (
     <span>
       <span
         onClick={handleOpen}
-        className={classes.joined_field}
+        style={joinedFieldStyle}
         title={` Relationship`}
       >
         <PlayCircleOutlineIcon />
       </span>
       <Modal
-        className={classes.modalStyle}
+        sx={modalStyle}
         open={open}
         onClose={handleClose}
         onClick={(e) => e.stopPropagation()}
@@ -172,7 +168,6 @@ const DBConnectionEdit = (props: any) => {
   const form = useForm();
   const record = useRecordContext();
   let value = record ? record["connection_string"] : "";
-  const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -260,7 +255,7 @@ const DBConnectionEdit = (props: any) => {
           onClick={handleOpen}
           color="primary"
           size="large"
-          className={classes.db_btn}
+          sx={dbBtnStyle}
         >
           Configure Connection
         </Button>
@@ -269,12 +264,12 @@ const DBConnectionEdit = (props: any) => {
       <Modal
         open={open}
         onClose={handleClose}
-        className={classes.modalStyle}
+        sx={modalStyle}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
         <Box sx={box_style}>
-          <Grid container className={classes.db_grid}>
+          <Grid container sx={dbGridStyle}>
             <Grid item xs={12} spacing={4}>
               <Typography id="modal-modal-title" variant="h6" component="h2">
                 Database Configuration
@@ -327,7 +322,8 @@ const DBConnectionEdit = (props: any) => {
                   id="outlined-basic"
                   label="Manual"
                   variant="outlined"
-                  defaultValue={value}
+                  fullWidth
+                  value={other}
                   onChange={(e) => setOther(e.target.value)}
                   helperText="Manual connection string configuration"
                 />
@@ -363,14 +359,14 @@ const DBConnectionEdit = (props: any) => {
             <Grid item xs={6} spacing={4}>
               <Typography>
                 Connection String:{" "}
-                <span className={classes.conn_str}>{create_conn()}</span>
+                <span style={connStrStyle}>{create_conn()}</span>
               </Typography>
             </Grid>
-            <Grid item xs={12} spacing={4} className={classes.actions}>
+            <Grid item xs={12} spacing={4} sx={actionsStyle}>
               <hr />
             </Grid>
             <Grid item xs={12} spacing={4} />
-            <Grid item xs={2} spacing={4} className={classes.actions}>
+            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"
@@ -380,7 +376,7 @@ const DBConnectionEdit = (props: any) => {
                 Test Connection
               </Button>
             </Grid>
-            <Grid item xs={2} spacing={4} className={classes.actions}>
+            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"
@@ -392,7 +388,7 @@ const DBConnectionEdit = (props: any) => {
                 Save &amp; Close
               </Button>
             </Grid>
-            <Grid item xs={2} spacing={4} className={classes.actions}>
+            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"
@@ -403,7 +399,7 @@ const DBConnectionEdit = (props: any) => {
                 Generate API
               </Button>
             </Grid>
-            <Grid item xs={2} spacing={4} className={classes.actions}>
+            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"

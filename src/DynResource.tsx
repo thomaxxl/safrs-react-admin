@@ -1,23 +1,13 @@
 import { useNotify, useRedirect } from "react-admin";
-import { Create } from "react-admin";
-import { Toolbar, SaveButton } from "react-admin";
+import { Create, Toolbar, SaveButton } from "react-admin";
 import "./style/DynStyle.css";
-import { makeStyles } from "@material-ui/core/styles";
 import AttrForm from "./components/AttrForm";
 import get_Component from "./get_Component";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
 
-const useStyles = makeStyles({
-  join_attr: { color: "#3f51b5;" },
-  delete_icon: { fill: "#3f51b5" },
-  edit_grid: { width: "100%" },
-  rel_icon: { paddingLeft: "0.4rem", color: "#666", marginBottom: "0px" },
-  save_button: { marginLeft: "1%" },
-});
 
 export const gen_DynResourceCreate = (resource: any) => (props: any) => {
-  const classes = useStyles();
   const notify = useNotify();
   const redirect = useRedirect();
   const attributes = resource.attributes;
@@ -44,7 +34,7 @@ export const gen_DynResourceCreate = (resource: any) => (props: any) => {
             },
           }}
         />
-        <div className={classes.save_button}>
+        <div style={{ marginLeft: "1%" }}>
           <SaveButton
             type="button"
             label="save and add another"
@@ -56,9 +46,10 @@ export const gen_DynResourceCreate = (resource: any) => (props: any) => {
                 reset();
               },
             }}
+            style={{ marginLeft: "1%" }}
           />
         </div>
-        <div className={classes.save_button}>
+        <div style={{ marginLeft: "1%" }}>
           <SaveButton
             type="button"
             label="save and show"
@@ -70,6 +61,7 @@ export const gen_DynResourceCreate = (resource: any) => (props: any) => {
                 redirect(`/${resource.name}/${data.id}/show`);
               },
             }}
+            style={{ marginLeft: "1%" }}
           />
         </div>
       </Toolbar>

@@ -9,13 +9,13 @@ import {
   useRecordContext,
   Confirm,
   FunctionField,
+  useGetList,
 } from "react-admin";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { useState } from "react";
 import { attr_fields } from "./DynFields";
 import { DynPagination, ExtraComponentProps } from "../util";
-import { makeStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { DetailPanel } from "./DynInstance";
 import {
   FilterButton,
@@ -28,11 +28,6 @@ import get_Component from "../get_Component";
 import { useInfoToggle } from "../InfoToggleContext";
 import { Typography } from "@mui/material";
 import * as React from "react";
-
-const useStyles = makeStyles({
-  icon: { color: "#ccc", "&:hover": { color: "#3f51b5" } },
-  delete_icon: { color: "#3f51b5" },
-});
 
 const searchFilters = [<TextInput source="q" label="Search" alwaysOn />];
 
@@ -56,7 +51,6 @@ const DeleteButton = (props: any) => {
   const dataProvider = useDataProvider();
   const refresh = useRefresh();
   const record = useRecordContext();
-  const classes = useStyles();
 
   return (
     <span>
@@ -69,7 +63,7 @@ const DeleteButton = (props: any) => {
         key={`${props.resource.name}_delete`}
         render={(record: any) => (
           <Button>
-            <DeleteIcon className={classes.delete_icon} />
+            <DeleteIcon style={{ color: "#3f51b5" }} />
           </Button>
         )}
         {...props}
@@ -161,6 +155,35 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
     ? resource_conf.sort_attr_names[0]
     : "";
 
+  let location: any = window.location.href;
+  console.log("location: ", location);
+  location = location.split("/");
+  let basePath = location[location.length - 1].includes("?")
+    ? location[location.length - 1].split("?")[0]
+    : location[location.length - 1];
+  console.log("location[location.length - 1]: ", basePath);
+  const {
+    data,
+    isFetching,
+    isPending,
+    fetchStatus,
+    isLoading,
+    isSuccess,
+    error,
+  } = useGetList(basePath);
+
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    console.log("data called");
+    if (fetchStatus === undefined) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [fetchStatus]);
+
   document.title = resource_conf.label || resource_conf.name;
   let list = (
     <>
@@ -177,6 +200,7 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
         <Datagrid
           rowClick="show"
           expand={<DetailPanel attributes={attributes} path={""} />}
+          isPending={loading}
         >
           {fields.slice(0, col_nr)}
           <ButtonField resource={resource_conf} {...props} />
