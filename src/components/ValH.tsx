@@ -6,6 +6,7 @@ import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import { AccordionProps as MuiAccordionProps, AccordionSummaryProps as MuiAccordionSummaryProps } from "@mui/material";
+import { useConf } from "../Config";
 
 const Accordion = styled(({ ...props }: MuiAccordionProps) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -43,7 +44,10 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   borderTop: "1px solid rgba(0, 0, 0, .125)",
 }));
 
+
+
 export default function CustomizedAccordions() {
+
   return (
     <div>
       <div className="MuiTypography-root jss4">

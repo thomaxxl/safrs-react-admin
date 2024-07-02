@@ -52,7 +52,10 @@ const AttrForm = ({
             mutationOptions={{
               onSuccess: (data) => {
                 notify("Element updated");
-                redirect(`${location.pathname}/show`);
+                
+                const redirect_loc = location.pathname.replace('create', '') + '/show'
+                console.log('redirect to', redirect_loc);
+                redirect(redirect_loc);
               },
             }}
           />

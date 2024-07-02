@@ -1,7 +1,7 @@
 import config from "./Config.json";
 
 interface Config {
-  api_root: object;
+  api_root: string;
   authentication?: {
     keycloak?: {
       url: string;

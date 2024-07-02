@@ -216,7 +216,11 @@ const App: React.FC = () => {
     else{
       result = document.location.origin + "/";
     }
-    result += 'index.html#/'
+    
+    result += `index.html${document.location.hash||'#/'}`
+    if(!result.endsWith('?')){
+      result += '?'
+    }
     console.log("redirurl", result);
     return result;
   };
@@ -242,8 +246,10 @@ const App: React.FC = () => {
     );
     setKeycloak(keycloakClient);
   };
-
-  if (conf.authentication?.keycloak && !keycloak) {
+  if(document.location.hash.includes('Home')){
+    console.log('noAuth',document.location.hash)
+  }
+  else if (conf.authentication?.keycloak && !keycloak) {
     initKeyCloakClient();
   } else if (conf.authentication?.endpoint) {
     dataProvider.current = jsonapiClient(

@@ -61,7 +61,6 @@ export const httpAuthClient = (url: string, options : any) => {
   if(token){
     options.headers.set('Authorization', `Bearer ${token}`);
   }
-  options.headers.set('Authorization', `Bearer ${token}`);
   return fetchUtils.fetchJson(url, options)
 }
 
@@ -73,6 +72,10 @@ const createKCHttpAuthClient = (keycloak: Keycloak) => (
   if(keycloak.isTokenExpired()){
       console.log(keycloak)
       keycloak.updateToken(10)
+  }
+  if(!keycloak){
+    console.error("No keycloak")
+    return
   }
   const requestHeaders = getKeycloakHeaders(keycloak.token, options);
   return fetchUtils.fetchJson(url, {

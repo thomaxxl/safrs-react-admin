@@ -15,6 +15,8 @@ import loadable from "@loadable/component";
 import { InfoPopover } from "../util";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
+import DownloadIcon from "@mui/icons-material/Download";
+import * as Icons from '@mui/icons-material';
 import * as React from "react";
 const URL = require('url-parse')
 
@@ -257,15 +259,27 @@ const BooleanFieldToString = ({ source }: { source: string }) => {
   return <span>{value != null ? (value ? "Yes" : "No") : "-"}</span>;
 };
 
-const LinkField = ({ source }: { source: string }) => {
+const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
   const record = useRecordContext();
   const value = record[source];
   const url = URL(value, {})
-  if(url.protocol === 'http:' || url.protocol === 'https:'){
-    return <a href={value} >{value}</a>;
+  let text = attribute.text ? attribute.text : value
+  try{
+    console.log(Icons)
+    //text = Icons[attribute.icon]
   }
-  return <span>{value}</span>
+  catch(e){
+
+  }
+  if(!value){
+    return <></>
+  }
+  if(url.protocol === 'http:' || url.protocol === 'https:'){
+    return <a href={value} >{text}</a>;
+  }
+  return <span>{text}</span>
 }
+
 
 const AttrField = ({
   attribute,
@@ -279,11 +293,11 @@ const AttrField = ({
   const conf = useConf();
 
   console.debug("AttrField attribute: ", attribute);
-  if (attribute.type === "Boolean") {
+  if (attribute.type?.toLowerCase() === "boolean") {
     return <BooleanFieldToString source={attribute.name} />;
   }
-  if (attribute.type === "link") {
-    return <LinkField source={attribute.name} />;
+  if (attribute.type?.toLowerCase() === "link") {
+    return <LinkField source={attribute.name} attribute={attribute}/>;
   }
 
   const component: any = attribute.component;

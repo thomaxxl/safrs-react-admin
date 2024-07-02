@@ -213,7 +213,8 @@ export const LoadYaml = (
         }
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
-        window.location.href = "/#/Configuration";
+        notify("Failed to load config", "warning");
+        //window.location.href = "/#/Configuration";
         console.error(e);
       }
     };
@@ -409,7 +410,7 @@ const ExternalConf = () => {
         onClose={handleDialogClose}
         title={"Load external configuration"}
       /> : null
-      
+    
 
   return <>
     {confirm}
@@ -494,7 +495,6 @@ const saveConfig = (conf: any) => {
   console.log("api_root: ", api_root);
   if (!api_root && !window.location.href.includes("load")) {
     alert("Can't save: no 'api_root' set in config");
-    //console.log(current_conf)
     return;
   }
   if (!api_root && window.location.href.includes("load")) {
@@ -507,11 +507,9 @@ const saveConfig = (conf: any) => {
   }
   configs[api_root] = current_conf;
   localStorage.setItem("raconfigs", JSON.stringify(configs));
-
-  // window.location.reload();
 };
 
-export const resetConf = (notify: any) => {
+export const resetConf = (notify: any, reload: any = false) => {
   let raConf = localStorage.getItem("raconf");
   if (raConf && raConf !== "{}") {
     let raConfObj = JSON.parse(raConf);
@@ -519,7 +517,6 @@ export const resetConf = (notify: any) => {
       let confSource = raConfObj.conf_source;
       let decodedConfSource = atob(confSource);
       als_yaml_url = decodedConfSource;
-      console.log(confSource);
     }
   }
 
@@ -535,10 +532,10 @@ export const resetConf = (notify: any) => {
   localStorage.setItem("raconfigs", JSON.stringify(configs));
   let value = window.location.href.split("/");
   let check_load = window.location.href.includes("load");
-  if (!check_load) {
-    LoadYaml(als_yaml_url, notify, true);
-  } else {
+  if (check_load || ! reload) {
     LoadYaml(als_yaml_url, notify, false);
+  } else {
+    LoadYaml(als_yaml_url, notify, true);
   }
   return defconf;
 };
@@ -632,15 +629,15 @@ const ConfigurationUI = (props) => {
   const [raconfigsData, setRaconfigsData] = useState(
     localStorage.getItem("raconfigs")
   );
-  console.log("raconfigsData: ", raconfigsData);
   const [value, setValue] = useState(0);
-  const cancelToken = useRef(null);
   const editorRef = useRef<IMonacoEditor | null>(null);
   const editorJsonRef = useRef<IMonacoEditor | null>(null);
-
   const classes = useStyles();
   const notify = useNotify();
-
+  const ref = useRef(true);
+  const firstRender = ref.current;
+  ref.current = false;
+  
   const saveYaml = (ystr, ev) => {
     try {
       const jj = yaml.load(ystr);
@@ -687,7 +684,7 @@ const ConfigurationUI = (props) => {
         .then((conf_str) => {
           setData(conf_str);
           if (localStorage.getItem("conf_cache1") !== conf_str) {
-            resetConf(() => {});
+            resetConf(() => {}, true);
           }
         })
         .catch((err) => {
@@ -703,7 +700,7 @@ const ConfigurationUI = (props) => {
   const [taConf, setTaConf] = useState(
     conf ? JSON.stringify(JSON.parse(conf), null, 4) : ""
   );
-  console.log("taConf", taConf);
+  //console.debug("taConf", taConf);
   const [bgColor, setBgColor] = useState("black");
   const [autosave, setAutosave] = useState(true);
   const [, setApiroot] = useState(JSON.parse(conf)?.api_root);
@@ -806,7 +803,7 @@ const ConfigurationUI = (props) => {
       window.location.reload();
     }
     if (currentYaml !== editorRef.current) {
-      handleSave();
+      handleSave(null, null);
     }
   };
 
@@ -834,6 +831,11 @@ const ConfigurationUI = (props) => {
       resetConf(notify);
     }
   };
+
+  if(firstRender){
+    console.log('resetting configuration')
+    //resetConf(notify);
+  }
 
   return (
     <div>
