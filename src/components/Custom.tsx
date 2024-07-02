@@ -1,5 +1,5 @@
-import Grid from "@material-ui/core/Grid";
-import { Typography } from "@material-ui/core";
+import Grid from "@mui/material/Grid";
+import { Typography } from "@mui/material";
 import { TextField, PasswordInput } from "react-admin";
 import * as React from "react";
 import { useRecordContext } from "react-admin";

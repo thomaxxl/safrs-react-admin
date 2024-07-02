@@ -10,7 +10,7 @@ import {
   ImageField,
 } from "react-admin";
 import { useState, memo, useEffect } from "react";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import { useConf } from "../Config";
 import get_Component from "../get_Component";
 import DynReferenceInput from "./DynReferenceInput";
@@ -50,7 +50,7 @@ const DynInput = ({
     label: label,
   };
   const GridWrap = (props: any) => (
-    <Grid className={className} item xs={xs || 4} spacing={4}>
+    <Grid sx={className} item xs={xs || 4} spacing={4}>
       {props.children}
     </Grid>
   );

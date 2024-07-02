@@ -1,8 +1,8 @@
 import React from "react";
-import { Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
 import { Pagination } from "react-admin";
 import loadable from "@loadable/component";
-import Popover from "@material-ui/core/Popover";
+import Popover from "@mui/material/Popover";
 
 export const type2resource = (type: any, conf: any) => {
   for (let [resource_name, resource] of Object.entries<any>(conf?.resources)) {
