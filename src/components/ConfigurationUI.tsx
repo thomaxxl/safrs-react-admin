@@ -31,7 +31,7 @@ import {
 } from "@mui/material";
 import { IMonacoEditor } from "@uiw/react-monacoeditor";
 import { ThemeColorContext } from "../ThemeProvider";
-const URL = require('url-parse')
+const URL = require("url-parse");
 
 const yaml = require("js-yaml");
 
@@ -112,8 +112,10 @@ const addConf = (conf: any) => {
   if (!loadUrl) {
     loadUrl = als_yaml_url;
   }
-  const encodedLoadUrl = btoa(loadUrl);
-  conf.conf_source = encodedLoadUrl;
+  if (!conf.conf_source) {
+    const encodedLoadUrl = btoa(loadUrl);
+    conf.conf_source = encodedLoadUrl;
+  }
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
   console.log("conf: ", conf);
@@ -128,6 +130,9 @@ export const LoadYaml = (
   handleLoader: any = null
 ) => {
   if (state) {
+    if (!config_url?.includes("http") && !config_url?.includes(".yaml")) {
+      if (config_url !== undefined) config_url = atob(config_url);
+    }
     console.log("LoadYaml config_url: ", config_url);
     if (config_url == null) {
       config_url = als_yaml_url;
@@ -160,6 +165,10 @@ export const LoadYaml = (
       console.log("ystr: ", ystr);
       try {
         const conf = yaml.load(ystr);
+        const encodedLoadUrl = btoa(config_url);
+        if (!conf.conf_source) {
+          conf.conf_source = encodedLoadUrl;
+        }
         if (!addConf(conf) && notify) {
           notify("Failed to load config", "warning");
         }
@@ -171,6 +180,7 @@ export const LoadYaml = (
       }
     };
 
+    notify("Loading configuration", { type: "info" });
     fetch(config_url, { cache: "no-store" })
       .then((response) => {
         console.log("response", response);
@@ -180,16 +190,16 @@ export const LoadYaml = (
         if (conf_str.includes("api_root")) {
           localStorage.setItem("conf_cache1", conf_str);
           saveConf(conf_str);
-          notify("Loaded configuration");
-          handleLoader();
-          window.location.href = "/admin-app/index.html";
-        } else {
-          notify("cannot load configuration ");
           setTimeout(() => {
-            window.location.reload();
-            window.location.href = "/admin-app/index.html#/Configuration";
+            notify("Loaded configuration");
           }, 500);
+          window.location.href = "/admin-app/index.html";
           handleLoader();
+        } else {
+          notify("Failed to load yaml", { type: "warning" });
+          setTimeout(() => {
+            window.location.href = "/admin-app/index.html#/Configuration";
+          }, 1000);
         }
       })
       .catch((err) => {
@@ -365,36 +375,38 @@ const ExternalConf = () => {
     setLoader(false);
   };
 
-  const url = URL(loadURI, {})
-  console.log('loadurl', url)
-  let requireConfirm = true ; // for security purposes (xss) we require a confirmation
-  const confirm = requireConfirm ?
-  <Confirm
-        isOpen={open}
-        content={`Do you want to load the external configuration from ${loadURI}`}
-        onConfirm={handleConfirm}
-        onClose={handleDialogClose}
-        title={"Load external configuration"}
-      /> : null
-    
+  const url = URL(loadURI, {});
+  console.log("loadurl", url);
+  let requireConfirm = true; // for security purposes (xss) we require a confirmation
+  const confirm = requireConfirm ? (
+    <Confirm
+      isOpen={open}
+      content={`Do you want to load the external configuration from ${loadURI}`}
+      onConfirm={handleConfirm}
+      onClose={handleDialogClose}
+      title={"Load external configuration"}
+    />
+  ) : null;
 
-  return <>
-    {confirm}
-    <div>
-      {!loader ? null : (
-        <Dialog
-          open={loader}
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
-            color: "white", // white text color
-            borderRadius: "10px", // rounded corners
-          }}
-        >
-          <Loading />
-        </Dialog>
-      )}
-    </div>
-    </>;
+  return (
+    <>
+      {confirm}
+      <div>
+        {!loader ? null : (
+          <Dialog
+            open={loader}
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
+              color: "white", // white text color
+              borderRadius: "10px", // rounded corners
+            }}
+          >
+            <Loading />
+          </Dialog>
+        )}
+      </div>
+    </>
+  );
 };
 
 const ConfSelect = () => {
@@ -498,7 +510,7 @@ export const resetConf = (notify: any, reload: any = false) => {
   localStorage.setItem("raconfigs", JSON.stringify(configs));
   let value = window.location.href.split("/");
   let check_load = window.location.href.includes("load");
-  if (check_load || ! reload) {
+  if (check_load) {
     LoadYaml(als_yaml_url, notify, false);
   } else {
     LoadYaml(als_yaml_url, notify, true);
@@ -539,6 +551,7 @@ export const ThemeSelector = () => {
     };
     setThemeColor(event.target.value);
     localStorage.setItem("raconf", JSON.stringify(conf));
+    localStorage.setItem("autoReload", "false");
     window.location.reload();
   };
 
@@ -618,7 +631,7 @@ const ConfigurationUI = (props) => {
   const ref = useRef(true);
   const firstRender = ref.current;
   ref.current = false;
-  
+
   const saveYaml = (ystr, ev) => {
     try {
       const jj = yaml.load(ystr);
@@ -684,10 +697,38 @@ const ConfigurationUI = (props) => {
   //console.debug("taConf", taConf);
   const [bgColor, setBgColor] = useState("black");
   const [autosave, setAutosave] = useState(true);
+  const [loader, setLoader] = useState(false);
+  const [autoReload, setAutoReload] = useState(() => {
+    const storedAutoReload = localStorage.getItem("autoReload");
+    return storedAutoReload !== null ? JSON.parse(storedAutoReload) : true;
+  });
   const [, setApiroot] = useState(JSON.parse(conf)?.api_root);
+  console.log("autoReload: ", autoReload);
+  const handleLoader = () => {
+    setLoader(false);
+  };
+
+  React.useEffect(() => {
+    if (autoReload) {
+      if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+        const conf = JSON.parse(localStorage.getItem("raconf") || "{}");
+        if (conf?.conf_source !== undefined) {
+          setLoader(true);
+         
+          LoadYaml(conf?.conf_source, notify, true, handleLoader);
+          console.log("reloading configuration");
+        }
+      }
+    }
+  }, [autoReload, notify, loader]);
 
   const handleAutoSaveChange = (event) => {
     setAutosave(event.target.checked);
+  };
+
+  const handleAutoReloadChange = (event) => {
+    localStorage.setItem("autoReload", event.target.checked);
+    setAutoReload(event.target.checked);
   };
 
   const Editor = React.memo(
@@ -813,8 +854,8 @@ const ConfigurationUI = (props) => {
     }
   };
 
-  if(firstRender){
-    console.log('resetting configuration')
+  if (firstRender) {
+    console.log("resetting configuration");
     //resetConf(notify);
   }
 
@@ -883,6 +924,16 @@ const ConfigurationUI = (props) => {
           }
           label="Auto Save Config"
         />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={autoReload}
+              onChange={handleAutoReloadChange}
+              color="primary"
+            />
+          }
+          label="Auto Reload Config"
+        />
         <ThemeSelector />
       </div>
       <div>
@@ -922,6 +973,18 @@ const ConfigurationUI = (props) => {
             />
           </TabPanel>
         </Box>
+        {!loader ? null : (
+          <Dialog
+            open={loader}
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
+              color: "white", // white text color
+              borderRadius: "10px", // rounded corners
+            }}
+          >
+            <Loading />
+          </Dialog>
+        )}
       </div>
     </div>
   );
