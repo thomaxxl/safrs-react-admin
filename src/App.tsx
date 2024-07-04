@@ -48,10 +48,24 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { Menu, MyAppBar } from "./components/Menu";
 import { ThemeColorContext, ThemeColorProvider } from "./ThemeProvider";
 
+
+const useDetectNewWindowOrTab = () => {
+  React.useEffect(() => {
+    const hasReloaded = sessionStorage.getItem('hasReloaded');
+
+    if (!hasReloaded) {
+      localStorage.setItem("autoReload","true")
+      console.log("Component loaded for the first time");
+      sessionStorage.setItem('hasReloaded', 'true');
+      // Reload the page to refresh the application
+      window.location.reload();
+    }
+  }, []);
+};
+
 const initOptions: KeycloakInitOptions = {
   onLoad: "login-required",
   checkLoginIframe: false,
-  
 };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
@@ -80,7 +94,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const conf = useConf();
   const notify = useNotify();
   console.log("AsyncResources conf: ", conf);
-  
+
   const dataProvider = useDataProvider();
   React.useEffect(() => {
     dataProvider
@@ -98,12 +112,19 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
       });
   }, [dataProvider]);
 
-  if (resources.length === 0 || (conf.authentication?.keycloak && keycloak === undefined)) {
+  
+ 
+
+  if (
+    resources.length === 0 ||
+    (conf.authentication?.keycloak && keycloak === undefined)
+  ) {
     if (!window.location.href.includes("load")) {
       if (localStorage.getItem("raconf") === "{}") {
         //return <div>Failed to Load Yaml </div>;
       }
     }
+    
     return <div>Loading...</div>;
   }
 
@@ -115,8 +136,9 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     notify("api_root must be string", { type: "error" });
   }
 
-  const adminUIProps = conf.authentication?.keycloak !== undefined ? {} : {loginPage : LoginPage}
-  
+  const adminUIProps =
+    conf.authentication?.keycloak !== undefined ? {} : { loginPage: LoginPage };
+
   return (
     <AdminUI
       ready={() => (
@@ -171,8 +193,17 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 };
 
 const App: React.FC = () => {
-  
-  const { themeColor } = React.useContext(ThemeColorContext);
+  React.useEffect(() => {
+    let test_raconf = localStorage.getItem("raconf")
+    console.log('test_raconf: ', test_raconf);
+    if (test_raconf === "{}") {
+      localStorage.removeItem("raconf");
+      window.location.reload();
+    }
+  },[]);
+  useDetectNewWindowOrTab();
+  console.log("hello");
+  let { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
   const ThemeColor = localStorage.getItem("ThemeColor");
   console.debug("themeColor: ", themeColor);
@@ -209,17 +240,16 @@ const App: React.FC = () => {
   console.log("queryClient: ", queryClient);
 
   const redirURL = (): string => {
-    let result
-    if(document.location.href.includes('admin-app')){
+    let result;
+    if (document.location.href.includes("admin-app")) {
       result = document.location.origin + "/admin-app/";
-    }
-    else{
+    } else {
       result = document.location.origin + "/";
     }
-    
-    result += `index.html${document.location.hash||'#/'}`
-    if(!result.endsWith('?')){
-      result += '?'
+
+    result += `index.html${document.location.hash || "#/"}`;
+    if (!result.endsWith("?")) {
+      result += "?";
     }
     console.log("redirurl", result);
     return result;
@@ -228,7 +258,6 @@ const App: React.FC = () => {
   const authProvider = React.useRef<AuthProvider>(undefined);
 
   const initKeyCloakClient = async () => {
-    
     const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
     const keycloakClient = new Keycloak(kcConfig);
     initOptions.redirectUri = redirURL(); // kc redirect url
@@ -246,17 +275,12 @@ const App: React.FC = () => {
     );
     setKeycloak(keycloakClient);
   };
-  if(document.location.hash.includes('Home')){
-    console.log('noAuth',document.location.hash)
-  }
-  else if (conf.authentication?.keycloak && !keycloak) {
+  if (document.location.hash.includes("Home")) {
+    console.log("noAuth", document.location.hash);
+  } else if (conf.authentication?.keycloak && !keycloak) {
     initKeyCloakClient();
   } else if (conf.authentication?.endpoint) {
-    dataProvider.current = jsonapiClient(
-      conf.api_root,
-      { conf: {} },
-      null
-    );
+    dataProvider.current = jsonapiClient(conf.api_root, { conf: {} }, null);
     authProvider.current = sraAuthPorvider;
   }
 
