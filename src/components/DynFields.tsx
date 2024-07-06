@@ -16,6 +16,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import DownloadIcon from "@mui/icons-material/Download";
 import * as Icons from '@mui/icons-material';
+import { Icon } from '@mui/material';
 import * as React from "react";
 const URL = require("url-parse");
 
@@ -256,17 +257,13 @@ const BooleanFieldToString = ({ source }: { source: string }) => {
 };
 
 const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
+
   const record = useRecordContext();
   const value = record[source];
   const url = URL(value, {})
   let text = attribute.text ? attribute.text : value
-  try{
-    console.log(Icons)
-    //text = Icons[attribute.icon]
-  }
-  catch(e){
+  text =  attribute.icon ? <Icon>{attribute.icon}</Icon> : text
 
-  }
   if(!value){
     return <></>
   }
@@ -275,7 +272,6 @@ const LinkField = ({ source, attribute }: { source: string, attribute: any }) =>
   }
   return <span>{text}</span>
 }
-
 
 const AttrField = ({
   attribute,
@@ -287,8 +283,6 @@ const AttrField = ({
 }) => {
   const record = useRecordContext();
   const conf = useConf();
-
-  console.debug("AttrField attribute: ", attribute);
   if (attribute.type?.toLowerCase() === "boolean") {
     return <BooleanFieldToString source={attribute.name} />;
   }
@@ -402,6 +396,10 @@ const ShowField = ({
     component = "pre";
   }
   const result = () => {
+    if (attr?.type?.toLowerCase() === "link") {
+      return <LinkField source={attr.name} attribute={attr}/>;
+    }
+  
     if (attr?.type === "Boolean") {
       return (
         <Grid item xs={3}>

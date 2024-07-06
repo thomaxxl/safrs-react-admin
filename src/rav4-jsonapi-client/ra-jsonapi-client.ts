@@ -40,15 +40,18 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
 }
 
 export const getKeycloakHeaders = (
-  token: string | null,
+  keycloak: Keycloak,
   options: fetchUtils.Options | undefined
 ): Headers => {
   const headers = ((options && options.headers) ||
       new Headers({
           Accept: 'application/json',
       })) as Headers;
-  if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+  if(keycloak?.isTokenExpired()){
+      keycloak.updateToken(30)
+  }
+  if (keycloak.token) {
+      headers.set('Authorization', `Bearer ${keycloak.token}`);
   }
   return headers;
 };
@@ -68,25 +71,24 @@ const createKCHttpAuthClient = (keycloak: Keycloak) => (
   url: any,
   options: fetchUtils.Options | undefined
 ) => {
-  console.log('KCHttpClient', keycloak)
-  if(keycloak.isTokenExpired()){
-      console.log(keycloak)
-      keycloak.updateToken(10)
-  }
   if(!keycloak){
     console.error("No keycloak")
     return
   }
-  const requestHeaders = getKeycloakHeaders(keycloak.token, options);
+  const requestHeaders = getKeycloakHeaders(keycloak, options);
   return fetchUtils.fetchJson(url, {
       ...options,
       headers: requestHeaders,
-  });
+  })
+  .catch(e => {
+    console.warn('kchttperr',e)
+    throw new Error(e)
+  })
 };
 
 const kcErrorHandler = (err : HttpError) => {
   if(err){
-    console.log('kc err', err)
+    console.log('kcerr', err)
   }
 }
 /**
@@ -134,7 +136,6 @@ export const jsonapiClient = (
           query.sort = sort
       }
 
-      console.debug(params)
       // console.log(resource_conf)
       // Add all filter params to query.
       if(params.filter?.q && "resources" in conf){
@@ -158,13 +159,12 @@ export const jsonapiClient = (
 
       // Add sort parameter, first check the default configured sorting, then the customized sort
       if (params.sort && params.sort.field) {
-          const prefix = params.sort.order === 'DESC' ? '-' : ''; // <> ASC
+          const prefix = params.sort.order?.toLowerCase() === 'desc' ? '-' : ''; // <> ASC
           query.sort = `${prefix}${params.sort.field}`;
       }
       if(!query.sort){
           query.sort = resource_conf.sort || "id"
       }
-      console.debug(query)
       const rel_conf = conf.resources[resource_name].relationships || []
       // we only need "toone" rels in getList so we can show the join/user key
       const includes: string[] = rel_conf.filter((rel : any) => rel.direction != 'tomany').map((rel : any) => rel.name);

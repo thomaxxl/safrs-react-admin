@@ -783,10 +783,8 @@ const ConfigurationUI = (props) => {
   const handleEdit = (newtaConf: any, ev: any) => {
     // Store the edited configuration in the ref
     editorRef.current = newtaConf;
-    console.log("newtaConf", newtaConf);
     const newContent = newtaConf;
     const currentContent = currentYaml;
-    console.log("currentContent", currentContent);
     setShowButton(true);
   };
 

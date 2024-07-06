@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import { resetConf } from "./ConfigurationUI";
 import ALSDesc from "./ValH";
 import get_Component from "../get_Component";
-// import {GApiFab, ApiFab} from './ApiFab'
+import {GApiFab, ApiFab} from './ApiFab'
 
 import { Link } from "react-router-dom";
 
@@ -52,12 +52,12 @@ const Home = (props: any) => {
   }
 
   
-  // if(document.location.origin.includes('g.apifabric.ai')){
-  //   return <GApiFab/>
-  // }
-  // else if(document.location.origin.includes('apifabric.ai')){
-  //   return <ApiFab/>
-  // }
+  if(document.location.origin.includes('g.apifabric.ai')){
+     return <GApiFab/>
+  }
+  else if(document.location.origin.includes('apifabric.ai')){
+     return <ApiFab/>
+  }
   
 
   const init = config.settings ? null : (

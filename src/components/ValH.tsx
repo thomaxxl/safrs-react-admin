@@ -58,7 +58,7 @@ export default function CustomizedAccordions() {
           <br></br>
           <a
             rel="nofollow noreferrer"
-            href="https://valhuber.github.io/ApiLogicServer/"
+            href="https://apilogicserver.github.io/"
             target="_blank"
           >
             API Logic Server
@@ -66,7 +66,7 @@ export default function CustomizedAccordions() {
           &nbsp;creates <i>customizable</i> model-driven systems, instantly from
           your&nbsp;
           <a
-            href="https://valhuber.github.io/ApiLogicServer/Sample-Database/"
+            href="https://apilogicserver.github.io/Docs/Sample-Database/"
             target="_blank"
             rel="noreferrer"
           >
@@ -103,7 +103,7 @@ export default function CustomizedAccordions() {
                   <i>Model-driven: </i>creation builds executable&nbsp;
                   <a
                     rel="nofollow noreferrer"
-                    href="https://valhuber.github.io/ApiLogicServer/Architecture/#customizable-declarative-models"
+                    href="https://apilogicserver.github.io/Docs/Architecture-Declarative-Automation/"
                     target="_blank"
                   >
                     models
@@ -120,7 +120,7 @@ export default function CustomizedAccordions() {
                   <i>Customizable: </i>models are created into a project;&nbsp;
                   <a
                     rel="nofollow noreferrer"
-                    href="https://valhuber.github.io/ApiLogicServer/Project-Structure/#customizing-apilogicprojects"
+                    href="https://apilogicserver.github.io/Docs/Project-Structure/#customizing-apilogicprojects"
                     target="_blank"
                   >
                     customize
@@ -140,7 +140,7 @@ export default function CustomizedAccordions() {
           <br></br>
           1.&nbsp;
           <a
-            href="https://valhuber.github.io/ApiLogicServer/Admin-Tour/"
+            href="https://apilogicserver.github.io/Docs/Admin-Tour/"
             target="_blank"
             rel="noreferrer"
           >
@@ -157,7 +157,7 @@ export default function CustomizedAccordions() {
               info icons, upper right), and how to{" "}
               <a
                 rel="nofollow noreferrer"
-                href="https://valhuber.github.io/ApiLogicServer/Admin-Tour/"
+                href="https://apilogicserver.github.io/Docs/Admin-Tour/"
                 target="_blank"
               >
                 customize it
@@ -178,7 +178,7 @@ export default function CustomizedAccordions() {
             <li>
               <a
                 rel="nofollow noreferrer"
-                href="https://valhuber.github.io/ApiLogicServer/API-Customize/"
+                href="https://apilogicserver.github.io/Docs/API-Customize/"
                 target="_blank"
               >
                 Customizable
@@ -189,7 +189,7 @@ export default function CustomizedAccordions() {
           3.&nbsp;
           <a
             rel="nofollow noreferrer"
-            href="https://valhuber.github.io/ApiLogicServer/Logic-Why/"
+            href="https://apilogicserver.github.io/Docs/Logic-Why/"
             target="_blank"
           >
             Business Logic
@@ -207,7 +207,7 @@ export default function CustomizedAccordions() {
               Explore &nbsp;how logic can meaningfully improve&nbsp;
               <a
                 rel="nofollow noreferrer"
-                href="https://github.com/valhuber/LogicBank/wiki/by-code"
+                href="https://apilogicserver.github.io/Docs/Logic-Why/"
                 title="Rules are 40X more concise than code, and address over 95% of database logic"
                 target="_blank"
               >

@@ -195,7 +195,6 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 const App: React.FC = () => {
   React.useEffect(() => {
     let test_raconf = localStorage.getItem("raconf")
-    console.log('test_raconf: ', test_raconf);
     if (test_raconf === "{}") {
       localStorage.removeItem("raconf");
       window.location.reload();

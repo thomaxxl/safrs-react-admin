@@ -156,12 +156,10 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
     : "";
 
   let location: any = window.location.href;
-  console.log("location: ", location);
   location = location.split("/");
   let basePath = location[location.length - 1].includes("?")
     ? location[location.length - 1].split("?")[0]
     : location[location.length - 1];
-  console.log("location[location.length - 1]: ", basePath);
   const {
     data,
     isFetching,
