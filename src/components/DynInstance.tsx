@@ -188,12 +188,14 @@ const ShowInstance = ({
       return DynRelationshipOne(resource_name, id, tab);
     }
   });
-
+  
   return (
     <SimpleShowLayout>
+      
       {title}
       <Grid container spacing={3}>
         {attributes.map((attr: any) => (
+          <>
           <ShowRecordField
             key={attr.name}
             source={attr}
@@ -201,6 +203,7 @@ const ShowInstance = ({
             path={basePath}
             id={id}
           />
+          <br/></>
         ))}
       </Grid>
       <hr style={{ margin: "30px 0px 30px" }} />

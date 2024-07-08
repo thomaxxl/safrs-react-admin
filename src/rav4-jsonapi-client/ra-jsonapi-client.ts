@@ -425,7 +425,7 @@ export const jsonapiClient = (
           console.log('catch Error', err.body);
           const errorHandler = settings.errorHandler;
           return Promise.reject(errorHandler(err));
-        });
+        })
     },
 
     delete: (resource, params) =>

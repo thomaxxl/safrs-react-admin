@@ -699,6 +699,9 @@ const ConfigurationUI = (props) => {
   const [autosave, setAutosave] = useState(true);
   const [loader, setLoader] = useState(false);
   const [autoReload, setAutoReload] = useState(() => {
+    if(document.location.origin.includes("apifabric")){
+      return false;
+    }
     const storedAutoReload = localStorage.getItem("autoReload");
     return storedAutoReload !== null ? JSON.parse(storedAutoReload) : true;
   });

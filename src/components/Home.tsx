@@ -55,7 +55,7 @@ const Home = (props: any) => {
   if(document.location.origin.includes('g.apifabric.ai')){
      return <GApiFab/>
   }
-  else if(document.location.origin.includes('apifabric.ai')){
+  else if(document.location.origin.includes('apifabric.ai') || document.location.href.includes('host:3000')){
      return <ApiFab/>
   }
   

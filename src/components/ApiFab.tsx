@@ -1,11 +1,18 @@
 import * as React from "react";
-import MuiAccordion from "@mui/material/Accordion";
-import MuiAccordionSummary from "@mui/material/AccordionSummary";
-import MuiAccordionDetails from "@mui/material/AccordionDetails";
+import { useState, useEffect } from "react";
+import Slider from '@mui/material/Slider';
 import Typography from "@mui/material/Typography";
-import { Create, SimpleForm, TextInput, useNotify, useRedirect } from 'react-admin';
+import Box from '@mui/material/Box';
+import { TextInput, useCreate } from 'react-admin';
+import { Create, SimpleForm, SaveButton, Toolbar, useRedirect, useNotify, useCreateController, NumberInput } from 'react-admin';
+import { useInput } from 'react-admin';
+import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardMedia, Container } from '@mui/material';
 
 import { useConf } from "../Config";
+import AddBoxIcon from '@mui/icons-material/AddBox';
+
 
 
 export const GApiFab = () => {
@@ -25,36 +32,172 @@ export const GApiFab = () => {
   </>;
 }
 
+  
+// style={{display:'none'}}
+export default function DiscreteSlider({complexity, setComplexity} : {complexity : number, setComplexity: any}) {
 
-const ApiCreate = () => {
+    const { getValues, setValue } = useFormContext();
+
+    function valuetext(value: number) {
+        setComplexity(value)
+        setValue('complexity', value)
+        return `${value}`;
+    }
+
+    return (
+      <Box sx={{ width: 300 }}>
+        Complexity
+        <Slider
+          onChange={(_, newValue) => setComplexity(newValue)}
+          aria-label="Complexity"
+          value={complexity}
+          getAriaValueText={valuetext}
+          valueLabelDisplay="auto"
+          shiftStep={30}
+          step={1}
+          marks
+          min={2}
+          max={25}
+        />
+        
+      </Box>
+    );
+  }
+
+const ApiCreateToolbar = ({setCreateStatus}) => {
+
     const notify = useNotify();
-    const redirect = useRedirect();
+    const onSuccess = (data : any) => {
+        notify('ra.notification.created');
+        const redirect_loc = `/${data.id || ''}/show`
+        console.log('redirect to', redirect_loc, data);
+        setCreateStatus(data)
+    }
+   
+    return (
+        <Toolbar>
+            <SaveButton
+                label="Create API"
+                mutationOptions={{
+                    onSuccess
+                }}
+                type="button"
+                icon={<AddBoxIcon />} 
+            />
+        </Toolbar>
+    );
+};
 
-    const onSuccess = (data) => {
-        notify(`Creating API`);
-        //redirect(`/ApiDefinition/${data.id}`);
-        redirect(`/ApiDefinition`);
+
+const CreateStatus = ({createStatus}:{createStatus:any}) => {
+
+    const url = createStatus.response;
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(null);
+
+    const fetchData = async () => {
+        try {
+            console.log('fetching', createStatus.response)
+            const response = await fetch(createStatus.response);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.text();
+            console.log(data)
+            setData(data);
+        } catch (error) {
+            setData('...')
+        }
     };
 
-    return <Create resource="ApiDefinition" mutationOptions={{ onSuccess }}>
-        Create your api-driven app by describing it in the prompt.
-        <SimpleForm>
-            <TextInput source="prompt" multiline fullWidth />
-        </SimpleForm>
-    </Create>
+    useEffect(() => {
+        // Fetch data initially
+        fetchData();
+        // Set up interval to fetch data every 5 seconds
+        const intervalId = setInterval(fetchData, 5000);
+        // Clean up interval on component unmount
+        return () => clearInterval(intervalId);
+    }, []);
+
+    
+    if(!createStatus){
+        return <></>
+    }
+
+    return <div>
+        <Link to="/ApiDefinition">Go to api definitions</Link>
+        <br/>
+        <pre>
+        {JSON.stringify(createStatus,null,4)}
+        </pre>
+        <Container maxWidth={false}>
+            <Card>
+                <CardContent>
+                    <Typography variant="h5" component="div">
+                        GPT Response
+                    </Typography>
+                </CardContent>
+                <CardContent>
+                    <Typography component="div">
+                        {data}
+                    </Typography>
+                </CardContent>
+                
+            </Card>
+        </Container>
+    </div>
+}
+
+
+const ApiCreate = () => {
+    const [complexity, setComplexity] = useState(4);
+    const [promptVal, setPromptVal] = useState("");
+    const [result, setResult] = useState("");
+    const [create] = useCreate();
+    const [createStatus, setCreateStatus] = useState(false);
+
+    const handleSubmit = async (data : any) => {
+        
+        data['complexity'] = String(complexity)
+        console.log('Form data:', data);
+        
+        const result = await create('ApiDefinition', 
+            { data },
+            {
+                onSuccess: ({ data }) => {
+                    console.log('Created record:', data);
+                    // Update the form field with the response data   
+                }
+            })
+        setResult(result)
+    }
+    
+    const changeComplexity = (val: number) => {
+        setComplexity(val)
+    }
+
+    return <>
+        <Create resource="ApiDefinition" >
+            <SimpleForm onSubmit={handleSubmit}  toolbar={<ApiCreateToolbar  setCreateStatus={setCreateStatus}/>} >
+            Create your api-driven app by describing it in the prompt.
+            
+                <TextInput source="prompt" multiline fullWidth value={promptVal}/>
+                <DiscreteSlider setComplexity={changeComplexity} complexity={complexity}/>
+            </SimpleForm> 
+        </Create>
+        <CreateStatus createStatus={createStatus} />
+    </>
 };
+
+
 
 
 export const ApiFab = () => {
 
     return <div className="MuiTypography-root jss4">
-    <Typography variant="h4" align="center">
-    Generate API Logic Server Projects
-    </Typography>
-    
-    
-    <ApiCreate/>
-
-    
+        <Typography variant="h4" align="center">
+        Generate API Logic Server Projects
+        </Typography>
+        <ApiCreate/>    
     </div>;
 }

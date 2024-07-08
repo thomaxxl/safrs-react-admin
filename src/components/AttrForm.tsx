@@ -32,6 +32,17 @@ const AttrForm = ({
   const CustomToolbar = (props: any) => {
     const location = useLocation();
 
+    const onSuccess = (data : any) => {
+      notify("Element updated");
+      
+      let redirect_loc = location.pathname.replace('/create', '')
+      
+      redirect_loc += `/${data.id || ''}/show`
+      
+      console.log('redirect to', redirect_loc, data);
+      redirect(redirect_loc);
+    }
+
     return (
       <Toolbar {...props}>
         <div
@@ -45,15 +56,7 @@ const AttrForm = ({
             type="button"
             label="save"
             variant="outlined"
-            mutationOptions={{
-              onSuccess: (data) => {
-                notify("Element updated");
-                
-                const redirect_loc = location.pathname.replace('create', '') + '/show'
-                console.log('redirect to', redirect_loc);
-                redirect(redirect_loc);
-              },
-            }}
+            mutationOptions={{ onSuccess }}
           />
           <DeleteButton />
         </div>

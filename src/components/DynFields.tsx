@@ -1,5 +1,5 @@
-import { ImageField, useGetOne } from "react-admin";
-import { useRecordContext, DateField } from "react-admin";
+import { ImageField, useGetOne, Edit, SimpleForm, NullableBooleanInput, BooleanInput } from "react-admin";
+import { useRecordContext, DateField, useUpdate } from "react-admin";
 import Grid from "@mui/material/Grid";
 import { Typography } from "@mui/material";
 import { useState } from "react";
@@ -250,10 +250,19 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
   return fields;
 };
 
-const BooleanFieldToString = ({ source }: { source: string }) => {
+
+const BooleanFieldToString = ({ source, attribute }: { source: string, attribute: any }) => {
   const record = useRecordContext();
-  const value = record[source];
-  return <span>{value != null ? (value ? "Yes" : "No") : "-"}</span>;
+  const value = record[source] ? "Yes" : "No";
+  let text = attribute?.icon ? <Icon>{attribute.icon}</Icon> : value
+  return <span>{text}</span>;
+};
+
+const StatusField = ({ source, attribute }: { source: string, attribute: any }) => {
+  const record = useRecordContext();
+  
+  let text = attribute?.icon ? <Icon>{attribute.icon}</Icon> : ""
+  return <span>{text}</span>;
 };
 
 const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
@@ -268,7 +277,7 @@ const LinkField = ({ source, attribute }: { source: string, attribute: any }) =>
     return <></>
   }
   if(url.protocol === 'http:' || url.protocol === 'https:'){
-    return <a href={value} >{text}</a>;
+    return <a href={value} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}>{text}</a>;
   }
   return <span>{text}</span>
 }
@@ -284,7 +293,10 @@ const AttrField = ({
   const record = useRecordContext();
   const conf = useConf();
   if (attribute.type?.toLowerCase() === "boolean") {
-    return <BooleanFieldToString source={attribute.name} />;
+    return <BooleanFieldToString source={attribute.name}  attribute={attribute} />;
+  }
+  if (attribute.type?.toLowerCase() === "status") {
+    return <StatusField source={attribute.name}  attribute={attribute} />;
   }
   if (attribute.type?.toLowerCase() === "link") {
     return <LinkField source={attribute.name} attribute={attribute}/>;
@@ -350,7 +362,6 @@ const ShowField = ({
   type: any;
 }) => {
   // Field like it is shown in the instance /show
-  // console.log(id);
   const trunc_size = Number(attr.trunc_size) || 1024;
   const [full_text, setFullText] = useState(false);
   type style = {
@@ -411,8 +422,7 @@ const ShowField = ({
       );
     }
 
-    if (type === "image") {
-      console.log("Imagevalue: ", value);
+    if (type?.toLowerCase() === "image" && (value.startsWith('http:/') || value.startsWith('https:/'))) {
       return (
         <>
           <Grid item xs={3}>
@@ -429,8 +439,8 @@ const ShowField = ({
       );
     }
 
-    if (attr?.type === "Image") {
-      // console.log(shown);
+    if (attr?.type?.toLowerCase() === "image") {
+      
       if (shown === null || shown.trim() === "") {
         return <></>;
       }
