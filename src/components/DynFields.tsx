@@ -64,7 +64,7 @@ const TruncatedTextField = (props: any) => {
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
-    if (props.type === "image") {
+    if ((props.type)?.toLowerCase() === "image") {
       return (
         <>
           {value ? (
@@ -78,7 +78,7 @@ const TruncatedTextField = (props: any) => {
     return <span>{value ? value : "-"}</span>; // Return "-" when value is null or undefined
   }
 
-  if (props.type === "image") {
+  if ((props.type)?.toLowerCase() === "image") {
     return (
       <>
         {value ? (

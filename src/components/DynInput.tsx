@@ -182,10 +182,12 @@ const DynInput = ({
     );
   }
 
-  if (attr_type === "image") {
+  if ((attr_type)?.toLowerCase() === "image") {
     result = (
       <GridWrap>
-        <ImageInput source={attribute.name} label="Image" accept="image/*">
+        <ImageInput source={attribute.name} label="Image" accept="image/*" onChange={(e)=>{
+          dynamicRender(attribute.name, e?.path);
+        }}>
           <ImageField source="src" title="title" />
         </ImageInput>
       </GridWrap>

@@ -1,12 +1,19 @@
 /* eslint-disable no-eval */
 /* eslint-disable no-throw-literal */
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DynInput from "./DynInput";
-import { DeleteButton, SaveButton, SimpleForm, Toolbar,useCreate } from "react-admin";
-import { useRedirect, useRefresh, useNotify } from "react-admin";
+import {
+  DeleteButton,
+  SaveButton,
+  SimpleForm,
+  Toolbar,
+  useDelete,
+  useRecordContext,
+  useUpdate,
+} from "react-admin";
+import { useRedirect, useNotify } from "react-admin";
 import Grid from "@mui/material/Grid";
 import { useLocation } from "react-router";
-import { useFormContext } from "react-hook-form";
 
 const textClass = {
   "& textarea": {
@@ -14,64 +21,122 @@ const textClass = {
   },
 };
 
-const AttrForm = ({
+const UpdateAttrForm = ({
   attributes,
   ...props
 }: {
   attributes: [];
   [key: string]: any;
 }) => {
+  const record = useRecordContext();
+  console.log('record: ', record);
   attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
-  const recordRef = useRef({data:{}});
+  const recordRef = useRef({ data: {}, id: {},previousData:{} });
+  const prevDataRef = useRef();
+  const [, setData] = useState(recordRef.current.data);
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const [create, {data, error,isPending }] = useCreate(attributes[0].resource.name, {data:recordRef});
+  const id = window.location.href.split("/").pop();
+  recordRef.current.id = id;
 
+  const [update, {data, error, isPending }] = useUpdate(
+    attributes[0].resource.name,
+    recordRef.current,{
+      onSuccess: (data) => {
+        console.log('onSuccess data:', data);
+      },
+    }
+  );
+
+  const [deleteOne ] = useDelete(
+    attributes[0].resource.name,
+    recordRef.current
+  );
+
+  useEffect(() => {
+    recordRef.current.id = id;
+    if (!recordRef.current || Object.keys(recordRef.current).length === 0) {
+      console.error('useUpdate mutation requires a non-empty data object');
+    }
+  }, [id]);
+  
   const focusRef = useRef("");
   const redirect = useRedirect();
   const notify = useNotify();
-  const refresh = useRefresh();
+  // const refresh = useRefresh();
+  // console.log('refresh: ', refresh);
 
-  const CustomToolbar = (props: any) => {
+  useEffect(() => {
+    prevDataRef.current = data;
+  }, [data]);
+
+
+
+  const CustomToolbar =  (props: any) => {
     const location = useLocation();
-    const { reset } = useFormContext();
 
-    const handleClickSaveAndAddAnother = async (event) => {
+    const handleClickDelete = async (event) => {
       event.preventDefault();
-      try{
-        await create();
-        notify("Element created");
-        redirect(`${location.pathname}`);
-      }
-      catch (error) {
+      setData(recordRef.current.data);
+      recordRef.current.previousData = record
+      console.log("Updated recordRef before update:", recordRef.current);
+      try {
+         await deleteOne(attributes[0].resource.name, {
+          id: recordRef.current.id,
+          data: recordRef.current.data,
+          previousData: recordRef.current.previousData,
+        },{
+          onSuccess: (data) => {
+            console.log('onSuccess data:', data);
+            notify("Element deleted");
+            let url = window.location.href.split("/").pop()
+            redirect(`${url}`);
+          },
+          onFailure: (error) => {
+            console.log('error: ', error);
+            notify(`Error: ${error.message}`, { type: "warning"});
+          },
+          onError: (error) => {
+            console.log('error: ', error);
+            notify(`Error: ${error.message}`, { type: "warning"});
+          }
+        });
+      } catch (error) {
         console.log('error: ', error);
-        notify(`Error: ${error.message}`, { type: "warning" });
       }
     }
 
     const handleClick = async (event) => {
       event.preventDefault();
-      try{
-        await create();
-        notify("Element created");
-        let url = location.pathname.replace('create', recordRef.current.data.Id + '/show');
-        redirect(`${url}`);
-      }
-      catch (error) {
+      setData(recordRef.current.data);
+      recordRef.current.previousData = record
+      console.log("Updated recordRef before update:", recordRef.current);
+      try {
+        await update(
+          attributes[0].resource.name, 
+          {
+            id: recordRef.current.id,
+            data: recordRef.current.data,
+            previousData: recordRef.current.previousData,
+          },
+          {
+            onSuccess: (data) => {
+              console.log('onSuccess data:', data);
+              notify("Element updated");
+              let url = window.location.href;
+              url = url + "/show";
+              redirect(`${url}`);
+            },
+            onFailure: (error) => {
+              console.log('error: ', error);
+              notify(`Error: ${error.message}`, { type: "warning" });
+            }
+          }
+        );
+      } catch (error) {
         console.log('error: ', error);
         notify(`Error: ${error.message}`, { type: "warning" });
       }
-      }
-
-    const onSuccess = (data : any) => {
-      notify("Element updated");
-      
-      let redirect_loc = location.pathname.replace('/create', '')
-      
-      redirect_loc += `/${data.id || ''}/show`
-      
-      console.log('redirect to', redirect_loc, data);
-      redirect(redirect_loc);
-    }
+    };
 
     return (
       <Toolbar {...props}>
@@ -84,35 +149,44 @@ const AttrForm = ({
         >
           <SaveButton
             type="button"
-            label="save"
+            label="Save"
             variant="outlined"
             onClick={handleClick}
-            mutationOptions={{ onSuccess }}
-          />
-           <div style={{ marginLeft: "1%" }}>
-          <SaveButton
-            type="button"
-            label="save and add another"
-            onClick={
-              handleClickSaveAndAddAnother
-            }
-            // submitOnEnter={false}
-            variant="outlined"
             mutationOptions={{
+              onSuccess: (data) => {
+                console.log('onSuccess data:', data);
+                notify("Element updated");
+                const redirect_loc =
+                  location.pathname.replace("create", "") + "/show";
+                console.log("redirect to", redirect_loc);
+                redirect(redirect_loc);
+              },
               onError: (error) => {
-                console.log('error: ', error);
-                notify("Error: Element not created", { type: "error" });
+                console.log("error: ", error);
+                notify("Error occurred while updating", { type: "error" });
               },
-              onSuccess: () => {
-                notify("Element created");
-                reset();
-              },
+
             }}
-          
+            disabled={isPending}
           />
-        </div>
-       
-          <DeleteButton />
+
+          <DeleteButton
+          onClick={handleClickDelete}
+          mutationOptions={{
+            onSuccess: (data) => {
+              console.log('onSuccess data:', data);
+              notify("Element updated");
+              const redirect_loc =
+                location.pathname.replace("create", "") + "/show";
+              console.log("redirect to", redirect_loc);
+              redirect(redirect_loc);
+            },
+            onError: (error) => {
+              console.log("error: ", error);
+            },
+          }}
+          disabled={isPending}
+          />
         </div>
       </Toolbar>
     );
@@ -129,7 +203,9 @@ const AttrForm = ({
   // eslint-disable-next-line no-unused-vars
   const setRecords = (name: string, value: string) => {
     focusRef.current = name;
-    recordRef.current ={data: { ...recordRef.current.data, [name]: value }};
+    recordRef.current.data = { ...recordRef.current.data, [name]: value };
+    console.log("Updated recordRef:", recordRef.current);
+    const record = recordRef.current.data;
     // eslint-disable-next-line no-unused-vars
     // const record = recordRef.current;
     const recordsArray = attributes
@@ -172,7 +248,7 @@ const AttrForm = ({
                 { type: "error" }
               );
               redirect(props?.basePath);
-              refresh();
+              // refresh();
             }
           })()
       )
@@ -186,7 +262,7 @@ const AttrForm = ({
   };
 
   return (
-    <SimpleForm {...props} toolbar={<CustomToolbar/>}>
+    <SimpleForm {...props} toolbar={<CustomToolbar />}>
       <Grid container spacing={2} sx={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => !attr.relationship && !attr.hidden)
@@ -226,4 +302,4 @@ const AttrForm = ({
   );
 };
 
-export default AttrForm;
+export default UpdateAttrForm;

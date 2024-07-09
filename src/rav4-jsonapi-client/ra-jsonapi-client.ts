@@ -338,11 +338,19 @@ export const jsonapiClient = (
       const resource_name = decodeURI(resource_name_en)
       let type = conf["resources"][resource_name].type || resource_name;
       
+      const previousDataFiltered = Object.keys(params.previousData)
+      .filter(key => !(key in params.data))
+      .reduce((obj, key) => {
+        obj[key] = params.previousData[key];
+        return obj;
+      }, {});
+
+        let Sendingdata = { ...previousDataFiltered, ...params.data };
         const data = {
           data: {
             id:  params.id,
             type: type,
-            attributes:  params.data
+            attributes:  Sendingdata
           }
         };
 
@@ -405,7 +413,7 @@ export const jsonapiClient = (
       const data = {
         data: {
           type: type,
-          attributes: params.data
+          attributes: params.data.current.data
         }
       };
       return httpClient(`${apiUrl}/${resource_name}`, {

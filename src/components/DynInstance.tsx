@@ -422,7 +422,7 @@ export const RelatedInstance: React.FC<RelatedInstanceProps> = ({
   // ugly manual styling because adding to TabbedShowLayout didn't work
   const result = (
     <div style={{ left: "-16px", position: "relative" }}>
-      <div style={{ textAlign: "right", width: "100%" }}>
+      <div style={{ textAlign: "right", width: "100%",display:"flex",justifyContent:"end",gap:"20px" }}>
         <Button
           title="edit"
           component={Link}

@@ -1,17 +1,17 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { ThemeColorProvider } from "./ThemeProvider"; // Make sure to import ThemeColorProvider
+import { ThemeColorProvider } from "./ThemeProvider"; 
 
 const rootElement = document.getElementById("root");
 
 if (rootElement) {
-  ReactDOM.render(
+  const root = createRoot(rootElement); 
+  root.render(
     <ThemeColorProvider>
       <App />
-    </ThemeColorProvider>,
-    rootElement
+    </ThemeColorProvider>
   );
 } else {
   console.error("Could not find root element");
