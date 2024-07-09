@@ -175,7 +175,7 @@ export const LoadYaml = (
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
         notify("Failed to load config", "warning");
-        //window.location.href = "/#/Configuration";
+        window.location.href = "/#/Configuration";
         console.error(e);
       }
     };
@@ -822,6 +822,7 @@ const ConfigurationUI = (props) => {
   const handleClickSave = () => {
     saveConfig("");
     if (editorJsonRef.current !== null) {
+      localStorage.setItem("autoReload", "false");
       saveEdit(editorJsonRef.current);
       window.location.reload();
     }
@@ -836,6 +837,7 @@ const ConfigurationUI = (props) => {
     if (editorRef.current === null) {
     } else {
       console.log("Edited configuration", editorRef.current);
+      localStorage.setItem("autoReload", "false");
       saveYaml(editorRef.current, ev);
       window.location.reload();
     }

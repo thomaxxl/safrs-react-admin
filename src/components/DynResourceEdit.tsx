@@ -2,13 +2,15 @@ import { Edit } from "react-admin";
 import { useRefresh } from "react-admin";
 import { useNotify, useRedirect } from "react-admin";
 import { useNavigate } from "react-router-dom";
-import AttrForm from "./AttrForm";
+import UpdateAttrForm from "./UpdateAttrForm";
 import * as React from "react";
 
 const DynEdit = (props: any) => {
+  console.log('DynEdit props: ', props);
   return (
     <Edit {...props}>
-      <AttrForm attributes={props.attributes} isInserting={true} />
+      <UpdateAttrForm attributes={props.attributes} isInserting={true} />
+      
     </Edit>
   );
 };
