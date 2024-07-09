@@ -106,6 +106,9 @@ export const jsonapiClient = (
   countHeader: string = 'Content-Range',
 ): DataProvider => {
   console.log('kcjac,',keycloak)
+  if(keycloak?.isTokenExpired()){
+      keycloak.login();
+  }
   if(keycloak){
       httpClient = createKCHttpAuthClient(keycloak)
   }
