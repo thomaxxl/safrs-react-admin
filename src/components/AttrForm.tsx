@@ -2,7 +2,13 @@
 /* eslint-disable no-throw-literal */
 import React, { useRef, useState } from "react";
 import DynInput from "./DynInput";
-import { DeleteButton, SaveButton, SimpleForm, Toolbar,useCreate } from "react-admin";
+import {
+  DeleteButton,
+  SaveButton,
+  SimpleForm,
+  Toolbar,
+  useCreate,
+} from "react-admin";
 import { useRedirect, useRefresh, useNotify } from "react-admin";
 import Grid from "@mui/material/Grid";
 import { useLocation } from "react-router";
@@ -22,9 +28,12 @@ const AttrForm = ({
   [key: string]: any;
 }) => {
   attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
-  const recordRef = useRef({data:{}});
+  const recordRef = useRef({ data: {} });
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const [create, {data, error,isPending }] = useCreate(attributes[0].resource.name, {data:recordRef});
+  const [create, { data, error, isPending }] = useCreate(
+    attributes[0].resource.name,
+    { data: recordRef }
+  );
 
   const focusRef = useRef("");
   const redirect = useRedirect();
@@ -37,41 +46,50 @@ const AttrForm = ({
 
     const handleClickSaveAndAddAnother = async (event) => {
       event.preventDefault();
-      try{
+      try {
         await create();
         notify("Element created");
         redirect(`${location.pathname}`);
-      }
-      catch (error) {
-        console.log('error: ', error);
+      } catch (error) {
+        console.log("error: ", error);
         notify(`Error: ${error.message}`, { type: "warning" });
       }
-    }
+    };
 
     const handleClick = async (event) => {
       event.preventDefault();
-      try{
-        await create();
-        notify("Element created");
-        let url = location.pathname.replace('create', recordRef.current.data.Id + '/show');
-        redirect(`${url}`);
-      }
-      catch (error) {
-        console.log('error: ', error);
+      try {
+        await create(
+          attributes[0].resource.name,
+          { data: recordRef },
+          {
+            onSuccess: (data) => {
+              console.log("onSuccess data:", data);
+              notify("Element created");
+              let url = location.pathname.replace(
+                "create",
+                data.id + "/show"
+              );
+              redirect(`${url}`);
+            },
+          }
+        );
+      } catch (error) {
+        console.log("error: ", error);
         notify(`Error: ${error.message}`, { type: "warning" });
       }
-      }
+    };
 
-    const onSuccess = (data : any) => {
+    const onSuccess = (data: any) => {
       notify("Element updated");
-      
-      let redirect_loc = location.pathname.replace('/create', '')
-      
-      redirect_loc += `/${data.id || ''}/show`
-      
-      console.log('redirect to', redirect_loc, data);
+
+      let redirect_loc = location.pathname.replace("/create", "");
+
+      redirect_loc += `/${data.id || ""}/show`;
+
+      console.log("redirect to", redirect_loc, data);
       redirect(redirect_loc);
-    }
+    };
 
     return (
       <Toolbar {...props}>
@@ -89,29 +107,26 @@ const AttrForm = ({
             onClick={handleClick}
             mutationOptions={{ onSuccess }}
           />
-           <div style={{ marginLeft: "1%" }}>
-          <SaveButton
-            type="button"
-            label="save and add another"
-            onClick={
-              handleClickSaveAndAddAnother
-            }
-            // submitOnEnter={false}
-            variant="outlined"
-            mutationOptions={{
-              onError: (error) => {
-                console.log('error: ', error);
-                notify("Error: Element not created", { type: "error" });
-              },
-              onSuccess: () => {
-                notify("Element created");
-                reset();
-              },
-            }}
-          
-          />
-        </div>
-       
+          <div style={{ marginLeft: "1%" }}>
+            <SaveButton
+              type="button"
+              label="save and add another"
+              onClick={handleClickSaveAndAddAnother}
+              // submitOnEnter={false}
+              variant="outlined"
+              mutationOptions={{
+                onError: (error) => {
+                  console.log("error: ", error);
+                  notify("Error: Element not created", { type: "error" });
+                },
+                onSuccess: () => {
+                  notify("Element created");
+                  reset();
+                },
+              }}
+            />
+          </div>
+
           <DeleteButton />
         </div>
       </Toolbar>
@@ -129,7 +144,7 @@ const AttrForm = ({
   // eslint-disable-next-line no-unused-vars
   const setRecords = (name: string, value: string) => {
     focusRef.current = name;
-    recordRef.current ={data: { ...recordRef.current.data, [name]: value }};
+    recordRef.current = { data: { ...recordRef.current.data, [name]: value } };
     // eslint-disable-next-line no-unused-vars
     // const record = recordRef.current;
     const recordsArray = attributes
@@ -186,7 +201,7 @@ const AttrForm = ({
   };
 
   return (
-    <SimpleForm {...props} toolbar={<CustomToolbar/>}>
+    <SimpleForm {...props} toolbar={<CustomToolbar />}>
       <Grid container spacing={2} sx={{ width: "100%" }} component="div">
         {attributes
           .filter((attr: resource) => !attr.relationship && !attr.hidden)
