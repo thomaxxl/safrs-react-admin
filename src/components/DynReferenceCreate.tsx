@@ -112,6 +112,10 @@ function DynReferenceCreate({
           notify("Element created");
           redirect(`${location.pathname}`);
         },
+        onError: (error) => {
+          console.log("error: ", error);
+          notify(`Error: ${error.message}`, { type: "warning" });
+        },
       });
     } catch (error:any) {
       console.log("error: ", error);
@@ -136,6 +140,10 @@ function DynReferenceCreate({
             );
             redirect(`${url}`);
           },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          }
         }
       );
     } catch (error:any) {

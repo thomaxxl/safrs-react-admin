@@ -119,7 +119,11 @@ function QuickCreateButton({
         {
           onSuccess: () => {
             notify("Element created", { type: "info" });
-          }
+          },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          },
         }
       );
     } catch (error) {

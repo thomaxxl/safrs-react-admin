@@ -53,6 +53,10 @@ const AttrForm = ({
             notify("Element created");
             redirect(`${location.pathname}`);
           },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          },
         });
         notify("Element created");
         redirect(`${location.pathname}`);
@@ -77,6 +81,10 @@ const AttrForm = ({
                 data.id + "/show"
               );
               redirect(`${url}`);
+            },
+            onError: (error) => {
+              console.log("error: ", error);
+              notify(`Error: ${error.message}`, { type: "warning" });
             },
           }
         );
