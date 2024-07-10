@@ -261,7 +261,21 @@ const App: React.FC = () => {
     const keycloakClient = new Keycloak(kcConfig);
     initOptions.redirectUri = redirURL(); // kc redirect url
 
-    await keycloakClient.init(initOptions);
+    const refreshTokenInterval = 900 * 1000;  // refresh token every 900 seconds
+    await keycloakClient.init(initOptions).then( authenticated => {
+      console.log('authenticated')
+      setInterval(() => {
+        keycloak.updateToken(30).then(refreshed => {
+            if (refreshed) {
+                console.log('Token refreshed', refreshed);
+            } else {
+                console.warn('Token not refreshed');
+            }
+        }).catch(() => {
+            console.error('Failed to refresh token');
+        });
+    }, refreshTokenInterval);
+    })
 
     authProvider.current = keycloakAuthProvider(
       keycloakClient,

@@ -153,7 +153,7 @@ export default function CustomizedAccordions() {
               Rich functionality: multi-page, multi-table, automatic joins
             </li>
             <li>
-              Explore this app (e.g., click Customer, at left, and look for the
+              Explore this app (e.g., click Category, at left, and look for the
               info icons, upper right), and how to{" "}
               <a
                 rel="nofollow noreferrer"

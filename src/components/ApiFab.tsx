@@ -8,7 +8,9 @@ import { Create, SimpleForm, SaveButton, Toolbar, useRedirect, useNotify, useCre
 import { useInput } from 'react-admin';
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardMedia, Container } from '@mui/material';
+import { Card, CardContent, IconButton, Container } from '@mui/material';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+
 
 import { useConf } from "../Config";
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -47,6 +49,10 @@ export default function DiscreteSlider({complexity, setComplexity} : {complexity
     return (
       <Box sx={{ width: 300 }}>
         Complexity
+        
+        <IconButton>
+            <HelpOutlineIcon />
+        </IconButton>
         <Slider
           onChange={(_, newValue) => setComplexity(newValue)}
           aria-label="Complexity"
@@ -59,7 +65,6 @@ export default function DiscreteSlider({complexity, setComplexity} : {complexity
           min={2}
           max={25}
         />
-        
       </Box>
     );
   }
@@ -103,7 +108,7 @@ const CreateStatus = ({createStatus}:{createStatus:any}) => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.text();
-            console.log(data)
+            //console.log(data)
             setData(data);
         } catch (error) {
             setData('...')
