@@ -25,8 +25,6 @@ import QuickPreviewButton from "./QuickPreviewButton";
 import DynInput from "./DynInput";
 import * as React from "react";
 
-
-
 function QuickCreateButton({
   onChange,
   resource_name,
@@ -39,10 +37,13 @@ function QuickCreateButton({
   basePath: any;
 }) {
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const recordRef = useRef({});
+  const recordRef = useRef({ data: {} });
   const focusRef = useRef(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [, { isLoading }] = useCreate(resource_name);
+  const [create,{isLoading}] = useCreate(
+    resource_name,
+    { data: recordRef }
+  );
   const notify = useNotify();
   const conf = useConf();
   const redirect = useRedirect();
@@ -53,7 +54,7 @@ function QuickCreateButton({
   const isInserting = true;
   const setRecords = (name: any, value: any) => {
     focusRef.current = name;
-    recordRef.current = { ...recordRef.current, [name]: value };
+    recordRef.current = { data: { ...recordRef.current.data, [name]: value } };
     // eslint-disable-next-line no-unused-vars
     const record = recordRef.current;
     const recordsArray = attributes
@@ -109,6 +110,29 @@ function QuickCreateButton({
     });
   };
 
+  const handleClickSave = async (event) => {
+    event.preventDefault();
+    try {
+      await create(
+      resource_name,
+        { data: recordRef },
+        {
+          onSuccess: () => {
+            notify("Element created", { type: "info" });
+          },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          },
+        }
+      );
+    } catch (error) {
+      console.log("error: ", error);
+      notify(`Error: ${error.message}`, { type: "warning" });
+    }
+    handleCloseClick();
+  };
+
   const handleClick = () => {
     setShowDialog(true);
   };
@@ -121,7 +145,10 @@ function QuickCreateButton({
 
   const Mytoolbar = (props: any) => {
     return (
-      <Toolbar {...props} style={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar
+        {...props}
+        style={{ display: "flex", justifyContent: "space-between" }}
+      >
         <Button
           label="ra.action.cancel"
           onClick={handleCloseClick}
@@ -134,6 +161,7 @@ function QuickCreateButton({
           type="button"
           label="save"
           // submitOnEnter={true}
+          onClick={handleClickSave}
           mutationOptions={{
             onSuccess: () => {
               handleCloseClick();

@@ -15,6 +15,7 @@ import DialogContent from "@mui/material/DialogContent";
 import { memo } from "react";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
+import { useLocation } from "react-router";
 
 function DynReferenceCreate({
   path,
@@ -27,11 +28,13 @@ function DynReferenceCreate({
   currentid: any;
   currentParent: any;
 }) {
+  const location = useLocation();
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const recordRef = useRef({});
+  const recordRef = useRef({ data: {} });
   const focusRef = useRef(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [, { isLoading }] = useCreate(resource_name);
+  const [create, { isLoading }] = useCreate(resource_name,
+    { data: recordRef });
   const [, setRefreshId] = useState(1);
   const notify = useNotify();
   const conf = useConf();
@@ -44,7 +47,7 @@ function DynReferenceCreate({
 
   const setRecords = (name: any, value: any) => {
     focusRef.current = name;
-    recordRef.current = { ...recordRef.current, [name]: value };
+    recordRef.current = { data: { ...recordRef.current.data, [name]: value } };
     // eslint-disable-next-line no-unused-vars
     const record = recordRef.current;
     const recordsArray = attributes
@@ -100,6 +103,56 @@ function DynReferenceCreate({
     });
   };
 
+  const handleClickSaveAndAddAnother = async (event:any) => {
+    event.preventDefault();
+    try {
+      await create(attributes[0].resource.name,
+        { data: recordRef },{
+        onSuccess: () => {
+          notify("Element created");
+          redirect(`${location.pathname}`);
+        },
+        onError: (error) => {
+          console.log("error: ", error);
+          notify(`Error: ${error.message}`, { type: "warning" });
+        },
+      });
+    } catch (error:any) {
+      console.log("error: ", error);
+      notify(`Error: ${error.message}`, { type: "warning" });
+    }
+    handleCloseClick()
+  };
+
+  const handleClickSave = async (event) => {
+    event.preventDefault();
+    try {
+      await create(
+        attributes[0].resource.name,
+        { data: recordRef },
+        {
+          onSuccess: (data) => {
+            console.log("onSuccess data:", data);
+            notify("Element created");
+            let url = location.pathname.replace(
+              "create",
+              data.id + "/show"
+            );
+            redirect(`${url}`);
+          },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          }
+        }
+      );
+    } catch (error:any) {
+      console.log("error: ", error);
+      notify(`Error: ${error.message}`, { type: "warning" });
+    }
+    handleCloseClick()
+  };
+
   const handleClick = () => {
     setShowDialog(true);
   };
@@ -130,43 +183,35 @@ function DynReferenceCreate({
           </Button>
         </div>
         <div style={{ display: "flex" }}>
-          <SaveButton
+        <SaveButton
             type="button"
             label="save"
-            // submitOnEnter={true}
-            mutationOptions={{
-              onSuccess: () => {
-                handleCloseClick();
-                refresh();
-                notify(`${resource_name} created successfully`);
-              },
-            }}
-          />
-          <SaveButton
-            type="button"
-            label="save and add another"
             variant="outlined"
-            // redirect={false}
-            mutationOptions={{
-              onSuccess: () => {
-                notify(`${resource_name} created successfully`);
-                reset();
-                setRefreshId((x) => x + 1);
-              },
-            }}
+            onClick={handleClickSave}
+            mutationOptions={
+              {
+                onSuccess :() => {
+                }
+              }
+            }
           />
-          <SaveButton
-            type="button"
-            label="save and show"
-            mutationOptions={{
-              onSuccess: (data) => {
-                handleCloseClick();
-                onSuccessShow(data);
-              },
-            }}
-            // submitOnEnter={false}
-            variant="outlined"
-          />
+         <SaveButton
+              type="button"
+              label="save and add another"
+              onClick={handleClickSaveAndAddAnother}
+              // submitOnEnter={false}
+              variant="outlined"
+              mutationOptions={{
+                onError: (error) => {
+                  console.log("error: ", error);
+                  notify("Error: Element not created", { type: "error" });
+                },
+                onSuccess: () => {
+                  notify("Element created");
+                  reset();
+                },
+              }}
+            />
         </div>
       </Toolbar>
     );

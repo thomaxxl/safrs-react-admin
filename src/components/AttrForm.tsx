@@ -30,7 +30,7 @@ const AttrForm = ({
   attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
   const recordRef = useRef({ data: {} });
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const [create, { data, error, isPending }] = useCreate(
+  const [create] = useCreate(
     attributes[0].resource.name,
     { data: recordRef }
   );
@@ -47,7 +47,17 @@ const AttrForm = ({
     const handleClickSaveAndAddAnother = async (event) => {
       event.preventDefault();
       try {
-        await create();
+        await create(attributes[0].resource.name,
+          { data: recordRef },{
+          onSuccess: () => {
+            notify("Element created");
+            redirect(`${location.pathname}`);
+          },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          },
+        });
         notify("Element created");
         redirect(`${location.pathname}`);
       } catch (error) {
@@ -71,6 +81,10 @@ const AttrForm = ({
                 data.id + "/show"
               );
               redirect(`${url}`);
+            },
+            onError: (error) => {
+              console.log("error: ", error);
+              notify(`Error: ${error.message}`, { type: "warning" });
             },
           }
         );
