@@ -3,11 +3,14 @@
 /* eslint-disable no-throw-literal */
 import { useState, useEffect } from "react";
 import {
+  BulkDeleteButton,
+  BulkDeleteWithConfirmButton,
   Datagrid,
   EditButton,
   useGetOne,
   useNotify,
   useRedirect,
+  useDeleteMany as useManyDelete,
 } from "react-admin";
 
 import Grid from "@mui/material/Grid";
@@ -315,11 +318,15 @@ const DynRelationshipMany = (
   path: any
 ) => {
   const [loading, setLoading] = useState(true);
-  const [, setError] = useState();
-  const [related, setRelated] = useState(false);
+  const [error, setError] = useState(null); // Changed to store error state
+  const [related, setRelated] = useState(null); // Changed default state to null
   const dataProvider = useDataProvider();
   console.log("related: ", related);
   console.log("loading: ", loading);
+  const [deleteMany] = useManyDelete(
+    relationship.resource,
+    {ids:[]}
+  );
 
   const conf = useConf();
 
@@ -336,14 +343,13 @@ const DynRelationshipMany = (
         setError(error);
         setLoading(false);
       });
-  }, []);
+  }, [dataProvider, id, resource_name]); // Added dependencies to useEffect
 
   const target_resource = conf?.resources?.[relationship?.resource];
   if (!target_resource) {
     console.warn(
       `${resource_name}: No resource conf for ${relationship.resource}`
     );
-    // console.log({ relationship });
     return null;
   }
 
@@ -352,13 +358,9 @@ const DynRelationshipMany = (
     return null;
   }
 
-  /*
-        Render the datagrid, this is similar to the grid in gen_DynResourceList
-        todo: merge these into one component
-    */
   let attributes = target_resource.attributes.filter(
     (attr: any) => attr.relationship?.target !== resource_name
-  ); // ignore relationships pointing back to the parent resource
+  );
   attributes = relationship.attributes
     ? attributes.filter((attr: any) =>
         relationship.attributes.find((r_attr: any) => r_attr.name === attr.name)
@@ -374,11 +376,11 @@ const DynRelationshipMany = (
       <ReferenceManyField
         reference={relationship.resource}
         target={fk}
-        // addLabel={false}
         pagination={<DynPagination />}
         perPage={target_resource.perPage || 25}
       >
         <Datagrid
+          bulkActionButtons={<BulkDeleteButton mutationMode="pessimistic"/>}
           rowClick="show"
           expand={
             <DetailPanel attributes={target_resource.attributes} path={path} />
@@ -503,7 +505,7 @@ const ShowActions = ({ resource }: { resource: any }) => {
 
 export const gen_DynResourceShow = (resource_conf: any) => {
   let attributes = resource_conf.attributes;
-  attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
+  attributes = attributes.filter((attribute) => attribute?.hide_list !== "true");
   const tab_groups = resource_conf.tab_groups;
   let show = (
     <ShowInstance

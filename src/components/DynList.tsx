@@ -123,7 +123,7 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
       //filtered_props[k] = v
       // filter "hasCreate" etc, this causes console warnings
       //if(! k.startsWith('has') && ! k == "syncWithLocation"){
-      if (!k.startsWith("has")) {
+      if (!k?.startsWith("has")) {
         filtered_props[k] = v;
       }
     }
@@ -174,13 +174,13 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
 
   React.useEffect(() => {
     console.log("data called");
-    if (fetchStatus === undefined) {
+    if (isSuccess === true) {
       const timer = setTimeout(() => {
         setLoading(false);
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [fetchStatus]);
+  }, [isSuccess]);
 
   document.title = resource_conf.label || resource_conf.name;
   let list = (
