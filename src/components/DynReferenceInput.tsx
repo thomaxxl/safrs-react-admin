@@ -111,6 +111,10 @@ function QuickCreateButton({
   };
 
   const handleClickSave = async (event) => {
+    if (typeof recordRef.current.data === 'object' && recordRef.current.data !== null) {
+      const problematicKey = {}.toString(); 
+      delete recordRef.current.data[problematicKey];
+    }
     event.preventDefault();
     try {
       await create(
@@ -233,7 +237,7 @@ function QuickCreateButton({
   );
 }
 
-const DynReferenceInput = (props: any) => {
+const DynReferenceInput = React.memo((props: any) => {
   const [version, setVersion] = useState(0);
   const [selected, setSelected] = useState(props.selected);
   const handleChange = useCallback(
@@ -241,10 +245,19 @@ const DynReferenceInput = (props: any) => {
     [version]
   );
 
+  const handleChangeSave = (value: any) => {
+    console.log("handleChangeSave", value);
+    
+    if (value !== selected) {
+      setSelected(value);
+      props.cb_set_id && props.cb_set_id(value);
+    }
+  };
+
   return (
     <>
       <Grid item xs={4} spacing={4}>
-        <ReferenceInput key={version} {...props}>
+        <ReferenceInput key={version} {...props} defaultValue={""}>
           <AutocompleteInput
             defaultValue={null}
             translateChoice={false}
@@ -252,7 +265,8 @@ const DynReferenceInput = (props: any) => {
             optionValue={props.optionValue}
             key={props.source}
             source={props.source}
-            onChange={(evt) => setSelected(evt.target)}
+            value={props.selected}
+            onChange={(value) => handleChangeSave(value)}
           />
         </ReferenceInput>
       </Grid>
@@ -271,7 +285,7 @@ const DynReferenceInput = (props: any) => {
         )}
       </Grid>
     </>
-  );
-};
+  )
+});
 
 export default memo(DynReferenceInput);

@@ -67,6 +67,10 @@ const AttrForm = ({
     };
 
     const handleClick = async (event) => {
+      if (typeof recordRef.current.data === 'object' && recordRef.current.data !== null) {
+        const problematicKey = {}.toString(); 
+        delete recordRef.current.data[problematicKey];
+      }
       event.preventDefault();
       try {
         await create(
