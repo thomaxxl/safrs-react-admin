@@ -206,6 +206,7 @@ const UpdateAttrForm = ({
     recordRef.current.data = { ...recordRef.current.data, [name]: value };
     console.log("Updated recordRef:", recordRef.current);
     const record = recordRef.current.data;
+    const isInserting = false;
     // eslint-disable-next-line no-unused-vars
     // const record = recordRef.current;
     const recordsArray = attributes
@@ -214,6 +215,9 @@ const UpdateAttrForm = ({
           attr?.show_when &&
           (() => {
             try {
+              //  if (attr.show_when === true || attr.show_when === false) {
+              //   return (!attr.show_when);
+              // }
               const pattern1 = /record\["[a-zA-Z]+"] (==|!=) "[a-zA-Z]+"/;
               const pattern2 = /isInserting (==|!=) (true|false)/;
               const arr = attr.show_when.split(/&&|\|\|/);
@@ -260,6 +264,19 @@ const UpdateAttrForm = ({
       return recordsArray;
     });
   };
+
+  // attributes = attributes
+  // .map(attribute => {
+  //   if ('show_when' in attribute) {
+  //     // Evaluate the condition based on the isInserting value
+  //     const showWhenEvaluated = eval(attribute.show_when.replace("isInserting", String(props.isInserting)));
+  //     return {
+  //       ...attribute,
+  //       show_when: showWhenEvaluated,
+  //     };
+  //   }
+  //   return attribute;
+  // });
 
   return (
     <SimpleForm {...props} toolbar={<CustomToolbar />}>
