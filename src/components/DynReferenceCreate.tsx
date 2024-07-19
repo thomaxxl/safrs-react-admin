@@ -35,7 +35,7 @@ function DynReferenceCreate({
   const [showDialog, setShowDialog] = useState(false);
   const [create, { isLoading }] = useCreate(resource_name,
     { data: recordRef });
-  const [, setRefreshId] = useState(1);
+  const [refreshId, setRefreshId] = useState(1);
   const notify = useNotify();
   const conf = useConf();
   const redirect = useRedirect();
@@ -84,7 +84,6 @@ function DynReferenceCreate({
                 }
               }
             } catch (e) {
-              console.log(e);
               notify(
                 "Error occurred while evaluating 'show_when' : Invalid Expression",
                 { type: "error" }
@@ -102,7 +101,7 @@ function DynReferenceCreate({
       return recordsArray;
     });
   };
-
+  
   const handleClickSaveAndAddAnother = async (event:any) => {
     event.preventDefault();
     try {
@@ -110,15 +109,13 @@ function DynReferenceCreate({
         { data: recordRef },{
         onSuccess: () => {
           notify("Element created");
-          redirect(`${location.pathname}`);
+          setRefreshId(refreshId + 1);
         },
         onError: (error) => {
-          console.log("error: ", error);
           notify(`Error: ${error.message}`, { type: "warning" });
         },
       });
     } catch (error:any) {
-      console.log("error: ", error);
       notify(`Error: ${error.message}`, { type: "warning" });
     }
     handleCloseClick()
@@ -132,7 +129,6 @@ function DynReferenceCreate({
         { data: recordRef },
         {
           onSuccess: (data) => {
-            console.log("onSuccess data:", data);
             notify("Element created");
             let url = location.pathname.replace(
               "create",
@@ -141,13 +137,11 @@ function DynReferenceCreate({
             redirect(`${url}`);
           },
           onError: (error) => {
-            console.log("error: ", error);
             notify(`Error: ${error.message}`, { type: "warning" });
           }
         }
       );
     } catch (error:any) {
-      console.log("error: ", error);
       notify(`Error: ${error.message}`, { type: "warning" });
     }
     handleCloseClick()
@@ -199,18 +193,7 @@ function DynReferenceCreate({
               type="button"
               label="save and add another"
               onClick={handleClickSaveAndAddAnother}
-              // submitOnEnter={false}
               variant="outlined"
-              mutationOptions={{
-                onError: (error) => {
-                  console.log("error: ", error);
-                  notify("Error: Element not created", { type: "error" });
-                },
-                onSuccess: () => {
-                  notify("Element created");
-                  reset();
-                },
-              }}
             />
         </div>
       </Toolbar>
@@ -248,6 +231,7 @@ function DynReferenceCreate({
         <DialogContent>
           <Create resource={resource_name}>
             <SimpleForm
+             key={refreshId}
               defaultValues={() => initialValue()}
               toolbar={<Mytoolbar />}
             >

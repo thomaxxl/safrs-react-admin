@@ -23,21 +23,21 @@ const prepareAttributes = (attributes : any, resource_en : any) => {
     return m_attrs
 }
 
-const prepareQueryFilter = (query: any, ids : any, fks : any) => {
-  if(ids.length == fks.length){
-    for(let i = 0; i<fks.length; i++){
-      let fk = fks[i]
-      let id = ids[i]
-      query[`filter[${fk}]`] = id
-    }
-  }
-  else{
-    // fk probably contains an underscore
-    // todo: how to fix???
-    console.warn("Wrong FK length.. ", ids, fks)
-    query[`filter[${fks[0]}]`] = ids && ids.length ? ids[0] : ""
-  }
-}
+// const prepareQueryFilter = (query: any, ids : any, fks : any) => {
+//   if(ids.length == fks.length){
+//     for(let i = 0; i<fks.length; i++){
+//       let fk = fks[i]
+//       let id = ids[i]
+//       query[`filter[${fk}]`] = id
+//     }
+//   }
+//   else{
+//     // fk probably contains an underscore
+//     // todo: how to fix???
+//     console.warn("Wrong FK length.. ", ids, fks)
+//     query[`filter[${fks[0]}]`] = ids && ids.length ? ids[0] : ""
+//   }
+// }
 
 export const getKeycloakHeaders = (
   keycloak: Keycloak,
@@ -248,9 +248,14 @@ export const jsonapiClient = (
       getMany
     ********************************************************************************************/
     getMany: (resource_en, params: any) => {
+     
+      if(resource_en === null || resource_en === undefined  || resource_en === "" ||  resource_en === "Location"){
+          return new Promise(()=>{return {data: {}}})
+      }
       const  resource_de = decodeURI(resource_en)
       const  resource = capitalize(resource_de);
       let query = `filter[id]=${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}`
+      
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url, {}).then(({ json }) => {
         console.log('getMany', json);
@@ -301,7 +306,7 @@ export const jsonapiClient = (
           ids = [params.id]
       }
       
-      prepareQueryFilter(query, ids, fks);
+      // prepareQueryFilter(query, ids, fks);
       
       query[`page[limit]`] = perPage
       query[`page[offset]`] = (page - 1) * perPage
