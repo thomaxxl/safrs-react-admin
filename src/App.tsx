@@ -55,7 +55,6 @@ const useDetectNewWindowOrTab = () => {
 
     if (!hasReloaded) {
       localStorage.setItem("autoReload","true")
-      console.log("Component loaded for the first time");
       sessionStorage.setItem('hasReloaded', 'true');
       // Reload the page to refresh the application
       window.location.reload();
@@ -70,7 +69,6 @@ const initOptions: KeycloakInitOptions = {
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
   const roles = decoded?.realm_access?.roles;
-  console.log(roles);
   if (!roles) {
     return false;
   }
@@ -93,14 +91,12 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 
   const conf = useConf();
   const notify = useNotify();
-  console.log("AsyncResources conf: ", conf);
 
   const dataProvider = useDataProvider();
   React.useEffect(() => {
     dataProvider
       .getResources()
       .then((response: any) => {
-        console.log("response: ", response);
         let res = Object.keys(response.data.resources).map((resource_name) => {
           return { name: resource_name };
         });
@@ -201,7 +197,6 @@ const App: React.FC = () => {
     }
   },[]);
   useDetectNewWindowOrTab();
-  console.log("hello");
   let { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
   const ThemeColor = localStorage.getItem("ThemeColor");
@@ -236,7 +231,6 @@ const App: React.FC = () => {
       },
     },
   });
-  console.log("queryClient: ", queryClient);
 
   const redirURL = (): string => {
     let result;
@@ -250,7 +244,6 @@ const App: React.FC = () => {
     if (!result.endsWith("?")) {
       result += "?";
     }
-    console.log("redirurl", result);
     return result;
   };
 
@@ -263,11 +256,9 @@ const App: React.FC = () => {
 
     const refreshTokenInterval = 900 * 1000;  // refresh token every 900 seconds
     await keycloakClient.init(initOptions).then( authenticated => {
-      console.log('authenticated')
       setInterval(() => {
         keycloak.updateToken(30).then(refreshed => {
             if (refreshed) {
-                console.log('Token refreshed', refreshed);
             } else {
                 console.warn('Token not refreshed');
             }
@@ -289,7 +280,6 @@ const App: React.FC = () => {
     setKeycloak(keycloakClient);
   };
   if (document.location.hash.includes("Home")) {
-    console.log("noAuth", document.location.hash);
   } else if (conf.authentication?.keycloak && !keycloak) {
     initKeyCloakClient();
   } else if (conf.authentication?.endpoint) {

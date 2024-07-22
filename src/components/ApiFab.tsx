@@ -95,15 +95,17 @@ const ApiCreateToolbar = ({setCreateStatus}) => {
 
 
 const CreateStatus = ({createStatus}:{createStatus:any}) => {
+    
+console.log('createStatus',createStatus);
 
-    const url = createStatus.response;
+    const url = createStatus;
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
 
     const fetchData = async () => {
         try {
-            console.log('fetching', createStatus.response)
-            const response = await fetch(createStatus.response);
+            console.log('fetching', createStatus)
+            const response = await fetch(createStatus);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }

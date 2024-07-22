@@ -36,32 +36,37 @@ const URL = require("url-parse");
 const yaml = require("js-yaml");
 
 const str = window.location.href;
-console.log("str: ", str);
-const arr = str.split("/");
-console.log("arr: ", arr);
-const index = arr.findIndex((e) => e === "admin");
-console.log("index: ", index);
+const arr = str.split("/").filter(item => item !== "");
+
+
+const index = arr.findIndex((e) => e === 'admin');
+
+
 let yamlName;
-console.log("yamlName: ", yamlName);
+
 if (index === -1) {
   yamlName = "admin";
 } else {
   yamlName = arr[index + 1] ?? "admin";
 }
 const yarm = yamlName.split(".");
-console.log("yarm: ", yarm);
-console.log(yamlName);
+console.log('yarm',yarm);
+
 let als_yaml_url = `/ui/admin/${yarm[0]}.yaml`;
+console.log('als_yaml_url',als_yaml_url);
+
 if (
   window.location.href.includes(":3000") &&
   !window.location.href.includes("load=")
 ) {
   // only for dev purposes
   als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
+  console.log('als_yaml_urlals_yaml_url',als_yaml_url);
+  
+  
 }
 
 const DeleteConf = (conf_name: any) => {
-  console.log(" DeleteConf conf_name: ", conf_name);
   if (!window.confirm(`Delete configuration "${conf_name}" ?`)) {
     return;
   }
@@ -88,7 +93,6 @@ const DeleteConf = (conf_name: any) => {
 };
 
 const addConf = (conf: any) => {
-  console.log("addConf conf: ", conf);
   const configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
   if (!conf.api_root) {
     console.warn("Config has no api_root", conf);
@@ -118,7 +122,6 @@ const addConf = (conf: any) => {
   }
   configs[conf.api_root] = conf;
   localStorage.setItem("raconf", JSON.stringify(conf));
-  console.log("conf: ", conf);
   localStorage.setItem("raconfigs", JSON.stringify(configs));
   return true;
 };
@@ -133,17 +136,14 @@ export const LoadYaml = (
     if (!config_url?.includes("http") && !config_url?.includes(".yaml")) {
       if (config_url !== undefined) config_url = atob(config_url);
     }
-    console.log("LoadYaml config_url: ", config_url);
     if (config_url == null) {
       config_url = als_yaml_url;
     }
 
     const saveConf = (conf_str: any) => {
-      console.log("conf_str: ", conf_str);
       // first try to parse as json, if this doesn't work, try yaml
       try {
         const conf = JSON.parse(conf_str);
-        console.log("conf: ", conf);
         if (typeof conf !== "object") {
           saveYaml(conf_str);
           return;
@@ -162,7 +162,6 @@ export const LoadYaml = (
     };
 
     const saveYaml = (ystr: any) => {
-      console.log("ystr: ", ystr);
       try {
         const conf = yaml.load(ystr);
         const encodedLoadUrl = btoa(config_url);
@@ -183,7 +182,6 @@ export const LoadYaml = (
     notify("Loading configuration", { type: "info" });
     fetch(config_url, { cache: "no-store" })
       .then((response) => {
-        console.log("response", response);
         return response.text();
       })
       .then((conf_str) => {
@@ -230,15 +228,12 @@ const ManageModal = () => {
 
   const handleClick = () => {
     setOpen(false);
-    console.log("textFieldRef?.current?.value", textFieldRef?.current?.value);
     try {
       let newURL = new URL(textFieldRef?.current?.value);
-      console.log("newURL: ", newURL);
       navigate(
         `?load=${encodeURIComponent(textFieldRef?.current?.value || "")}`
       );
     } catch (error) {
-      console.log("error: ", error);
       notify("Invalid URL", { type: "warning" });
     }
   };
@@ -333,11 +328,8 @@ const ManageModal = () => {
 const ExternalConf = () => {
   const notify = useNotify();
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
-  console.log("qpStr: ", qpStr);
   const queryParams = new URLSearchParams(qpStr);
-  console.log("queryParams: ", queryParams);
   let loadURI: any = queryParams?.get("load");
-  console.log("loadURI: ", loadURI);
   if (loadURI !== null) {
     try {
       let newURl = new URL(loadURI);
@@ -356,7 +348,6 @@ const ExternalConf = () => {
     }
   }, [window.location.href]);
 
-  console.log("open: ", open);
   const handleDialogClose = () => {
     setOpen(false);
     window.location.href = "/";
@@ -376,7 +367,6 @@ const ExternalConf = () => {
   };
 
   const url = URL(loadURI, {});
-  console.log("loadurl", url);
   let requireConfirm = true; // for security purposes (xss) we require a confirmation
   const confirm = requireConfirm ? (
     <Confirm
@@ -427,7 +417,6 @@ const ConfSelect = () => {
     if (!new_conf) {
       return;
     }
-    console.log("new_conf: ", new_conf);
     localStorage.setItem("raconf", JSON.stringify(new_conf));
     window.location.reload();
 
@@ -468,9 +457,7 @@ const saveConfig = (conf: any) => {
     Save the current config in raconf to raconfigs
     */
   let current_conf = JSON.parse(localStorage.getItem("raconf") || "");
-  console.log("current_conf: ", current_conf);
   const api_root = current_conf.api_root;
-  console.log("api_root: ", api_root);
   if (!api_root && !window.location.href.includes("load")) {
     alert("Can't save: no 'api_root' set in config");
     return;
@@ -479,7 +466,6 @@ const saveConfig = (conf: any) => {
     return;
   }
   let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
-  console.log("configs: ", configs);
   if (!configs) {
     configs = {};
   }
@@ -538,7 +524,6 @@ export const ThemeSelector = () => {
     localStorage.setItem("ThemeColor", conf.ui.theme.name);
   }
 
-  console.log("value: ", value);
   const handleColorChange = (event) => {
     localStorage.setItem("ThemeColor", event.target.value);
     conf.ui = {
@@ -682,7 +667,6 @@ const ConfigurationUI = (props) => {
           }
         })
         .catch((err) => {
-          console.log(err);
           notify("Can't Load configuration file");
           // window.location.href = "/#/Configuration";
         });
@@ -706,7 +690,6 @@ const ConfigurationUI = (props) => {
     return storedAutoReload !== null ? JSON.parse(storedAutoReload) : true;
   });
   const [, setApiroot] = useState(JSON.parse(conf)?.api_root);
-  console.log("autoReload: ", autoReload);
   const handleLoader = () => {
     setLoader(false);
   };
@@ -719,7 +702,6 @@ const ConfigurationUI = (props) => {
           setLoader(true);
          
           LoadYaml(conf?.conf_source, notify, true, handleLoader);
-          console.log("reloading configuration");
         }
       }
     }
@@ -794,7 +776,6 @@ const ConfigurationUI = (props) => {
   const handleSaveJsonEditor = (newtext: any) => {
     if (newtext === undefined) {
     } else {
-      console.log("newtext: ", newtext);
       saveEdit(editorJsonRef.current);
       window.location.reload();
     }
@@ -836,7 +817,6 @@ const ConfigurationUI = (props) => {
     // Use the edited configuration from the ref
     if (editorRef.current === null) {
     } else {
-      console.log("Edited configuration", editorRef.current);
       localStorage.setItem("autoReload", "false");
       saveYaml(editorRef.current, ev);
       window.location.reload();
@@ -849,7 +829,6 @@ const ConfigurationUI = (props) => {
       editorJsonRef.current !== null ||
       editorRef.current !== yaml.dump(JSON.parse(raconfigs))
     ) {
-      console.log("handleReset");
       // Implement reset logic here
       saveYaml(currentYaml, "");
     } else {
@@ -858,7 +837,6 @@ const ConfigurationUI = (props) => {
   };
 
   if (firstRender) {
-    console.log("resetting configuration");
     //resetConf(notify);
   }
 
@@ -963,7 +941,6 @@ const ConfigurationUI = (props) => {
                 style={{ borderLeft: `8px solid ${bgColor}` }}
                 editorDidMount={(editor, monaco) => {
                   const initialValue = editor.getValue();
-                  console.log("initialValue", initialValue);
                 }}
                 onChange={(taConf, ev) => handleEdit(taConf, ev)}
               />
