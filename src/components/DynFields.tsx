@@ -422,7 +422,7 @@ const ShowField = ({
       );
     }
 
-    if (type?.toLowerCase() === "image" && (value.startsWith('http:/') || value.startsWith('https:/'))) {
+    if (type?.toLowerCase() === "image" && (value?.startsWith('http:/') || value?.startsWith('https:/'))) {
       return (
         <>
           <Grid item xs={3}>
