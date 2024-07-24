@@ -104,7 +104,6 @@ export const ShowRecordField = ({
   const isInserting = false;
   if (source.show_when) {
     try {
-      debugger
       const pattern1 = /record\["[a-zA-Z]+"] (==|!=) "[a-zA-Z]+"/;
       const pattern2 = /isInserting (==|!=) (true|false)/;
       const arr = source.show_when.split(/&&|\|\|/);
