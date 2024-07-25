@@ -34,7 +34,6 @@ const DynInput = ({
   currentid: any;
   currentParent: any;
 }) => {
-  console.log("attribute: ", attribute);
   const [selected_ref, setSelected_ref] = useState(false);
   const conf = useConf();
   useEffect(() => {
@@ -55,7 +54,6 @@ const DynInput = ({
   }, [attribute.name, dynamicRender]);
 
   const label = attribute.label || attribute.name;
-  console.log("label: ", label);
   const input_props = {
     validate: attribute.required ? required() : undefined,
     label: label,
@@ -66,10 +64,8 @@ const DynInput = ({
     </Grid>
   );
   const attr_type = attribute.type?.toLowerCase();
-  console.log("attr_type: ", attr_type);
 
   const [validationMessage, setValidationMessage] = useState(false);
-  console.log("validationMessage: ", validationMessage);
 
 
 
@@ -79,7 +75,6 @@ const DynInput = ({
       setValidationMessage(false);
       setRecords(name, value);
     } catch (error) {
-      console.log("error: ", error);
       setValidationMessage(true);
       setRecords(name, "");
     }
@@ -163,7 +158,7 @@ const DynInput = ({
       <GridWrap>
         <BooleanInput
           onChange={(e) => {
-            dynamicRender(attribute.name, e.target.value);
+            dynamicRender(attribute.name, e?.target?.checked);
           }}
           defaultValue={false}
           source={attribute.name}
