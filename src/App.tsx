@@ -5,7 +5,6 @@ import {
   AdminUI,
   Loading,
   Resource,
-  Title,
   TranslationMessages,
   useDataProvider,
   AuthProvider,
@@ -14,6 +13,7 @@ import {
   radiantLightTheme,
   nanoLightTheme,
   defaultLightTheme,
+  DataProvider,
 } from "react-admin";
 import { useNotify } from "react-admin";
 import englishMessages from "ra-language-english";
@@ -26,7 +26,7 @@ import Home from "./components/Home";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { authProvider as sraAuthPorvider } from "./authprovider";
-import { QueryClient } from "react-query";
+import { QueryClient } from "@tanstack/react-query";
 import LoginPage from "./pages/LoginPage";
 import SSOLogin from "./pages/SSOLogin";
 import gen_DynResourceList from "./components/DynList";
@@ -227,7 +227,7 @@ const App: React.FC = () => {
   };
 
   const [keycloak, setKeycloak] = React.useState<Keycloak>(undefined);
-  const dataProvider = jsonapiClient(conf.api_root, { conf: {} }, keycloak);
+  const dataProvider = React.useRef<DataProvider>(jsonapiClient(conf.api_root, { conf: {} }, keycloak));
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -255,7 +255,6 @@ const App: React.FC = () => {
   };
 
   const authProvider = React.useRef<AuthProvider>(undefined);
-
   const initKeyCloakClient = async () => {
     const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
     const keycloakClient = new Keycloak(kcConfig);
@@ -303,7 +302,7 @@ const App: React.FC = () => {
         theme={theme}
         darkTheme={darkTheme}
         defaultTheme={"light"}
-        dataProvider={dataProvider}
+        dataProvider={dataProvider.current}
         authProvider={conf.authentication ? authProvider.current : undefined}
         queryClient={queryClient}
         // locale="en"
