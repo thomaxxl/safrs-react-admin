@@ -1,68 +1,55 @@
 import * as React from "react";
-import { Modal, Box, Grid, TextField } from "@mui/material";
-import Typography from "@mui/material/Typography";
+import { Modal, Box, Grid, TextField, Button, Typography, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from "@mui/material";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
-import Button from "@mui/material/Button";
 import { useConf } from "../Config";
 import { Loading, TextInput, useRecordContext, useGetList } from "react-admin";
 import { useForm } from "react-final-form";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
 
-const boxStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "75%",
-  bgcolor: "background.paper",
-  border: "0px solid #000",
-  boxShadow: 24,
-  p: 4,
-  textAlign: "left",
-};
-
-const modalStyle = {
-  position: "absolute",
-  top: "10%",
-  left: "10%",
-  overflow: "scroll",
-  height: "100%",
-  fontWeight: 600,
-  display: "flex",
-};
-
-const joinedFieldStyle = { cursor: "pointer", color: "#3f51b5" };
-
-const dbBtnStyle = {
-  height: "80%",
-  position: "relative",
-  top: "50%",
-  transform: "translateY(-50%)",
-};
-
-const dbGridStyle = {
-  "& .MuiTextField-root": {
-    borderBottom: "4px solid white",
-    paddingBottom: "1em",
-    paddingRight: "1em",
+const styles = {
+  box: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "75%",
+    bgcolor: "background.paper",
+    border: "0px solid #000",
+    boxShadow: 24,
+    p: 4,
+    textAlign: "left",
   },
-};
-
-const actionsStyle = {
-  textAlign: "center",
-  "& button": {
-    width: "99%",
+  modal: {
+    position: "absolute",
+    top: "10%",
+    left: "10%",
+    overflow: "scroll",
+    height: "100%",
+    fontWeight: 600,
+    display: "flex",
   },
+  joinedField: { cursor: "pointer", color: "#3f51b5" },
+  dbBtn: {
+    height: "80%",
+    position: "relative",
+    top: "50%",
+    transform: "translateY(-50%)",
+  },
+  dbGrid: {
+    "& .MuiTextField-root": {
+      borderBottom: "4px solid white",
+      paddingBottom: "1em",
+      paddingRight: "1em",
+    },
+  },
+  actions: {
+    textAlign: "center",
+    "& button": { width: "99%" },
+  },
+  connStr: { backgroundColor: "#ccc", fontFamily: "Consolas" },
 };
 
-const connStrStyle = { backgroundColor: "#ccc", fontFamily: "Consolas" };
-
-const C2Rpc = (url: any, data: any, options: any) => {
-  const defaultOptions = {
+const C2Rpc = async (url: string, data?: any, options?: RequestInit) => {
+  const defaultOptions: RequestInit = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -70,61 +57,53 @@ const C2Rpc = (url: any, data: any, options: any) => {
     },
     body: JSON.stringify(data || {}),
   };
-  const requestOptions = Object.assign(defaultOptions, options || {});
-  return fetch(url, requestOptions);
+  const requestOptions = { ...defaultOptions, ...options };
+  const response = await fetch(url, requestOptions);
+  return response.json();
 };
 
-const ApiModal = (props: any) => {
+const ApiModal = ({ record }: { record: any }) => {
   const [output, setOutput] = React.useState<JSX.Element | null>(null);
   const [open, setOpen] = React.useState(false);
-  const [box_style, setBoxStyle] = React.useState(boxStyle);
+  const [boxStyle, setBoxStyle] = React.useState(styles.box);
 
   const conf = useConf();
-  const create_api = (record: any) => {
-    const create_url = `${conf.api_root}/Apis/${record.id}/generate`;
+
+  const createApi = async (record: any) => {
+    const createUrl = `${conf.api_root}/Apis/${record.id}/generate`;
     setOutput(<Loading />);
-    box_style.top = "90%";
-    setBoxStyle(box_style);
-    C2Rpc(create_url, {}, {})
-      .then((response) => response.json())
-      .then((data) => {
-        setOutput(<pre>{data}</pre>);
-      });
+    setBoxStyle(prev => ({ ...prev, top: "90%" }));
+    const data = await C2Rpc(createUrl);
+    setOutput(<pre>{JSON.stringify(data, null, 2)}</pre>);
   };
 
-  const handleOpen = (e: any) => {
+  const handleOpen = (e: React.MouseEvent) => {
     setOpen(true);
     e.stopPropagation();
   };
-  const handleClose = (e: any) => {
+
+  const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     setOpen(false);
   };
-  const record = props.record;
 
   return (
-    <span>
-      <span
-        onClick={handleOpen}
-        style={joinedFieldStyle}
-        title={` Relationship`}
-      >
+    <>
+      <span onClick={handleOpen} style={styles.joinedField} title="Relationship">
         <PlayCircleOutlineIcon />
       </span>
       <Modal
-        sx={modalStyle}
+        sx={styles.modal}
         open={open}
         onClose={handleClose}
-        onClick={(e) => e.stopPropagation()}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
       >
-        <Box sx={box_style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
+        <Box sx={boxStyle}>
+          <Typography id="modal-title" variant="h6">
             Create API
           </Typography>
-          Pressing the button will generate an API with the following
-          properties:
+          Pressing the button will generate an API with the following properties:
           <dl>
             <dt>Name:</dt>
             <dd>{record?.name}</dd>
@@ -135,53 +114,43 @@ const ApiModal = (props: any) => {
             <dt>Hostname:</dt>
             <dd>{record?.hostname}</dd>
           </dl>
-          <Button variant="outlined" onClick={() => create_api(record)}>
-            {" "}
-            Start <PlayCircleOutlineIcon />{" "}
+          <Button variant="outlined" onClick={() => createApi(record)}>
+            Start <PlayCircleOutlineIcon />
           </Button>
           <hr />
           {output}
         </Box>
       </Modal>
-    </span>
-  );
-};
-
-export const ApiGenerateField = (props: any) => {
-  if (props.mode === "list") {
-    return <ApiModal {...props} />;
-  }
-  return <></>;
-};
-
-export const ApiShow = (props: any) => {
-  return (
-    <>
-      <div>xxxx</div>
-      <ApiModal />
-      {props.show}
     </>
   );
 };
 
+export const ApiGenerateField = (props: any) => {
+  return props.mode === "list" ? <ApiModal {...props} /> : null;
+};
+
+export const ApiShow = (props: any) => (
+  <>
+    <div>xxxx</div>
+    <ApiModal {...props} />
+    {props.show}
+  </>
+);
+
 const DBConnectionEdit = (props: any) => {
   const form = useForm();
   const record = useRecordContext();
-  let value = record ? record["connection_string"] : "";
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const [box_style] = React.useState(boxStyle);
-  const [other, setOther] = React.useState(value);
+  const [other, setOther] = React.useState(record?.connection_string || "");
   const [username, setUsername] = React.useState("user");
   const [password, setPassword] = React.useState("pass");
   const [dbhost, setDbhost] = React.useState("dbhost");
   const [dbname, setDbname] = React.useState("dbname");
   const [dialect, setDialect] = React.useState("Other");
-  const [logdata, setLogData] = React.useState<React.ReactNode>(null);
+  const [logData, setLogData] = React.useState<React.ReactNode>(null);
   const conf = useConf();
 
-  const selectDialect = (e: any) => {
+  const selectDialect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dialect = e.target.value;
     setDialect(dialect);
     if (dialect === "sqlite") {
@@ -191,135 +160,99 @@ const DBConnectionEdit = (props: any) => {
     }
   };
 
-  const create_conn = () => {
-    let result = `${dialect}://`;
-    if (dialect === "Other") {
-      result = other;
-    } else if (dialect === "sqlite") {
-      result += `/${dbname}`;
-    } else {
-      result += `${username}:${password}@${dbhost}/${dbname}`;
+  const createConn = () => {
+    if (dialect === "Other") return other;
+    return dialect === "sqlite"
+      ? `${dialect}://${dbname}`
+      : `${dialect}://${username}:${password}@${dbhost}/${dbname}`;
+  };
+
+  const testConn = async (connectionString: string) => {
+    const createUrl = `${conf.api_root}/Apis/test_conn`;
+    const data = { connection_string: connectionString };
+    try {
+      const responseData = await C2Rpc(createUrl, data);
+      setLogData(
+        <>
+          <Typography variant="h6">Result:</Typography>
+          <pre>{JSON.stringify(responseData, null, 2)}</pre>
+        </>
+      );
+    } catch (err) {
+      alert("Connection test failed");
     }
-    return result;
   };
 
-  const test_conn = (connection_string: any) => {
-    const create_url = `${conf.api_root}/Apis/test_conn`;
-    const req_data = { connection_string: connection_string };
-    C2Rpc(create_url, req_data, {})
-      .then((response) => response.json())
-      .then((data) => {
-        setLogData(
-          <>
-            <Typography variant="h6" component="h2">
-              Result:
-            </Typography>
-            <pre>{data}</pre>
-          </>
-        );
-      })
-      .catch((err) => alert());
-  };
-
-  const create_api = () => {
-    if (record.id === undefined) {
-      const msg = "you must first save the api";
-      alert(msg);
-      setLogData(msg);
+  const createApi = async () => {
+    if (!record.id) {
+      alert("You must first save the API");
+      setLogData("You must first save the API");
       return;
     }
-    const create_url = `${conf.api_root}/Apis/${record.id}/generate`;
+    const createUrl = `${conf.api_root}/Apis/${record.id}/generate`;
     setLogData(<Loading />);
-    box_style.top = "90%";
-    C2Rpc(create_url, {}, {})
-      .then((response) => response.json())
-      .then((data) => {
-        setLogData(<pre>{data}</pre>);
-      });
+    try {
+      const responseData = await C2Rpc(createUrl);
+      setLogData(<pre>{JSON.stringify(responseData, null, 2)}</pre>);
+    } catch (err) {
+      alert("API generation failed");
+    }
   };
 
   return (
     <>
-      <Grid item xs={12} spacing={4}></Grid>
-      <Grid item xs={4} spacing={4}>
-        <TextInput
-          source={"connection_string"}
-          defaultValue={create_conn()}
-          helperText="SQLAlchemy connection string syntax"
-          fullWidth
-        />
+      <Grid container spacing={4}>
+        <Grid item xs={4}>
+          <TextInput
+            source="connection_string"
+            defaultValue={createConn()}
+            helperText="SQLAlchemy connection string syntax"
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <Button
+            variant="outlined"
+            onClick={() => setOpen(true)}
+            color="primary"
+            size="large"
+            sx={styles.dbBtn}
+          >
+            Configure Connection
+          </Button>
+        </Grid>
       </Grid>
-      <Grid item xs={4} spacing={4}>
-        <Button
-          variant="outlined"
-          onClick={handleOpen}
-          color="primary"
-          size="large"
-          sx={dbBtnStyle}
-        >
-          Configure Connection
-        </Button>
-      </Grid>
-      <Grid item xs={12} spacing={4}></Grid>
       <Modal
         open={open}
-        onClose={handleClose}
-        sx={modalStyle}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        onClose={() => setOpen(false)}
+        sx={styles.modal}
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
       >
-        <Box sx={box_style}>
-          <Grid container sx={dbGridStyle}>
-            <Grid item xs={12} spacing={4}>
-              <Typography id="modal-modal-title" variant="h6" component="h2">
+        <Box sx={styles.box}>
+          <Grid container spacing={4} sx={styles.dbGrid}>
+            <Grid item xs={12}>
+              <Typography id="modal-title" variant="h6">
                 Database Configuration
               </Typography>
               <hr />
             </Grid>
-            <Grid item xs={6} spacing={4}>
-              <FormControl>
-                <FormLabel id="demo-radio-buttons-group-label">
-                  DB Dialect
-                </FormLabel>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <FormLabel>DB Dialect</FormLabel>
                 <RadioGroup
-                  aria-labelledby="demo-radio-buttons-group-label"
                   defaultValue="Other"
                   name="radio-buttons-group"
                   onChange={selectDialect}
                 >
-                  <FormControlLabel
-                    value="mysql+pymysql"
-                    control={<Radio />}
-                    label="MySQL"
-                  />
-                  <FormControlLabel
-                    value="oracle"
-                    control={<Radio />}
-                    label="Oracle"
-                  />
-                  <FormControlLabel
-                    value="postgresql"
-                    control={<Radio />}
-                    label="Postgres"
-                  />
-                  <FormControlLabel
-                    value="sqlite"
-                    control={<Radio />}
-                    label="SQLite"
-                  />
-                  <FormControlLabel
-                    value="mssql+pyodbc"
-                    control={<Radio />}
-                    label="SQLServer"
-                  />
-                  <FormControlLabel
-                    value="Other"
-                    control={<Radio />}
-                    label="Manual:"
-                  />
+                  <FormControlLabel value="mysql+pymysql" control={<Radio />} label="MySQL" />
+                  <FormControlLabel value="oracle" control={<Radio />} label="Oracle" />
+                  <FormControlLabel value="postgresql" control={<Radio />} label="Postgres" />
+                  <FormControlLabel value="sqlite" control={<Radio />} label="SQLite" />
+                  <FormControlLabel value="mssql+pyodbc" control={<Radio />} label="SQLServer" />
+                  <FormControlLabel value="Other" control={<Radio />} label="Manual:" />
                 </RadioGroup>
                 <TextField
-                  id="outlined-basic"
                   label="Manual"
                   variant="outlined"
                   fullWidth
@@ -329,88 +262,47 @@ const DBConnectionEdit = (props: any) => {
                 />
               </FormControl>
             </Grid>
-
-            <Grid item xs={6} spacing={4}>
-              <TextField
-                label="Username"
-                variant="outlined"
-                onChange={(e) => setUsername(e.target.value)}
-                value={username}
-              />
-              <TextField
-                label="Password"
-                variant="outlined"
-                onChange={(e) => setPassword(e.target.value)}
-                value={password}
-              />
-              <TextField
-                label="Database host"
-                variant="outlined"
-                onChange={(e) => setDbhost(e.target.value)}
-                value={dbhost}
-              />
-              <TextField
-                label="Database name"
-                variant="outlined"
-                onChange={(e) => setDbname(e.target.value)}
-                value={dbname}
-              />
+            <Grid item xs={6}>
+              <TextField label="Username" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} />
+              <TextField label="Password" variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <TextField label="Database host" variant="outlined" value={dbhost} onChange={(e) => setDbhost(e.target.value)} />
+              <TextField label="Database name" variant="outlined" value={dbname} onChange={(e) => setDbname(e.target.value)} />
             </Grid>
-            <Grid item xs={6} spacing={4}>
+            <Grid item xs={6}>
               <Typography>
-                Connection String:{" "}
-                <span style={connStrStyle}>{create_conn()}</span>
+                Connection String: <span style={styles.connStr}>{createConn()}</span>
               </Typography>
             </Grid>
-            <Grid item xs={12} spacing={4} sx={actionsStyle}>
+            <Grid item xs={12} sx={styles.actions}>
               <hr />
-            </Grid>
-            <Grid item xs={12} spacing={4} />
-            <Grid item xs={2} spacing={4} sx={actionsStyle}>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => test_conn(create_conn())}
-              >
-                {" "}
+              <Button variant="outlined" color="primary" onClick={() => testConn(createConn())}>
                 Test Connection
               </Button>
-            </Grid>
-            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"
                 onClick={() => {
                   setOpen(false);
-                  form.change("connection_string", create_conn());
+                  form.change("connection_string", createConn());
                 }}
               >
-                Save &amp; Close
+                Save & Close
               </Button>
-            </Grid>
-            <Grid item xs={2} spacing={4} sx={actionsStyle}>
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => create_api()}
-                disabled={record.id ? false : true}
-                title={record.id ? "" : "you must first save the api"}
+                onClick={createApi}
+                disabled={!record.id}
+                title={record.id ? "" : "You must first save the API"}
               >
                 Generate API
               </Button>
-            </Grid>
-            <Grid item xs={2} spacing={4} sx={actionsStyle}>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setOpen(false)}
-              >
+              <Button variant="outlined" color="primary" onClick={() => setOpen(false)}>
                 Close
               </Button>
             </Grid>
-
-            <Grid item xs={12} spacing={4} className={classes.logdata}>
-              {logdata}
+            <Grid item xs={12}>
+              {logData}
             </Grid>
           </Grid>
         </Box>
@@ -420,18 +312,16 @@ const DBConnectionEdit = (props: any) => {
 };
 
 export const DBConnection = (props: any) => {
-  console.log("props: ", props);
   const record = useRecordContext();
-  let value = record ? record["connection_string"] : "";
+  const value = record?.connection_string || "";
 
-  if (props.mode !== "edit" && props.mode !== "create") {
-    return <Typography>{value}</Typography>;
-  }
-  return <DBConnectionEdit {...props} />;
+  return props.mode !== "edit" && props.mode !== "create"
+    ? <Typography>{value}</Typography>
+    : <DBConnectionEdit {...props} />;
 };
 
-const api_url = (props: any) => {
-  const url = `/${props.name}/api`;
+const ApiURL = ({ name }: { name: string }) => {
+  const url = `/${name}/api`;
   return (
     <Typography>
       <a href={url}>{url}</a>
@@ -439,30 +329,19 @@ const api_url = (props: any) => {
   );
 };
 
-export const ApiURL = () => {
-  const record = useRecordContext();
-  if (!record.id) {
-    return null;
-  }
-  return api_url(record);
-};
-
 export const ApiAdminHome = () => {
-  const { data } = useGetList("Apis", {
-    pagination: { page: 0, perPage: 100 },
-  });
+  const { data } = useGetList("Apis", { pagination: { page: 0, perPage: 100 } });
 
-  const apis = data?.map((api) => <li>{api_url(api)}</li>);
+  const apis = data?.map((api) => (
+    <li key={api.id}>
+      <ApiURL name={api.name} />
+    </li>
+  ));
 
   return (
     <>
-      <Typography variant="h6" component="h2">
-        {" "}
-        APIs
-      </Typography>
-      <Typography>
-        <ul>{apis}</ul>
-      </Typography>
+      <Typography variant="h6">APIs</Typography>
+      <ul>{apis}</ul>
     </>
   );
 };
