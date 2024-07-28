@@ -34,7 +34,6 @@ const DynInput = ({
   currentid: any;
   currentParent: any;
 }) => {
-  console.log("attribute: ", attribute);
   const [selected_ref, setSelected_ref] = useState(false);
   const conf = useConf();
   useEffect(() => {
@@ -43,8 +42,18 @@ const DynInput = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const dynamicRender = React.useCallback((name: any, value: any) => {
+    setRecords(name, value);
+  },[]);
+
+  
+  const cb_set_id = React.useCallback((evt: any) => {
+    setSelected_ref(evt);
+    dynamicRender(attribute.name, evt);
+  }, [attribute.name, dynamicRender]);
+
   const label = attribute.label || attribute.name;
-  console.log("label: ", label);
   const input_props = {
     validate: attribute.required ? required() : undefined,
     label: label,
@@ -55,14 +64,10 @@ const DynInput = ({
     </Grid>
   );
   const attr_type = attribute.type?.toLowerCase();
-  console.log("attr_type: ", attr_type);
 
   const [validationMessage, setValidationMessage] = useState(false);
-  console.log("validationMessage: ", validationMessage);
 
-  const dynamicRender = (name: any, value: any) => {
-    setRecords(name, value);
-  };
+
 
   const validateUrl = (name: any, value: any) => {
     try {
@@ -70,7 +75,6 @@ const DynInput = ({
       setValidationMessage(false);
       setRecords(name, value);
     } catch (error) {
-      console.log("error: ", error);
       setValidationMessage(true);
       setRecords(name, "");
     }
@@ -154,7 +158,7 @@ const DynInput = ({
       <GridWrap>
         <BooleanInput
           onChange={(e) => {
-            dynamicRender(attribute.name, e.target.value);
+            dynamicRender(attribute.name, e?.target?.checked);
           }}
           defaultValue={false}
           source={attribute.name}
@@ -260,9 +264,7 @@ const DynInput = ({
         fullWidth
         optionText={optionText}
         optionValue={optionValue}
-        cb_set_id={(v: any) => {
-          setSelected_ref(v);
-        }}
+        cb_set_id={cb_set_id}
         allowEmpty={!attribute.required}
         selected={selected_ref}
         currentid={currentid}

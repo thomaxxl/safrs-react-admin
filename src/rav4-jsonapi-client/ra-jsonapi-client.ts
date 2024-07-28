@@ -248,9 +248,14 @@ export const jsonapiClient = (
       getMany
     ********************************************************************************************/
     getMany: (resource_en, params: any) => {
+     
+      if(resource_en === null || resource_en === undefined  || resource_en === "" ||  resource_en === "Location"){
+          return new Promise(()=>{return {data: {}}})
+      }
       const  resource_de = decodeURI(resource_en)
       const  resource = capitalize(resource_de);
       let query = `filter[id]=${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}`
+      
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url, {}).then(({ json }) => {
         console.log('getMany', json);

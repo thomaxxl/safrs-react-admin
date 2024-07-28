@@ -67,6 +67,10 @@ const AttrForm = ({
     };
 
     const handleClick = async (event) => {
+      if (typeof recordRef.current.data === 'object' && recordRef.current.data !== null) {
+        const problematicKey = {}.toString(); 
+        delete recordRef.current.data[problematicKey];
+      }
       event.preventDefault();
       try {
         await create(
@@ -157,6 +161,7 @@ const AttrForm = ({
   }
   // eslint-disable-next-line no-unused-vars
   const setRecords = (name: string, value: string) => {
+    const isInserting = true;
     focusRef.current = name;
     recordRef.current = { data: { ...recordRef.current.data, [name]: value } };
     // eslint-disable-next-line no-unused-vars

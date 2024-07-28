@@ -28,14 +28,14 @@ function DynReferenceCreate({
   currentid: any;
   currentParent: any;
 }) {
-  const location = useLocation();
+    const location = useLocation();
   const [renderSwitch, setRenderSwitch] = useState([]);
   const recordRef = useRef({ data: {} });
   const focusRef = useRef(null);
   const [showDialog, setShowDialog] = useState(false);
   const [create, { isLoading }] = useCreate(resource_name,
     { data: recordRef });
-  const [, setRefreshId] = useState(1);
+  const [refreshId, setRefreshId] = useState(1);
   const notify = useNotify();
   const conf = useConf();
   const redirect = useRedirect();
@@ -84,7 +84,6 @@ function DynReferenceCreate({
                 }
               }
             } catch (e) {
-              console.log(e);
               notify(
                 "Error occurred while evaluating 'show_when' : Invalid Expression",
                 { type: "error" }
@@ -103,28 +102,41 @@ function DynReferenceCreate({
     });
   };
 
+ React.useEffect(() => {
+    if(currentid){
+      attributes.map((attr)=>{
+        if(attr.label === currentParent){
+          setRecords(attr.name, currentid)
+        }
+      })
+    }
+  },[attributes, currentid])
+  console.log("recordRef.current",recordRef.current);
+  
+  
   const handleClickSaveAndAddAnother = async (event:any) => {
     event.preventDefault();
     try {
       await create(attributes[0].resource.name,
         { data: recordRef },{
-        onSuccess: () => {
+        onSuccess: (data) => {
           notify("Element created");
-          redirect(`${location.pathname}`);
+          setRefreshId(refreshId + 1);
         },
         onError: (error) => {
-          console.log("error: ", error);
           notify(`Error: ${error.message}`, { type: "warning" });
         },
       });
     } catch (error:any) {
-      console.log("error: ", error);
       notify(`Error: ${error.message}`, { type: "warning" });
     }
-    handleCloseClick()
   };
 
   const handleClickSave = async (event) => {
+    if (typeof recordRef.current.data === 'object' && recordRef.current.data !== null) {
+      const problematicKey = {}.toString(); 
+      delete recordRef.current.data[problematicKey];
+    }
     event.preventDefault();
     try {
       await create(
@@ -132,25 +144,51 @@ function DynReferenceCreate({
         { data: recordRef },
         {
           onSuccess: (data) => {
-            console.log("onSuccess data:", data);
             notify("Element created");
-            let url = location.pathname.replace(
-              "create",
-              data.id + "/show"
-            );
-            redirect(`${url}`);
           },
           onError: (error) => {
-            console.log("error: ", error);
             notify(`Error: ${error.message}`, { type: "warning" });
           }
         }
       );
     } catch (error:any) {
-      console.log("error: ", error);
       notify(`Error: ${error.message}`, { type: "warning" });
     }
     handleCloseClick()
+  };
+  const handleClickSaveandshow = async (event: any) => {
+    if (typeof recordRef.current.data === 'object' && recordRef.current.data !== null) {
+      const problematicKey = {}.toString(); 
+      delete recordRef.current.data[problematicKey];
+    }
+    event.preventDefault();
+    try {
+      await create(
+        attributes[0].resource.name,
+        { data: recordRef },
+        {
+          onSuccess: (data) => {
+            console.log("onSuccess data::::::::::::::::::::::::>>>>>>>>>>>", data);
+            notify("Element created");
+            handleCloseClick();
+            // Find the position of '#' in the URL
+            const hashIndex = window.location.href.indexOf('#');
+            // If '#' is found, remove everything after it. Otherwise, use the whole URL.
+            let baseUrl = hashIndex > -1 ? window.location.href.substring(0, hashIndex) : location.href;
+            // Append 'Order/${data.Id}/show' after '#'
+            let newUrl = `${baseUrl}#/Order/${data.Id}/show`;
+            console.log('New URL:', newUrl);
+            redirect(newUrl);
+          },
+          onError: (error) => {
+            console.log("error: ", error);
+            notify(`Error: ${error.message}`, { type: "warning" });
+          }
+      });
+    } catch (error) {
+      console.log("error: ", error);
+      notify(`Error: ${error.message}`, { type: "warning" });
+    }
   };
 
   const handleClick = () => {
@@ -160,12 +198,10 @@ function DynReferenceCreate({
   const handleCloseClick = () => {
     setShowDialog(false);
     refresh();
+    
   };
   const title = `Create ${resource_name}`;
-  const onSuccessShow = (data: any) => {
-    notify(`${resource_name} created successfully`);
-    redirect(`/${resource_name}/${data.id}/show`);
-  };
+  
   const Mytoolbar = (props: any) => {
     const { reset } = useFormContext();
     return (
@@ -182,7 +218,7 @@ function DynReferenceCreate({
             <IconCancel />
           </Button>
         </div>
-        <div style={{ display: "flex" }}>
+        <div style={{ display: "flex",gap:'20px' }}>
         <SaveButton
             type="button"
             label="save"
@@ -195,22 +231,23 @@ function DynReferenceCreate({
               }
             }
           />
+          <SaveButton
+            type="button"
+            label="save and show"
+            variant="outlined"
+            onClick={handleClickSaveandshow}
+            mutationOptions={
+              {
+                onSuccess :() => {
+                }
+              }
+            }
+          />
          <SaveButton
               type="button"
               label="save and add another"
               onClick={handleClickSaveAndAddAnother}
-              // submitOnEnter={false}
               variant="outlined"
-              mutationOptions={{
-                onError: (error) => {
-                  console.log("error: ", error);
-                  notify("Error: Element not created", { type: "error" });
-                },
-                onSuccess: () => {
-                  notify("Element created");
-                  reset();
-                },
-              }}
             />
         </div>
       </Toolbar>
@@ -248,6 +285,7 @@ function DynReferenceCreate({
         <DialogContent>
           <Create resource={resource_name}>
             <SimpleForm
+             key={refreshId}
               defaultValues={() => initialValue()}
               toolbar={<Mytoolbar />}
             >
@@ -265,7 +303,7 @@ function DynReferenceCreate({
                       myfocusRef={focusRef.current}
                       attribute={attr}
                       key={attr.name}
-                      currentid={null}
+                      currentid={currentid}
                       xs={0}
                       currentParent={""}
                     />

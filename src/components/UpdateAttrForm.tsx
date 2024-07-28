@@ -205,6 +205,7 @@ const UpdateAttrForm = ({
     focusRef.current = name;
     recordRef.current.data = { ...recordRef.current.data, [name]: value };
     console.log("Updated recordRef:", recordRef.current);
+    const isInserting = false;
     const record = recordRef.current.data;
     // eslint-disable-next-line no-unused-vars
     // const record = recordRef.current;

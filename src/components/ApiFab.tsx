@@ -99,9 +99,44 @@ const CreateStatus: React.FC<CreateStatusProps> = ({ createStatus }) => {
     return () => clearInterval(intervalId);
   }, [createStatus]);
 
-  if (!createStatus) {
-    return null;
-  }
+
+const CreateStatus = ({createStatus}:{createStatus:any}) => {
+    
+console.log('createStatus',createStatus);
+
+    const url = createStatus;
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(null);
+
+    const fetchData = async () => {
+        try {
+            console.log('fetching', createStatus)
+            const response = await fetch(createStatus);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.text();
+            //console.log(data)
+            setData(data);
+        } catch (error) {
+            setData('...')
+        }
+    };
+
+    useEffect(() => {
+        // Fetch data initially
+        fetchData();
+        // Set up interval to fetch data every 5 seconds
+        const intervalId = setInterval(fetchData, 5000);
+        // Clean up interval on component unmount
+        return () => clearInterval(intervalId);
+    }, []);
+
+    
+    if(!createStatus){
+        return <></>
+    }
+
 
   return (
     <div>
