@@ -48,7 +48,7 @@ export const UserPasswordTab = () => {
     const data = {
       password: pwdValue,
     };
-    httpAuthClient(`${conf.api_root}/Users/${record.id}/change_password`, {
+    httpAuthClient(`${conf.api_root}/Users/${record?.id}/change_password`, {
       method: "POST",
       body: JSON.stringify(data),
     })
@@ -149,7 +149,7 @@ export const ApiUserPasswordTab = () => {
     const data = {
       password: newPwdValue,
     };
-    httpAuthClient(`${conf.api_root}/Users/${record.id}/change_password`, {
+    httpAuthClient(`${conf.api_root}/Users/${record?.id}/change_password`, {
       method: "POST",
       body: JSON.stringify(data),
     })

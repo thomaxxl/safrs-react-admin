@@ -16,7 +16,7 @@ const prepareAttributes = (attributes : any, resource_en : any) => {
     const m_attrs = Object.assign({}, attributes)
     for(let [k, v] of Object.entries(attributes)){
       m_attrs[k] = v
-      if(typeof v === 'number' && resource_attr_rels.find((n: string) => n == k)){
+      if(typeof v === 'number' && resource_attr_rels.find((n: string) => n === k)){
         m_attrs[k] = v.toString();
       }
     }
@@ -24,7 +24,7 @@ const prepareAttributes = (attributes : any, resource_en : any) => {
 }
 
 const prepareQueryFilter = (query: any, ids : any, fks : any) => {
-  if(ids.length == fks.length){
+  if(ids.length === fks.length){
     for(let i = 0; i<fks.length; i++){
       let fk = fks[i]
       let id = ids[i]
@@ -170,7 +170,7 @@ export const jsonapiClient = (
       }
       const rel_conf = conf.resources[resource_name].relationships || []
       // we only need "toone" rels in getList so we can show the join/user key
-      const includes: string[] = rel_conf.filter((rel : any) => rel.direction != 'tomany').map((rel : any) => rel.name);
+      const includes: string[] = rel_conf.filter((rel : any) => rel.direction !== 'tomany').map((rel : any) => rel.name);
       query['include'] = includes.join(',');
 
       const url = `${apiUrl}/${resource}?${stringify(query)}`;
@@ -300,7 +300,7 @@ export const jsonapiClient = (
       //const ids = fks.length > 1 ? params.id.split('_') : params.id
       let ids = params.id.split('_')
 
-      if(ids.length != fks.length){
+      if(ids.length !== fks.length){
           console.warn("Wrong FK length ", ids, fks)
           fks = [params.target]
           ids = [params.id]

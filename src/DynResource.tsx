@@ -4,7 +4,6 @@ import "./style/DynStyle.css";
 import AttrForm from "./components/AttrForm";
 import get_Component from "./get_Component";
 import { useFormContext } from "react-hook-form";
-import * as React from "react";
 
 
 export const gen_DynResourceCreate = (resource: any) => (props: any) => {
@@ -53,7 +52,6 @@ export const gen_DynResourceCreate = (resource: any) => (props: any) => {
           <SaveButton
             type="button"
             label="save and show"
-            // submitOnEnter={false}
             variant="outlined"
             mutationOptions={{
               onSuccess: (data) => {
