@@ -14,7 +14,7 @@ import {
 import Button from "@mui/material/Button";
 import { useState } from "react";
 import { attr_fields } from "./DynFields";
-import { DynPagination, ExtraComponentProps } from "../util";
+import { DynPagination } from "../util";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DetailPanel } from "./DynInstance";
 import {
@@ -70,7 +70,7 @@ const DeleteButton = (props: any) => {
       />
       <Confirm
         isOpen={open}
-        title={`Delete "${props.resource}, id ${record.id}"`}
+        title={`Delete "${props.resource}, id ${record?.id}"`}
         content={`Are you sure you want to delete this record?`}
         onConfirm={() => {
           deleteField(dataProvider, props.resource, record, refresh);

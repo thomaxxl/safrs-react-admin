@@ -5,7 +5,6 @@ import {
   PasswordInput,
   required,
   BooleanInput,
-  FileInput,
   ImageInput,
   ImageField,
 } from "react-admin";

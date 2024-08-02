@@ -9,16 +9,14 @@ import { AppBar, UserMenu } from "react-admin";
 import DefaultIcon from "@mui/icons-material/ViewList";
 import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
-import { Select, Typography } from "@mui/material";
+import {  Typography } from "@mui/material";
 import preval from "preval.macro";
-import { MenuItem, Modal, SvgIcon } from "@mui/material";
+import { MenuItem, Modal } from "@mui/material";
 import ExitIcon from "@mui/icons-material/PowerSettingsNew";
 import Switch from "@mui/material/Switch";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Box } from "@mui/system";
 import { useInfoToggle } from "../InfoToggleContext";
-import { ThemeColorContext } from "../ThemeProvider";
-import colorpalette from "../images/colorpalette.png";
 
 const InfoMenuModal = () => {
   const [open, setOpen] = React.useState(false);

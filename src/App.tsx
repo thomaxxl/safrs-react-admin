@@ -5,7 +5,6 @@ import {
   AdminUI,
   Loading,
   Resource,
-  Title,
   TranslationMessages,
   useDataProvider,
   AuthProvider,
@@ -28,25 +27,18 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { authProvider as sraAuthPorvider } from "./authprovider";
 import { QueryClient } from "react-query";
 import LoginPage from "./pages/LoginPage";
-import SSOLogin from "./pages/SSOLogin";
 import gen_DynResourceList from "./components/DynList";
 import { gen_DynResourceShow } from "./components/DynInstance";
 import { gen_DynResourceEdit } from "./components/DynResourceEdit";
 import { InfoToggleProvider } from "./InfoToggleContext";
-import { ApiShow } from "./components/ApiAdmin";
-import { useLocation } from "react-router-dom";
 import Keycloak, {
   KeycloakConfig,
   KeycloakTokenParsed,
   KeycloakInitOptions,
 } from "keycloak-js";
 import { keycloakAuthProvider } from "ra-keycloak";
-import { PaletteMode, createTheme, useMediaQuery } from "@mui/material";
-import { IconButton, Tooltip, ThemeProvider } from "@mui/material";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
-import { Menu, MyAppBar } from "./components/Menu";
-import { ThemeColorContext, ThemeColorProvider } from "./ThemeProvider";
+import { PaletteMode } from "@mui/material";
+import { ThemeColorContext } from "./ThemeProvider";
 
 
 const useDetectNewWindowOrTab = () => {
@@ -200,7 +192,6 @@ const App: React.FC = () => {
   let { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
   const ThemeColor = localStorage.getItem("ThemeColor");
-  console.debug("themeColor: ", themeColor);
   let theme;
 
   if (themeColor === "nanoLightTheme") {

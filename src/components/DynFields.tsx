@@ -1,5 +1,5 @@
-import { ImageField, useGetOne, Edit, SimpleForm, NullableBooleanInput, BooleanInput } from "react-admin";
-import { useRecordContext, DateField, useUpdate } from "react-admin";
+import {  useGetOne } from "react-admin";
+import { useRecordContext, DateField } from "react-admin";
 import Grid from "@mui/material/Grid";
 import { Typography } from "@mui/material";
 import { useState } from "react";
@@ -14,8 +14,6 @@ import loadable from "@loadable/component";
 import { InfoPopover } from "../util";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
-import DownloadIcon from "@mui/icons-material/Download";
-import * as Icons from '@mui/icons-material';
 import { Icon } from '@mui/material';
 import * as React from "react";
 const URL = require("url-parse");

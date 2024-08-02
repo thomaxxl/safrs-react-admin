@@ -70,7 +70,7 @@ const ApiModal = ({ record }: { record: any }) => {
   const conf = useConf();
 
   const createApi = async (record: any) => {
-    const createUrl = `${conf.api_root}/Apis/${record.id}/generate`;
+    const createUrl = `${conf.api_root}/Apis/${record?.id}/generate`;
     setOutput(<Loading />);
     setBoxStyle(prev => ({ ...prev, top: "90%" }));
     const data = await C2Rpc(createUrl);
@@ -184,12 +184,12 @@ const DBConnectionEdit = (props: any) => {
   };
 
   const createApi = async () => {
-    if (!record.id) {
+    if (!record?.id) {
       alert("You must first save the API");
       setLogData("You must first save the API");
       return;
     }
-    const createUrl = `${conf.api_root}/Apis/${record.id}/generate`;
+    const createUrl = `${conf.api_root}/Apis/${record?.id}/generate`;
     setLogData(<Loading />);
     try {
       const responseData = await C2Rpc(createUrl);
@@ -292,8 +292,8 @@ const DBConnectionEdit = (props: any) => {
                 variant="outlined"
                 color="primary"
                 onClick={createApi}
-                disabled={!record.id}
-                title={record.id ? "" : "You must first save the API"}
+                disabled={!record?.id}
+                title={record?.id ? "" : "You must first save the API"}
               >
                 Generate API
               </Button>
