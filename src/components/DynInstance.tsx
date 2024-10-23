@@ -21,6 +21,7 @@ import {
   TabbedShowLayoutTabs,
   ReferenceManyField,
   useRecordContext,
+  useResourceContext,
   Link,
 } from "react-admin";
 import { Typography } from "@mui/material";
@@ -40,7 +41,7 @@ import InfoModal from "./InfoModal";
 import get_Component from "../get_Component";
 import BlockIcon from "@mui/icons-material/Block";
 import DynReferenceCreate from "./DynReferenceCreate";
-import { useInfoToggle } from "../InfoToggleContext";
+import { useInfoToggle } from "../SraToggleContext";
 import * as React from "react";
 
 const ResourceTitle = ({
@@ -51,12 +52,15 @@ const ResourceTitle = ({
   resource: any;
 }) => {
   const key = resource?.user_key || "id";
+  record = useRecordContext() || record;
+  console.log('title: key, record', key, '|', record, '|', resource);
   if (!(record && key in record)) {
-    return <span />;
+    return <span ></span>;
   }
   return (
     <span>
-      {resource?.label || resource?.name || record?.type} &mdash; {record[key]}
+      <span style={{opacity: 0.5}}>{resource?.label || resource?.name || record?.type}&nbsp;</span>
+      {record[key]}
     </span>
   );
 };
@@ -146,7 +150,7 @@ export const ShowRecordField = ({
   if (source.component) {
     const Component: any = get_Component(source.component);
     if (Component !== null) {
-      return <Component attr={source} value={value} mode="show" />;
+      return <Component attribute={source} attr={source} value={value} mode="show" />;
     }
   }
   return <ShowAttrField attr={source} value={value} id={id} />;
@@ -162,7 +166,9 @@ const ShowInstance = ({
   resource_name: any;
 }) => {
   const record = useRecordContext();
+  const resource_name2 = useResourceContext();
   const id = record?.id;
+  resource_name = resource_name || resource_name2;
   const basePath = `/${resource_name}`;
   const title = (
     <Typography variant="h5" component="h5" style={{ margin: "30px 0px 30px" }}>
@@ -221,7 +227,7 @@ const ShowInstance = ({
   );
 };
 
-const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
+export const DynRelationshipOne = (resource_name: string, id: string, relationship: any) => {
   const [rel_data, setRelData] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rel_error, setRelError] = useState(false);
@@ -231,7 +237,9 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
     data &&
     relationship.fks.map((fk: any) => (data[fk] ? data[fk] : "")).join("_");
   let tab_content: React.ReactNode = " - ";
+  
   useEffect(() => {
+    console.log("rel_id: ", rel_id, resource_name, id, relationship);
     if (rel_id === undefined || rel_id === "") {
       setLoading(false);
       return;
@@ -239,6 +247,7 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
     dataProvider
       .getOne(relationship.resource, { id: rel_id })
       .then(({ data }) => {
+        console.log("rel_data0: ", rel_data);
         setRelData(data);
         setLoading(false);
       })
@@ -251,6 +260,7 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
   const resetErrorBoundary = () => {
     console.log("error");
   };
+  console.log("rel_data: ", rel_data);
   if (!rel_data) {
     tab_content = loading ? (
       <Loading key={relationship.name} />
@@ -311,7 +321,7 @@ const DynRelationshipOne = (resource_name: any, id: any, relationship: any) => {
   );
 };
 
-const DynRelationshipMany = (
+export const DynRelationshipMany = (
   resource_name: any,
   id: any,
   relationship: any,
@@ -514,15 +524,15 @@ export const gen_DynResourceShow = (resource_conf: any) => {
       resource_name={resource_conf.name}
     />
   );
-  if (resource_conf.components?.show) {
-    const Wrapper: any = get_Component(resource_conf.components?.show);
+  if (resource_conf?.show) {
+    const Wrapper: any = get_Component(resource_conf.show);
     if (Wrapper !== null) show = <Wrapper show={show} />;
   }
-
+  // conf: hide_actions
   return (
     <Show
       title={<ResourceTitle resource={resource_conf} record={""} />}
-      actions={<ShowActions resource={resource_conf} />}
+      actions={resource_conf.hide_actions ? false : <ShowActions resource={resource_conf} />}
     >
       {show}
     </Show>

@@ -5,6 +5,7 @@ import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
 import Keycloak from 'keycloak-js';
 import {getConf} from '../Config'
+import urlJoin from 'url-join';
 
 const conf : { [ key: string] : any } = getConf();
 const duration = 2000;
@@ -65,6 +66,21 @@ export const httpAuthClient = (url: string, options : any) => {
     options.headers.set('Authorization', `Bearer ${token}`);
   }
   return fetchUtils.fetchJson(url, options)
+  .catch((e:HttpError ) => {
+    const msg = e.body?.msg || "Unknown Error."
+    console.warn('httpAuthClient httperror', e, e.status, e.body, msg)
+    if(e.body?.message?.startsWith('Booting project')){
+      // Custom error handling for booting, todo!!
+      console.log('WGserver_response: booting', e, e.status, e.body)
+      setTimeout(() => document.location.reload(), 3000);
+      throw new HttpError(e, e.status, 
+        {title: "Booting", 
+         detail:"Booting project, please wait", 
+         message:"Booting project, please wait",
+         code:e.status})
+    }
+    throw new HttpError(e, e.status, e.body)
+  })
 }
 
 const createKCHttpAuthClient = (keycloak: Keycloak) => (
@@ -75,22 +91,30 @@ const createKCHttpAuthClient = (keycloak: Keycloak) => (
     console.error("No keycloak")
     return
   }
+  if(keycloak.token){
+    localStorage.setItem('auth_token', keycloak.token)
+  }
   const requestHeaders = getKeycloakHeaders(keycloak, options);
   return fetchUtils.fetchJson(url, {
       ...options,
       headers: requestHeaders,
   })
   .catch(e => {
-    console.warn('kchttperr',e)
-    throw new Error(e)
+    console.warn('KC httpAuthClient httperror', e, e.body)
+    if(e.body?.message?.startsWith('Booting project')){
+      // Custom error handling for booting, todo!!
+      console.log('WGserver_response: booting', e, e.status, e.body)
+      setTimeout(() => document.location.reload(), 3000);
+      throw new HttpError(e, e.status, 
+        {title: "Booting", 
+         detail:"Booting project, please wait", 
+         message:"Booting project, please wait",
+         code:e.status})
+    }
+    throw new HttpError(e, e.status, e.statusText)
   })
 };
 
-const kcErrorHandler = (err : HttpError) => {
-  if(err){
-    console.log('kcerr', err)
-  }
-}
 /**
  * Based on
  * 
@@ -105,7 +129,7 @@ export const jsonapiClient = (
   httpClient = httpAuthClient,//fetchUtils.fetchJson,
   countHeader: string = 'Content-Range',
 ): DataProvider => {
-  console.log('kcjac,',keycloak)
+  //console.log('kcjac,',keycloak)
   if(keycloak?.isTokenExpired()){
       keycloak.login();
   }
@@ -113,7 +137,6 @@ export const jsonapiClient = (
       httpClient = createKCHttpAuthClient(keycloak)
   }
   const settings = merge(defaultSettings, userSettings);
-  const conf__ = userSettings.conf;
 
   
   return {
@@ -200,7 +223,7 @@ export const jsonapiClient = (
           };
         })
         .catch((err: HttpError) => {
-          console.log('catch Error', err.body);
+          console.warn('getList Error', err, err.body, err.status);
           const errorHandler = settings.errorHandler;
           return Promise.reject(errorHandler(err));
         });
@@ -255,10 +278,13 @@ export const jsonapiClient = (
       const  resource_de = decodeURI(resource_en)
       const  resource = capitalize(resource_de);
       let query = `filter[id]=${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}`
+      if(params.meta?.include?.length){
+        query += `&include=${(params.meta.include).join(',')}`
+      }
       
       const url = `${apiUrl}/${resource}?${query}`;
       return httpClient(url, {}).then(({ json }) => {
-        console.log('getMany', json);
+        
         // When meta data and the 'total' setting is provided try
         // to get the total count.
         let total = 0;
@@ -266,9 +292,27 @@ export const jsonapiClient = (
           total = json.meta[settings.total];
         }
         // Use the length of the data array as a fallback.
-        total = total || json.data.length; //  { id: any; attributes: any; }
-        const jsonData = json.data.map((value: any) =>
-          Object.assign({ id: value.id, type: value.type }, prepareAttributes(value.attributes, resource))
+        total = total || json.data.length; // { id: any; attributes: any; }
+        
+        const jsonData = json.data.map((value: any) => {
+            const result = Object.assign({ id: value.id, type: value.type, relationships: value.relationships }, prepareAttributes(value.attributes, resource))
+            //const related = json.included || [];
+            // TODO!!: this is not working, we need to find the included resources
+            // for(const [k,v] of Object.entries(value.relationships || {})){
+            //   console.log('getMany', k, v)
+            //   if(v instanceof Array){
+            //     v.forEach((inc: any) => {
+            //       const type = inc.data?.type
+            //       if(!type){
+            //         return
+            //       }
+            //       const related = json.included?.find((rel: any) => rel.type === type && rel.id === inc.id)
+            //       Object.assign(result, { [k]: related})
+            //     });
+            //   }
+            // }
+            return result;
+          }
         );
         const validUntil = new Date();
         validUntil.setTime(validUntil.getTime() + duration);
@@ -410,14 +454,7 @@ export const jsonapiClient = (
       const resource_name = decodeURI(resource_name_en)
       let type = conf["resources"][resource_name].type || resource_name;
       
-      /*let type = resource;
-      const arr = settings.endpointToTypeStripLastLetters;
-      for (const i in arr) {
-        if (resource.endsWith(arr[i])) {
-          type = resource.slice(0, arr[i].length * -1);
-          break; // quit after first hit
-        }
-      }*/
+      console.log('creating resource with params', params)
       const data = {
         data: {
           type: type,
@@ -479,12 +516,12 @@ export const jsonapiClient = (
             return { data: json };
         })
         .catch(()=> {return {data : {}} })
-      }
-    
+      },
   };
 };
 
 function capitalize(s: string): string {
+  // todo
   return s;
   return s[0].toUpperCase() + s.slice(1);
 }
@@ -492,3 +529,24 @@ export interface includeRelations {
   resource: string;
   includes: string[];
 }
+
+/*
+Call safrs jsonapi rpc endpoints
+*/
+export const jaRpc = async (endpoint: string, data?: any, options?: RequestInit) => {
+  const url = urlJoin(conf.api_root, endpoint);
+  console.log('jaRpc', url, data, options);
+  console.log('jaRpc', conf);
+  
+  const defaultOptions: RequestInit = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+    },
+    body: JSON.stringify(data || {}),
+  };
+  const requestOptions = { ...defaultOptions, ...options };
+  const response = await fetch(url, requestOptions);
+  return response.json();
+};

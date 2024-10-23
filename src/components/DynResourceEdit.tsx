@@ -16,14 +16,13 @@ const DynEdit = (props: any) => {
 };
 
 export const gen_DynResourceEdit = (resource: any) => {
-  // console.log("resource:----> ", resource);
-
+  
   if (!resource) {
     console.warn("Invalid resource");
     return <span />;
   }
-  const attributes = resource.attributes;
-
+  const attributes = resource.attributes.filter((attr: any) => attr.hide_edit !== "true");
+  
   const Result = (props: any) => {
     const notify = useNotify();
     const refresh = useRefresh();
@@ -47,6 +46,7 @@ export const gen_DynResourceEdit = (resource: any) => {
         {...props}
         attributes={attributes}
         onFailure={onFailure}
+        onError={onFailure}
         onSuccess={onSuccess}
         mutationMode="pessimistic"
       />

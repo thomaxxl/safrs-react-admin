@@ -1,4 +1,8 @@
-import config from "./Config.json";
+import defaultConf from "./Config.json";
+import { compareVersions } from 'compare-versions';
+
+
+const config = defaultConf;
 
 interface Config {
   api_root: string;
@@ -7,11 +11,13 @@ interface Config {
       url: string;
       realm: string;
       clientId: string;
-    }
-    endpoint: string;
-    redirect: any;
-    sso: any;
+    };
+    endpoint?: string;
+    redirect?: any;
+    sso?: any;
   };
+  info?: any;
+  about?: any;
   resources?: Record<string, any>;
   settings?: {
     locale?: string;
@@ -19,13 +25,18 @@ interface Config {
     HomeJS?: string;
     Home?: string;
   };
-  ext_comp_url: any;
+  ext_comp_url?: any;
+  conf_source?: string | null | undefined;
+  ui?: any;
+  path?: string;
+  info_toggle_checked?: boolean;
+  server_msg?: string;
 }
 
-const init_Conf = (): void => {
+const initConf = (): void => {
+  const raconf: Config = defaultConf;
   if (!("raconf" in localStorage)) {
-    // console.log("Init Configuration");
-    localStorage.setItem("raconf", JSON.stringify(config));
+    setCurrentConf(raconf);
     window.location.reload();
   }
 };
@@ -54,18 +65,31 @@ const getBrowserLocales = (
 };
 
 export const getLSConf = (): Config => {
-  let result: Config = JSON.parse(JSON.stringify(config));
-  const lsc_str = localStorage.getItem("raconf");
+  let result: Config = getCurrentConf();
   let ls_conf: Config | null = null;
   try {
-    ls_conf = JSON.parse(lsc_str || "");
-    result = ls_conf ? ls_conf : result;
+    ls_conf = getCurrentConf();
+    result = ls_conf ?? result;
   } catch (e) {
-    console.warn(`Failed to parse config ${lsc_str}`);
+    console.warn(`Failed to parse config `);
     localStorage.setItem("raconf", JSON.stringify(config));
   }
+
+  console.debug("LSConf", result);
+  doTelemetry();
   return result;
 };
+
+export const doTelemetry = () => {
+  const currentDate = new Date().toISOString();
+  if(localStorage.getItem("telemetry")){
+    return;
+  }
+  fetch('https://apifabric.ai/static2/tm?p='+document.location.href)
+  .finally(() => {
+    localStorage.setItem("telemetry", currentDate);
+  })
+}
 
 const json2Conf = (conf: Config) => {
   let result = conf;
@@ -87,9 +111,7 @@ const json2Conf = (conf: Config) => {
         tg.target = tg.resource;
         resource.relationships.push(tg);
       }
-      //resource.relationships = resource.relationships.concat(resource.tab_groups)
     } else {
-      // dict: deprecated soon
       for (let [tab_group_name, tab_group] of Object.entries(
         resource.tab_groups || {}
       )) {
@@ -101,7 +123,7 @@ const json2Conf = (conf: Config) => {
         );
       }
     }
-    // link relationship to FK column
+
     if (
       !(
         resource.attributes instanceof Array ||
@@ -149,7 +171,7 @@ const json2Conf = (conf: Config) => {
       if (!attr.label) {
         attr.label =
           attr.relationship?.resource ||
-          attr.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " "); // split camelcase/snakecase
+          attr.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ");
       }
       attr.resource = resource;
     }
@@ -164,36 +186,31 @@ const json2Conf = (conf: Config) => {
     }
     resource.max_list_columns =
       resource.max_list_columns || result.settings?.max_list_columns || 8;
-    //resource.label = resource.name?.replace(/([A-Z])/g, " $1").replace(/(_)/g, " ") // split camelcase/snakecase
-    //console.debug(`Loaded config resource ${resource_name}`, resource)
   }
 
   if (result.settings) {
     result.settings.locale =
       result.settings.locale || getBrowserLocales()?.[0] || "fr-FR";
   }
-  return result || reset_Conf(true); // Add the argument 'true' to the reset_Conf() function call
+  return result || resetConf(true);
 };
 
 export const useConf = (): Config => {
-  let conf = getLSConf();
-  
-  return json2Conf(conf);
+  let conf = getCurrentConf();
+  return conf;
 };
 
 export const getConf = (): Config => {
-  init_Conf();
+  initConf();
   return json2Conf(getLSConf());
 };
 
-export const reset_Conf = (reload: boolean) => {
+export const resetConf = (reload: boolean) => {
   const configs: any = {};
-  // console.log("Resetting conf", config);
-  localStorage.setItem("raconf", JSON.stringify(config));
+  console.log("Resetting conf");
+  localStorage.removeItem("raconf");
   configs[config.api_root] = config;
-  //configs[als_config.api_root] = als_config
-
-  localStorage.setItem("raconfigs", JSON.stringify(configs));
+  setConfigs(configs);
 
   if (reload) {
     window.location.reload();
@@ -204,16 +221,208 @@ export const reset_Conf = (reload: boolean) => {
 export const default_configs = [config];
 
 export const getKcUrl = (): string | undefined => {
-  const conf: any = localStorage.getItem("raconf");
+  const conf: any = getCurrentConf();
   let authentication;
   try {
-    authentication = JSON.parse(conf).authentication;
+    authentication = conf.authentication;
   } catch (e) {
     console.warn("conf.authentication error");
   }
   if (!authentication?.kc_url) {
-    // console.log("No authentication.kc_url in config");
     return undefined;
   }
   return authentication?.kc_url;
 };
+
+export const getCurrentConf = (raw: boolean = false): Config => {
+  const conf = sessionStorage.getItem("raconf") || localStorage.getItem("raconf") || "{}";
+  let result = null;
+  try {
+    result = JSON.parse(conf);
+  } catch (e) {
+    console.warn("Failed to parse raconf", e);
+  }
+  if(raw) { return result; }
+  return json2Conf(result);
+};
+
+const DEFAULT_YAML_URL = `/ui/admin/admin.yaml?v=${new Date().getTime()}`;
+export const setCurrentConf = (conf: Config): boolean => {
+  //console.debug("setCurrentConf", conf);
+  if(conf.server_msg){
+    console.log("Server Message", conf.server_msg);
+    if(conf.server_msg.endsWith("reload")){
+      // Check webgenie @app.route('/api/boot/')' for a reload message
+      window.location.reload();
+    }
+  }
+  if (!conf.api_root) {
+    console.warn("No api_root in conf", conf);
+    window.location.href = "/#/Error?message=No%20api_root%20in%20conf";
+    return false;
+  }
+
+  sessionStorage.setItem("raconf", JSON.stringify(conf));
+  localStorage.setItem("raconf", JSON.stringify(conf));
+
+  const stFndStr = "fetchedNonDefault";
+  if (conf.about?.default && !sessionStorage.getItem(stFndStr)) {
+    sessionStorage.setItem(stFndStr, "true");
+    console.debug("default config - checking for " + DEFAULT_YAML_URL);
+    loadYaml(DEFAULT_YAML_URL); // async!!
+  } else if(!conf.path) {
+    conf.path = window.location.pathname.split("#")[0];
+    const configs = getConfigs();
+    configs[conf.api_root] = conf;
+    setConfigs(configs);
+  }
+  return true;
+};
+
+export const getConfigs = (): { [key: string]: Config } => {
+  let result;
+  try {
+    result = JSON.parse(localStorage.getItem("raconfigs") || "{}");
+  } catch (e) {
+    console.warn("Failed to parse raconfigs", e);
+    result = {};
+  }
+  console.debug("getConfigs", result);
+  return result;
+};
+
+export const setConfigs = (configs: any) => {
+  localStorage.setItem("raconfigs", JSON.stringify(configs));
+};
+
+export const getProjectId = () => {
+  /*
+  Check if the path is a project id, used for apifabric..
+  */
+  let id = window.location.pathname.split("/")[1];
+  if (!id || id === "index.html" || id === "admin-app" || !id.startsWith("0")) {
+    id = "";
+  }
+  return id;
+};
+
+export const needsReload = () => {
+  // check if a reload is needed, only once per session
+  let result = localStorage.getItem("autoReload") && !(sessionStorage.getItem("autoReloaded") === window.location.pathname)
+  sessionStorage.setItem("autoReloaded", window.location.pathname);
+  const minVersion = localStorage.getItem("minVersion");
+  const currentVersion = getCurrentConf().about?.version;
+    
+  if(minVersion){
+    if(compareVersions(currentVersion, minVersion) < 0){
+      console.log("Version mismatch, reloading", currentVersion, minVersion);
+      result = true;
+    }
+  }
+  console.log("needsReload", result, currentVersion, minVersion);
+  return result;
+}
+
+export const loadHomeConf = async () => {
+  const currentConf = getCurrentConf();
+  const storedConfigs = localStorage.getItem("raconfigs");
+  const id = getProjectId();
+  let configs = storedConfigs ? JSON.parse(storedConfigs) : {};
+  let found = false;
+  console.debug("loadHomeConf path:", window.location.pathname);
+
+  for (let root in configs) {
+    let conf = configs[root];
+    
+    if (conf.path === window.location.pathname.split("#")[0]) {
+      console.log("loadHomeConf conf:", conf);
+      if (found) {
+        console.warn("Multiple configs found for path", conf.path);
+      }
+      found = true;
+      setCurrentConf(conf);
+    }
+  }
+  const newConf = getCurrentConf();
+  if (currentConf.path != newConf.path) {
+    console.log("loadHomeConf: conf path changed", currentConf.path, newConf.path);
+    sessionStorage.setItem("autoReloaded", window.location.pathname);
+    window.location.reload();
+  } else if (!found || needsReload()) {
+    let confPath = window.location.origin + `/${id}/ui/admin/admin.yaml?v=${new Date().getTime()}`;
+
+    if (window.location.origin === "http://localhost:3000") {
+      console.log("DEVMODE!!!");
+      //confPath = newConf.api_root.replace('/api',`/${id}/ui/admin/admin.yaml`) //`http://localhost:8282/${id}/ui/admin/admin.yaml`;
+      confPath = `http://localhost:8282/${id}/ui/admin/admin.yaml`;
+    }
+
+    console.log("loadHomeConf, loading", id, confPath);
+    await loadYaml(confPath);
+
+  } else {
+    console.log("loadHomeConf: conf found", window.location.pathname);
+  }
+  return newConf;
+};
+
+export const loadYaml = async (confPath: string) => {
+  const storedConfigs = localStorage.getItem("raconfigs");
+  let configs = storedConfigs ? JSON.parse(storedConfigs) : {};
+
+  await fetch(confPath)
+    .then((response) => response.text())
+    .then((text) => {
+      let yaml = require("js-yaml");
+      const c_conf = getCurrentConf(true);
+      let conf;
+      try {
+        conf = yaml.load(text);
+        let loadUrl = confPath
+
+        if(document.location.hash.includes("Configuration")){
+          // special case: configuration page contains a load parameter
+          const hashParams = new URLSearchParams(document.location.hash.split("?")[1]);
+          loadUrl = hashParams.get("load") ?? confPath
+        }
+
+        if (!conf.conf_source) {
+          const encodedLoadUrl = btoa(loadUrl);
+          conf.conf_source = encodedLoadUrl;
+        }
+      } catch (e) {
+        console.warn("Failed to parse yaml", e);
+        return;
+      }
+      if (!setCurrentConf(conf)) {
+        return;
+      }
+      
+      if(compareConf(c_conf, conf)){
+        return
+      }
+      console.log("loadYaml Reload...", conf);
+      configs[conf.api_root] = conf;
+      setConfigs(configs);
+      window.location.reload();
+    })
+    .catch((error) => {
+      console.warn("Failed to load yaml", error);
+    });
+};
+
+export const compareConf = (conf1: Config, conf2: Config): boolean => {
+  // return true if the two configs are the same, else false
+  let result
+  try{
+    result = conf1.api_root === conf2.api_root && Object.keys(conf1).length === Object.keys(conf2).length && JSON.stringify(conf1.authentication) === JSON.stringify(conf2.authentication);
+    result = result && JSON.stringify(conf1.about) === JSON.stringify(conf2.about);
+    result = JSON.stringify({...(conf1.resources || {}), ...(conf1.authentication || {})}) === JSON.stringify({...(conf2.resources || {}), ...(conf2.authentication || {})});
+  }
+  catch(e){
+    console.warn("compareConf error", e);
+    result = false;
+  }
+  console.debug("compareConf", result);
+  return result;
+}

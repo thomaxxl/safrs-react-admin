@@ -20,3 +20,20 @@ th > span {
 .ext_class {
     color: red;
 }
+
+#popup-overlay {
+    position: absolute;
+    background-color: white;
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: 9998;
+    display: block;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+span.iconC {
+    color: "rgb(63, 81, 181)"
+}

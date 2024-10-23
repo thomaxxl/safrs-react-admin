@@ -1,223 +1,220 @@
-import * as React from "react";
+import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import MuiAccordion from "@mui/material/Accordion";
 import MuiAccordionSummary from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import { AccordionProps as MuiAccordionProps, AccordionSummaryProps as MuiAccordionSummaryProps } from "@mui/material";
+import { AccordionProps as MuiAccordionProps, AccordionSummaryProps as MuiAccordionSummaryProps, Box } from "@mui/material";
 import { useConf } from "../Config";
+import { Link } from "react-admin";
+import CodeSnippet from './util/CodeSnippet';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { UnthemedCollapsAccordion } from "./util/Accordion";
+import { useHash } from "../util";
 
-const Accordion = styled(({ ...props }: MuiAccordionProps) => (
-  <MuiAccordion disableGutters elevation={0} square {...props} />
-))(({ theme }) => ({
-  border: `1px solid ${theme.palette.divider}`,
-  "&:not(:last-child)": {
-    borderBottom: 0,
-  },
-  "&:before": {
-    display: "none",
-  },
-}));
+/*
+ApiLogicProject Home Page
+*/
+export default function ALPHome() {
+  const conf = useConf();
+  const hash = useHash();
+  const [showDevelop, setShowDevelop] = useState(document.location.hash.includes('/develop'));
+  let uiUrl = {pathname: ""};
+  sessionStorage.setItem('sidebarOpen', "true");
+  try{
+    uiUrl = new URL(conf.api_root);
+  }
+  catch(e){
+    console.log('api_root not set')
+  }
+  uiUrl.pathname = uiUrl.pathname.replace('/api', '/') + '/ui/';
+  const dberUrl = uiUrl + 'dber.svg';
+  const projUrl = uiUrl + 'project.json';
 
-const AccordionSummary = styled(({...props}:MuiAccordionSummaryProps) => (
-  <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}
-    {...props}
-  />
-))(({ theme }) => ({
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255, 255, 255, .05)"
-      : "rgba(0, 0, 0, .03)",
-  flexDirection: "row-reverse",
-  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
-    transform: "rotate(90deg)",
-  },
-  "& .MuiAccordionSummary-content": {
-    marginLeft: theme.spacing(1),
-  },
-}));
+  const [projData, setProjData] = useState({ name: "", description: "", prompt: "", download: "" });
 
-const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
-  padding: theme.spacing(2),
-  borderTop: "1px solid rgba(0, 0, 0, .125)",
-}));
+  useEffect(() => {
+    setShowDevelop(window.location.hash.includes('/develop'));
+  }, [hash]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(projUrl);
+        const projData = await response.json();
+        setProjData(projData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
 
+    fetchData();
+    
+  }, [projUrl]);
 
-export default function CustomizedAccordions() {
+  const dber = dberUrl.toString();
+  const code = `docker run -p5656:5656 -it apilogicserver/api_logic_server bash -c \\
+"curl ${document.location.origin}${projData?.download} | tar xvfz - ; ${projData?.name}/run.sh"`;
 
+  if(!uiUrl.pathname){
+    return <>Invalid api_root in Config</>;
+  }
   return (
-    <div>
-      <div className="MuiTypography-root jss4">
-        <Typography variant="h4" align="center">
-          Welcome to API Logic Server -- Sample System
-        </Typography>
-        <Typography lineHeight={2}>
-          <br></br>
-          <a
-            rel="nofollow noreferrer"
-            href="https://apilogicserver.github.io/"
-            target="_blank"
-          >
-            API Logic Server
-          </a>
-          &nbsp;creates <i>customizable</i> model-driven systems, instantly from
-          your&nbsp;
-          <a
-            href="https://apilogicserver.github.io/Docs/Sample-Database/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            database
-          </a>
-          .
-          <Typography>
-            <br></br>
-          </Typography>
-        </Typography>
-        <Accordion>
-          <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
-            <Typography>
-              This app was not coded - it was <i>created.</i> Click here to see
-              how:
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography>
-              <ul>
-                <li>
-                  <i>Automated: </i>create executable systems with this single
-                  command...
-                  <pre>
-                    &nbsp;&nbsp;&nbsp;ApiLogicServer{" "}
-                    <strong>create-and-run</strong> \<br></br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--project_name=ApiLogicProject
-                    \ # customize with Python and your IDE<br></br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--db_url=sqlite:///nw.sqlite
-                    # your db here
-                  </pre>
-                </li>
-                <li>
-                  <i>Model-driven: </i>creation builds executable&nbsp;
-                  <a
-                    rel="nofollow noreferrer"
-                    href="https://apilogicserver.github.io/Docs/Architecture-Declarative-Automation/"
-                    target="_blank"
-                  >
-                    models
-                  </a>
-                  , not code
-                  <ul>
-                    <li>
-                      Dramatically simpler to understand, customize and maintain
-                    </li>
-                  </ul>
-                  <Typography>&nbsp;</Typography>
-                </li>
-                <li>
-                  <i>Customizable: </i>models are created into a project;&nbsp;
-                  <a
-                    rel="nofollow noreferrer"
-                    href="https://apilogicserver.github.io/Docs/Project-Structure/#customizing-apilogicprojects"
-                    target="_blank"
-                  >
-                    customize
-                  </a>
-                  &nbsp;with Python and your IDE
-                  <ul>
-                    <li>
-                      This system has about 20 rules, and 20 lines of code
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </Typography>
-          </AccordionDetails>
-        </Accordion>
-        <Typography>
-          <br></br>
-          1.&nbsp;
-          <a
-            href="https://apilogicserver.github.io/Docs/Admin-Tour/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Automatic Admin App
-          </a>
-          &nbsp;, you are running it now
-          <ul>
-            <li>For instant collaboration and Back Office data maintenance</li>
-            <li>
-              Rich functionality: multi-page, multi-table, automatic joins
-            </li>
-            <li>
-              Explore this app (e.g., click Category, at left, and look for the
-              info icons, upper right), and how to{" "}
-              <a
-                rel="nofollow noreferrer"
-                href="https://apilogicserver.github.io/Docs/Admin-Tour/"
-                target="_blank"
-              >
-                customize it
-              </a>
-            </li>
-          </ul>
-          2.{" "}
-          <a href="/api" target="_blank">
-            API
-          </a>
-          , with oas/Swagger
-          <ul>
-            <li>For custom app dev, application integration</li>
-            <li>
-              Rich functionality: endpoint for each table, with filtering,
-              pagination, related data
-            </li>
-            <li>
-              <a
-                rel="nofollow noreferrer"
-                href="https://apilogicserver.github.io/Docs/API-Customize/"
-                target="_blank"
-              >
-                Customizable
-              </a>
-              : add your own endpoints
-            </li>
-          </ul>
-          3.&nbsp;
-          <a
-            rel="nofollow noreferrer"
-            href="https://apilogicserver.github.io/Docs/Logic-Why/"
-            target="_blank"
-          >
-            Business Logic
-          </a>
-          , for{" "}
-          <span title="Often nearly half the app -- automation required">
-            <span>backend processing</span>{" "}
-          </span>
+    <>
+      <Typography variant="h6" align="left">
+        Project Info
+      </Typography>
+      <ProjectInfo projData={projData} />
+      <br/>
+      <Typography variant="body2" color="textSecondary" component="p"></Typography>
+      
+      { projData?.name ? 
+      <UnthemedCollapsAccordion title="Develop" defaultExpanded={showDevelop} sx={{borderTop: "1px solid #ddd"}}>
+        <Typography variant="body2">
           <ul>
             <li>
-              Spreadsheet-like rules for multi-table derivations and constraints
+              <Link to={`${conf.api_root}/index.html`} target="_blank">Explore OpenAPI</Link> <br />
             </li>
-            <li>Extensible with Python events for email, messages, etc</li>
             <li>
-              Explore &nbsp;how logic can meaningfully improve&nbsp;
-              <a
-                rel="nofollow noreferrer"
-                href="https://apilogicserver.github.io/Docs/Logic-Why/"
-                title="Rules are 40X more concise than code, and address over 95% of database logic"
-                target="_blank"
-              >
-                conciseness
-              </a>
-              &nbsp;and quality
+              <Link to={`${document.location.origin}${projData?.download}`} target="_blank">Project Download</Link> (Open in your IDE to add customizations such as logic & security)
+            </li>
+            <li>
+              Run in container
+              <CodeSnippet code={code} />
+            </li>
+            <li>
+              <Link to={"https://github.com/apifabric/" + projData?.name} target="_blank">Github Repository</Link>
             </li>
           </ul>
         </Typography>
-      </div>
-    </div>
+      </UnthemedCollapsAccordion> : null }
+      <About />
+      <br/>
+      <DBER dber={dber} />
+
+    </>
   );
 }
+
+const ProjectInfo = ({ projData }: { projData: { name: string, description: string, prompt: string, download: string } }) => {
+  const conf = useConf();
+  if(!projData.name) {
+    return <></>
+  }
+  return (
+    <Typography variant="body2" color="textSecondary" component="p">
+      <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'max-content auto', gap: '0.5em' }}>
+        <Box component="dt" sx={{ fontWeight: 'bold' }}>Name</Box>
+        <Box component="dd">{projData?.name?.replace("_", " ")}</Box>
+        {projData?.description && (
+          <>
+            <Box component="dt" sx={{ fontWeight: 'bold' }}>Description</Box>
+            <Box component="dd">{projData?.description}</Box>
+          </>
+        )}
+        {projData?.prompt && (
+          <>
+            <Box component="dt" sx={{ fontWeight: 'bold' }}>Prompt</Box>
+            <Box component="dd">{projData?.prompt?.split('\n').map(line => <>{line}<br/></>) }</Box>
+          </>
+        )}
+        
+      </Box>
+    </Typography>
+  );
+};
+
+const About = () => {
+
+  const showAboutCount = JSON.parse(localStorage.getItem('showAboutCount') || "10") // default 10 because of all the rerenndering
+  const showAbout =  showAboutCount > 0 
+  localStorage.setItem('showAboutCount', ( showAboutCount - 1 ).toString());
+  const conf = useConf();
+
+  return (
+    <UnthemedCollapsAccordion title="About" sx={{ borderBottom: '1px solid #ccc' }} defaultExpanded={showAbout} >
+      <Typography variant="body2">
+        API Logic Server / GenAI Microservice Automation has turned your prompt into a microservice:
+        <ul>
+          <li>
+            A multi-table application - explore the links in the left-hand menu
+          </li>
+          <li>
+            A standard multi-table JSON:API - explore Open API <Link to={`${conf.api_root}`} target="_blank">here</Link>
+          </li>
+        </ul>
+        
+        <br />
+
+        <b>Instant Microservice</b>, Customize with Declarative Rules and Python in your IDE from a simple Natural Language Prompt (or existing database), you get: <br/>
+          <br/>
+          <span style={{verticalAlign: 'top'}}>
+            1. </span><details style={{display : "inline"}}>
+            <summary>Instant Working Software - Get the requirements right</summary>
+            Automation has turned your prompt into a microservice: a working <b>application</b>, and a <b>standard API</b>.
+            <br/>
+            It simply cannot be faster or simpler.
+            <ul>
+              <li>Eliminate weeks to months of complex framework coding, db design, or screen painting.</li>
+              <li>Iterate 15 times... before lunch.</li>
+            </ul>
+            </details>
+          <br/><br/>
+          <span style={{verticalAlign: 'top'}}>
+            2. </span><details style={{display : "inline"}}>
+            <summary>Customize - Declarative Rules and Python in your IDE</summary>
+            The speed and simplicity, plus all the flexibility of a framework.
+            <ul>
+              <li>Download the generated project, and <Link to="https://apilogicserver.github.io/Docs/Tutorial/#3-customize-and-debug-in-your-ide">customize in your IDE</Link>              </li>
+              <li><Link to="https://apilogicserver.github.io/Docs/Security-Overview/">Declarative security</Link>: configure keycloak authentication, declare role-based row authorization</li>
+              <li><Link to="https://apilogicserver.github.io/Docs/Logic-Why/">Declarative business logic</Link>: multi-table constraints and derivations using unique rules that are 40X more concise than code, extensible with Python.</li>
+              <li>Use standard Python: e.g. provide <Link to="https://apilogicserver.github.io/Docs/Sample-Integration/">Application integration</Link> (e.g., custom APIs and kafka messaging).</li>
+            </ul>
+            </details>
+          <br/><br/>
+          <span style={{verticalAlign: 'top'}}>
+            
+            3. </span><details style={{display : "inline"}}>
+            <summary>Deploy - Standard container, no fees, no lock-in</summary>
+            
+            <ul>
+              <li>Created projects include scripts to automate docker creation, so you can deploy anywhere. 
+              </li>
+
+              <li>There are no runtime fees, no lock-in.
+              </li>
+            </ul>
+            </details>
+            <br/>
+            <br/>
+          To create unlimited projects in your environment, contact <Link to="mailto:apilogicserver@gmail.com" sx={{color: "#bf2222", fontWeight: "bold", textDecoration: "none"}}>apilogicserver@gmail.com</Link> for a free docker image, and project support.
+        
+          
+      </Typography>
+    </UnthemedCollapsAccordion>
+  );
+};
+
+const DBER = ({ dber }: { dber: string }) => {
+  const defaultStyle = { height: `600px`, width: "auto" };
+  const [style, setStyle] = useState(defaultStyle);
+  const [show, setShow] = useState(true);
+
+  const handleClick = () => {
+    setStyle(style.width === '100%' ? defaultStyle : { width: '100%', height: 'auto' });
+  };
+
+  if (!show) {
+    return null;
+  }
+
+  return (
+    <>
+      <Typography variant="h6" align="left">
+        Automatically Generated Database - Diagram
+      </Typography>
+      <img src={dber} alt="dber" style={style} onClick={handleClick} onError={() => setShow(false)} />
+    </>
+  );
+};

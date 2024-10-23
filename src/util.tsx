@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Typography } from "@mui/material";
 import { Pagination } from "react-admin";
 import loadable from "@loadable/component";
@@ -89,3 +89,65 @@ export const InfoPopover = ({ label, content }: any) => {
     </div>
   );
 };
+
+
+export const deletePrefixedEntries = (prefix: string) => {
+  // Get the number of entries in localStorage
+  const totalEntries = localStorage.length;
+
+  // Create an array to store keys to remove
+  const keysToRemove = [];
+
+  // Loop through each entry in localStorage
+  for (let i = 0; i < totalEntries; i++) {
+    // Get the key at the current index
+    const key = localStorage.key(i);
+
+    // Check if the key starts with the desired prefix
+    if (key?.startsWith(prefix)) {
+      // Add the key to the list of keys to remove
+      keysToRemove.push(key);
+    }
+  }
+
+  // Loop through the list of keys to remove and delete each one
+  for (const key of keysToRemove) {
+    localStorage.removeItem(key);
+  }
+}
+
+
+export const useHash = () => {
+  const [hash, setHash] = useState(() => window.location.hash);
+
+  useEffect(() => {
+      const onHashChange = () => {
+          setHash(window.location.hash);
+      };
+
+      window.addEventListener('hashchange', onHashChange);
+
+      return () => {
+          window.removeEventListener('hashchange', onHashChange);
+      };
+  }, []);
+
+  return hash;
+};
+
+
+
+export const parseJwt = (token: string) => {
+  try{
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.warn("Error parsing JWT", token, e);
+    return {};
+  }
+}

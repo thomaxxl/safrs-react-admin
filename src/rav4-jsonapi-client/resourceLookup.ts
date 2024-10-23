@@ -91,3 +91,8 @@ export default class ResourceLookup {
     return ret;
   }
 }
+
+function lowerFirstLetter(s: string): string {
+  return s;
+  return s[0].toLowerCase() + s.slice(1);
+}

@@ -40,10 +40,16 @@ const UpdateAttrForm = ({
 
   const [update, {data, error, isPending }] = useUpdate(
     attributes[0].resource.name,
-    recordRef.current,{
+    recordRef.current, {
       onSuccess: (data) => {
         console.log('onSuccess data:', data);
       },
+      onFailure: () => {
+        console.log('onSuccess data failure:', error);
+      },
+      onError: (error) => {
+        console.log('onSuccess data error:', error);
+      }
     }
   );
 
@@ -59,6 +65,7 @@ const UpdateAttrForm = ({
     }
   }, [id]);
   
+
   const focusRef = useRef("");
   const redirect = useRedirect();
   const notify = useNotify();
@@ -69,7 +76,10 @@ const UpdateAttrForm = ({
     prevDataRef.current = data;
   }, [data]);
 
-
+  if(error){
+    console.warn("useupdate error", error)
+    console.warn(error.message)
+  }
 
   const CustomToolbar =  (props: any) => {
     const location = useLocation();
@@ -127,6 +137,10 @@ const UpdateAttrForm = ({
               redirect(`${url}`);
             },
             onFailure: (error) => {
+              console.log('error: ', error);
+              notify(`Error: ${error.message}`, { type: "warning" });
+            },
+            onError: (error) => {
               console.log('error: ', error);
               notify(`Error: ${error.message}`, { type: "warning" });
             }

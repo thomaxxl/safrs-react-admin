@@ -1,22 +1,36 @@
 import React, { forwardRef, useContext } from "react";
 import {
+  useSidebarState,
   Menu as RAMenu,
   MenuItemLink,
   useLogout,
   useResourceDefinitions,
+  Link,
+  
 } from "react-admin";
-import { AppBar, UserMenu } from "react-admin";
+import { AppBar, UserMenu, LoadingIndicator, useCreatePath  } from "react-admin";
 import DefaultIcon from "@mui/icons-material/ViewList";
 import SettingsIcon from "@mui/icons-material/Settings";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import InfoIcon from "@mui/icons-material/Info";
-import {  Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import Button from '@mui/material/Button';
 import preval from "preval.macro";
 import { MenuItem, Modal } from "@mui/material";
 import ExitIcon from "@mui/icons-material/PowerSettingsNew";
 import Switch from "@mui/material/Switch";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import { Box } from "@mui/system";
-import { useInfoToggle } from "../InfoToggleContext";
+import { useInfoToggle } from "../SraToggleContext";
+import { useConf } from "../Config";
+import { WGConversation } from "../components/apifab/WGconversation";
+import "../style/HeaderStyle.css";
+import { useGetIdentity } from 'react-admin';
+import { UserMenu as ApiFabUserMenu } from "./apifab/ApiFabUser";
+import { SlackIcon } from "../components/apifab/ApiFabComponents"; 
+
+
+
 
 const InfoMenuModal = () => {
   const [open, setOpen] = React.useState(false);
@@ -28,7 +42,7 @@ const InfoMenuModal = () => {
     e.stopPropagation();
     setOpen(false);
   };
-
+  
   return (
     <>
       <span onClick={handleOpen} title={`Info`} style={{ cursor: "pointer" }}>
@@ -89,16 +103,47 @@ const MyLogoutButton = forwardRef<HTMLLIElement, {}>((props, ref) => {
   );
 });
 
-const ConfigurationMenu = forwardRef<any, any>((props, ref) => {
+const ConfigurationMenuLink = forwardRef<any, any>((props, ref) => {
   return (
     <MenuItemLink
       ref={ref}
-      to="/configuration"
-      primaryText="Settings"
+      to="/Configuration"
+      primaryText="UI Settings"
       leftIcon={<SettingsIcon />}
       onClick={props.onClick}
-      sidebarIsOpen
-      title="Settings"
+      title="UI Settings"
+      color="default"
+      translate="yes"
+      hidden={false}
+      style={{}}
+      dense={false}
+      disabled={false}
+      className=""
+      classes={{}}
+      slot=""
+      defaultChecked={false}
+    />
+  );
+});
+
+const UserMenuLink = forwardRef<any, any>((props, ref) => {
+  
+  const { identity, isLoading } = useGetIdentity();
+  const createPath = useCreatePath();
+
+  const id = identity?.id || "";
+  const username = identity?.fullName || "";
+
+  if (isLoading) return <LoadingIndicator/>;
+  
+  return (
+    <MenuItemLink
+      ref={ref}
+      to={createPath({ resource: 'User', type: 'show', id: id })}
+      primaryText="User Settings"
+      leftIcon={<AccountCircle />}
+      onClick={props.onClick}
+      title="UI Settings"
       color="default"
       translate="yes"
       hidden={false}
@@ -125,12 +170,14 @@ const CustomUserMenu = (props: any) => (
         <Switch
           onChange={(e) => {
             localStorage.setItem("infoswitch", e?.target?.checked.toString());
+            sessionStorage.setItem("infoswitch", e?.target?.checked.toString());
             props.setInfoToggle(e.target.checked);
           }}
           checked={props.infoToggle}
         ></Switch>
       </MenuItem>
-      <ConfigurationMenu />
+      <ConfigurationMenuLink />
+      <UserMenuLink />
 
       <MenuItemLink
         primaryText={preval`module.exports = new Date().toString().split(' ').slice(1,3).join('');`}
@@ -144,13 +191,33 @@ const CustomUserMenu = (props: any) => (
   </div>
 );
 
+const SraToolbar = () => {
+
+  // Todo: loadingindicator keeps spinning, check react-query isFetching/isMutating
+
+  // const locales = useLocales();
+  // const { darkTheme } = useThemesContext();
+  return (
+      <>
+      <SlackIcon sx={{color: 'white'}}/>
+          {/*locales && locales.length > 1 ? <LocalesMenuButton /> : null*/}
+          {/*darkTheme && <ToggleThemeButton />*/}
+          {/*<LoadingIndicator />*/}
+      </>
+  );
+};
+
+
 export const CustomAppBar = (props: any) => {
   const [infoToggle, setInfoToggle] = useInfoToggle();
-
+  const apiFabLink = null;//<UserMenu/>// document.location.href.endsWith("/Project") ? null : <a href="https://apifabric.ai" className="apifabheaderlink">apifabric.ai</a>
+  
   return (
     <AppBar
+      sx={{backGroundColor: 'red'}}
       {...props}
       elevation={1}
+      toolbar={<SraToolbar/>}
       userMenu={
         <div>
           <CustomUserMenu
@@ -161,7 +228,10 @@ export const CustomAppBar = (props: any) => {
       }
     >
      <Typography variant="h6" color="inherit" id="react-admin-title" />
-     <span style={{ flex: "1" }} />
+     <span style={{ flex: "1" }} > &nbsp;{apiFabLink}</span>
+     
+     <WGConversation/>
+     
     </AppBar>
   );
 };
@@ -171,18 +241,27 @@ const onMenuClick = (evt: any) => {
 };
 
 export const Menu = (props: any) => {
+  const conf = useConf();
   const resourcesDefinitions = useResourceDefinitions();
   const resources = Object.keys(resourcesDefinitions).map(
     (name) => resourcesDefinitions[name]
-  );
+  )
   const handlePointerLeave = () => {
     console.log("Pointer leave");
   };
-  // const open = true;
+
+  if(!conf.resources){
+    return
+  }
+  // Additional RA resources, not in the config
+  conf.resources['Home'] = {name: 'Home', icon: DefaultIcon}
+  conf.resources['Configuration'] = {name: 'Home', icon: DefaultIcon, sx: {display: 'none'}}
+
   return (
     <>
       <RAMenu {...props}>
         {resources.map((resource) => (
+          conf.resources![resource.name] && !conf.resources![resource.name].hidden &&
           <MenuItemLink
             key={resource.name}
             to={`/${resource.name}`}
@@ -191,7 +270,7 @@ export const Menu = (props: any) => {
             }
             leftIcon={resource.icon ? <resource.icon /> : <DefaultIcon />}
             onClick={onMenuClick}
-            sidebarIsOpen={true}
+            sx={conf.resources![resource.name].sx || {}}
           />
         ))}
       </RAMenu>

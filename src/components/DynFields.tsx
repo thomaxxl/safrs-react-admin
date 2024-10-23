@@ -41,9 +41,13 @@ const RelLabel = ({ text }: { text: any }) => {
   return label;
 };
 
+/*
+  Text field that truncates the text to 64 characters, these are used in the list view
+*/
 const TruncatedTextField = (props: any) => {
   const record = useRecordContext();
   const source = props.source;
+  const length = props.length || 128;
   if (!record || !source) {
     return <span>-</span>; // Return "-" when there is no record or source
   }
@@ -56,9 +60,12 @@ const TruncatedTextField = (props: any) => {
       value = "Value Error";
     }
   }
+  if(typeof value === "number"){
+    return <span>{value.toString()}</span>
+  }
   if (
     !value ||
-    value.length < 128 ||
+    value.length < length ||
     !value.slice ||
     !(value.slice instanceof Function)
   ) {
@@ -73,7 +80,7 @@ const TruncatedTextField = (props: any) => {
         </>
       );
     }
-    return <span>{value ? value : "-"}</span>; // Return "-" when value is null or undefined
+    return <span>{value && value !== 0 ? value : "-"}</span>; // Return "-" when value is null or undefined
   }
 
   if ((props.type)?.toLowerCase() === "image") {
@@ -97,7 +104,7 @@ const NestedJoinedField = ({
   resource_name: any;
   id: any;
 }) => {
-  // Nested foins no longer have access to the right RecordContext
+  // Nested joins no longer have access to the right RecordContext
   // this doesn't work for composite keys :// (because we just pass a single id)
   const conf = useConf();
   const user_key = conf?.resources?.[resource_name]?.user_key || "id";
@@ -135,7 +142,7 @@ const JoinedField: React.FC<JoinedFieldProps> = ({
   const user_key = target_resource?.user_key;
   const user_component = target_resource?.user_component;
   const fk = join.fks.join("_");
-  const id = record ? record[fk] : null;
+  const id = record && record[fk] != "-" ? record[fk] : null; // "-" is a special value for empty joins
   const { data, isLoading } = useGetOne(target_resource.name, { id: id });
 
   if (!record) {
@@ -251,8 +258,11 @@ export const attr_fields = (attributes: any, mode: any, ...props: any) => {
 
 const BooleanFieldToString = ({ source, attribute }: { source: string, attribute: any }) => {
   const record = useRecordContext();
+  if(!record){
+    return null
+  }
   const value = record[source] ? "Yes" : "No";
-  let text = attribute?.icon ? <Icon>{attribute.icon}</Icon> : value
+  let text = attribute?.icon ? <Icon sx={{color: "rgb(63, 81, 181)"}}>{attribute.icon}</Icon> : value
   return <span>{text}</span>;
 };
 
@@ -263,13 +273,13 @@ const StatusField = ({ source, attribute }: { source: string, attribute: any }) 
   return <span>{text}</span>;
 };
 
-const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
+export const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
 
   const record = useRecordContext();
   const value = record[source];
   const url = URL(value, {})
   let text = attribute.text ? attribute.text : value
-  text =  attribute.icon ? <Icon>{attribute.icon}</Icon> : text
+  text =  attribute.icon ? <Icon  sx={{color: "rgb(63, 81, 181)", marginLeft: "0.8em"}}>{attribute.icon}</Icon> : text
 
   if(!value){
     return <></>
@@ -291,13 +301,13 @@ const AttrField = ({
   const record = useRecordContext();
   const conf = useConf();
   if (attribute.type?.toLowerCase() === "boolean") {
-    return <BooleanFieldToString source={attribute.name}  attribute={attribute} />;
+    return <BooleanFieldToString source={attribute.name} attribute={attribute} key={`${attribute.name}_bool`}/>;
   }
   if (attribute.type?.toLowerCase() === "status") {
-    return <StatusField source={attribute.name}  attribute={attribute} />;
+    return <StatusField source={attribute.name} attribute={attribute} key={`${attribute.name}_status`}/>;
   }
   if (attribute.type?.toLowerCase() === "link") {
-    return <LinkField source={attribute.name} attribute={attribute}/>;
+    return <LinkField source={attribute.name} attribute={attribute} key={`${attribute.name}_link`}/>;
   }
 
   const component: any = attribute.component;
@@ -310,6 +320,7 @@ const AttrField = ({
       sortBy={attribute.name}
       label={attribute.label || attribute.name}
       type={attribute.type}
+      length={attribute.length}
       {...props}
     />
   );
@@ -335,7 +346,7 @@ const AttrField = ({
       resolveComponent: (components: any) => components[component],
     });
     const label_text = attribute.label || attribute.name;
-    result = <Component attribute={attribute} mode={mode} label={label_text} />;
+    result = <Component attribute={attribute} mode={mode} label={label_text} record={record} key={`${attribute.name}_comp`}/>;
   } catch (e) {
     alert("Custom component error");
     console.error("Custom component error", e);
@@ -487,6 +498,7 @@ export const ShowAttrField = ({
   value: any;
   id: any;
 }) => {
+
   const attr_name = attr.name;
   let label: any = (
     <InfoPopover label={attr.label || attr_name} content={attr.info} />

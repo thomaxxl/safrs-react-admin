@@ -1,5 +1,17 @@
+/*
+  Configuration UI
+  Edit & Reset Configuration from UI
+  Automatically load configuration from URL (admin.yaml)
+  We support different use cases for loading configuration:
+  - load= url parameter (load from external URL)
+  - load from local storage
+  - load from default admin.yaml
+  - load from default admin.yaml (g.apifabric.ai: https://g.apifabric.ai/01J5DG24M932DPB2SK2CN6QFPR/admin.yaml)
+
+  Configs are saved in local storage (raconf) and can be managed from the UI
+*/
 import * as React from "react";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { useRef } from "react";
 import { TextareaAutosize, TextField } from "@mui/material";
 import Checkbox from "@mui/material/Checkbox";
@@ -7,7 +19,7 @@ import Button from "@mui/material/Button";
 import { useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { default_configs } from "../Config";
+import { default_configs, getConfigs, setConfigs, getCurrentConf, setCurrentConf, compareConf } from "../Config";
 import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -24,24 +36,14 @@ import { Confirm } from "react-admin";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  CircularProgress,
   SvgIcon,
 } from "@mui/material";
-import { IMonacoEditor } from "@uiw/react-monacoeditor";
 import { ThemeColorContext } from "../ThemeProvider";
+
 const URL = require("url-parse");
-
 const yaml = require("js-yaml");
-
-const str = window.location.href;
-const arr = str.split("/").filter(item => item !== "");
-
-
+const arr = window.location.href.split("/").filter(item => item !== "");
 const index = arr.findIndex((e) => e === 'admin');
-
-
 let yamlName;
 
 if (index === -1) {
@@ -53,17 +55,24 @@ const yarm = yamlName.split(".");
 console.log('yarm',yarm);
 
 let als_yaml_url = `/ui/admin/${yarm[0]}.yaml`;
-console.log('als_yaml_url',als_yaml_url);
+als_yaml_url = window.location.href.replace(/\/admin-app\/.*$/, '/ui/admin/admin.yaml');
 
 if (
   window.location.href.includes(":3000") &&
   !window.location.href.includes("load=")
 ) {
   // only for dev purposes
-  als_yaml_url = `http://localhost:5656/ui/admin/${yamlName}.yaml`;
-  console.log('als_yaml_urlals_yaml_url',als_yaml_url);
-  
-  
+  als_yaml_url = `http://localhost:8282/ui/admin/${yamlName}.yaml`;
+  // console.log('als_yaml_urlals_yaml_url',als_yaml_url);  
+}
+// if(window.location.origin === 'https://g.apifabric.ai'){
+
+// }
+console.log('als_yaml_url',als_yaml_url);
+
+const getRawConf = () => {
+  let conf = getCurrentConf(true); // get current config without parsing
+  return conf
 }
 
 const DeleteConf = (conf_name: any) => {
@@ -71,9 +80,9 @@ const DeleteConf = (conf_name: any) => {
     return;
   }
   try {
-    let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
+    let configs = getConfigs();
     delete configs[conf_name];
-    localStorage.setItem("raconfigs", JSON.stringify(configs));
+    setConfigs(configs);
 
     let url = new URL(window.location.href);
     let hashParts = url.hash.split("?");
@@ -92,8 +101,10 @@ const DeleteConf = (conf_name: any) => {
   }
 };
 
+
+
 const addConf = (conf: any) => {
-  const configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
+  const configs = getConfigs();
   if (!conf.api_root) {
     console.warn("Config has no api_root", conf);
     return false;
@@ -112,26 +123,27 @@ const addConf = (conf: any) => {
 
   const url = new URL(window.location.href);
   const hashParams = new URLSearchParams(url.hash.split("?")[1]);
-  let loadUrl = hashParams.get("load");
-  if (!loadUrl) {
-    loadUrl = als_yaml_url;
-  }
+  let loadUrl = hashParams.get("load") ?? als_yaml_url
+
   if (!conf.conf_source) {
     const encodedLoadUrl = btoa(loadUrl);
     conf.conf_source = encodedLoadUrl;
   }
   configs[conf.api_root] = conf;
-  localStorage.setItem("raconf", JSON.stringify(conf));
-  localStorage.setItem("raconfigs", JSON.stringify(configs));
+  setCurrentConf(conf);
+  setConfigs(configs);
   return true;
 };
 
-export const LoadYaml = (
+export const loadYaml = (
   config_url: any,
   notify: any,
   state: any,
-  handleLoader: any = null
+  handleLoader: any = () => {}
 ) => {
+  
+  console.log("loadYaml config_url", config_url);
+  
   if (state) {
     if (!config_url?.includes("http") && !config_url?.includes(".yaml")) {
       if (config_url !== undefined) config_url = atob(config_url);
@@ -139,7 +151,7 @@ export const LoadYaml = (
     if (config_url == null) {
       config_url = als_yaml_url;
     }
-
+    
     const saveConf = (conf_str: any) => {
       // first try to parse as json, if this doesn't work, try yaml
       try {
@@ -162,6 +174,7 @@ export const LoadYaml = (
     };
 
     const saveYaml = (ystr: any) => {
+      
       try {
         const conf = yaml.load(ystr);
         const encodedLoadUrl = btoa(config_url);
@@ -171,15 +184,18 @@ export const LoadYaml = (
         if (!addConf(conf) && notify) {
           notify("Failed to load config", "warning");
         }
+       
       } catch (e) {
         console.warn(`Failed to load yaml`, ystr);
         notify("Failed to load config", "warning");
-        window.location.href = "/#/Configuration";
+        //window.location.href = "/#/Configuration";
         console.error(e);
       }
     };
-
+    
     notify("Loading configuration", { type: "info" });
+    
+    const oldConf = getRawConf();
     fetch(config_url, { cache: "no-store" })
       .then((response) => {
         return response.text();
@@ -188,28 +204,24 @@ export const LoadYaml = (
         if (conf_str.includes("api_root")) {
           localStorage.setItem("conf_cache1", conf_str);
           saveConf(conf_str);
-          setTimeout(() => {
-            notify("Loaded configuration");
-          }, 500);
-          window.location.href = "/admin-app/index.html";
           handleLoader();
+          if(! compareConf(oldConf, getRawConf())){
+            setTimeout(() => {
+              console.log('reloading; new Conf (timeout)', oldConf, getRawConf());
+              window.location.href = document.location.href.split('#')[0]
+            }, 100);  
+          }
         } else {
-          notify("Failed to load yaml", { type: "warning" });
-          setTimeout(() => {
-            window.location.href = "/admin-app/index.html#/Configuration";
-          }, 1000);
+          notify(`Failed to load yaml from ${config_url}`, { type: "warning" });
+          console.error(`Failed to load yaml (0) from ${config_url}`);
         }
       })
       .catch((err) => {
         if (notify) {
           notify("Failed to load yaml", { type: "warning" });
-          setTimeout(() => {
-            window.location.href = "/admin-app/index.html#/Configuration";
-            window.location.reload();
-          }, 500);
         }
         console.error(`Failed to load yaml from ${config_url}: ${err}`);
-      });
+      })
   }
 };
 
@@ -238,12 +250,8 @@ const ManageModal = () => {
     }
   };
 
-  try {
-    configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
-  } catch (e) {
-    alert("Localstorage error");
-  }
-
+  configs = getConfigs();
+  
   const modal_style = {
     position: "absolute",
     top: "25%",
@@ -325,7 +333,7 @@ const ManageModal = () => {
   );
 };
 
-const ExternalConf = () => {
+export const ExternalConf = () => {
   const notify = useNotify();
   const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
   const queryParams = new URLSearchParams(qpStr);
@@ -350,13 +358,15 @@ const ExternalConf = () => {
 
   const handleDialogClose = () => {
     setOpen(false);
-    window.location.href = "/";
-    LoadYaml("/ui/admin/admin.yaml", notify);
+    // LoadYaml("/ui/admin/admin.yaml", notify);
   };
+
   const handleConfirm = () => {
+    // for security purposes (xss) we require a confirmation dialog
     setLoader(true);
     setOpen(false);
-    LoadYaml(loadURI, notify, true, handleLoader);
+    console.log("reloadC");
+    loadYaml(loadURI, notify, true, handleLoader);
     const conf_str = localStorage.getItem("conf_cache1");
     console.debug("conf_str: ", conf_str);
     saveConfig(conf_str);
@@ -366,8 +376,26 @@ const ExternalConf = () => {
     setLoader(false);
   };
 
-  const url = URL(loadURI, {});
-  let requireConfirm = true; // for security purposes (xss) we require a confirmation
+  let requireConfirm = true;
+  
+  if(document.location.origin === 'https://g.apifabric.ai'){
+    let loadURI2 = loadURI
+    if(document.location.pathname.split('/').length > 1 && document.location.pathname.split('/')[1] !== 'admin-app'){
+      // for g.apifab, we need to load the admin.yaml from the correct path which is the first part of the path
+      loadURI2 = `https://g.apifabric.ai/${document.location.pathname.split('/')[1]}/admin.yaml`;
+    }
+    requireConfirm = false;
+    const oldConf = getRawConf()
+    loadYaml(loadURI2, notify, true, handleLoader);
+    const conf_str = localStorage.getItem("conf_cache1");
+    saveConfig(conf_str);
+    const newConf = getRawConf()
+    if (oldConf !== newConf) {
+      console.log('reloading; new Conf:', newConf); 
+      window.location.href = document.location.href.replace("#Configuration","#Home");
+    }
+  }
+  
   const confirm = requireConfirm ? (
     <Confirm
       isOpen={open}
@@ -400,15 +428,10 @@ const ExternalConf = () => {
 };
 
 const ConfSelect = () => {
-  let configs = [];
   const notify = useNotify();
-  try {
-    const storedConfigs = localStorage.getItem("raconfigs");
-    configs = storedConfigs ? JSON.parse(storedConfigs) : {};
-  } catch (e) {
-    alert("Localstorage error");
-  }
-  const current_conf = JSON.parse(localStorage.getItem("raconf") || "");
+  const configs = getConfigs();
+    
+  const current_conf = getRawConf();
   const [current, setCurrent] = React.useState(current_conf.api_root);
 
   const handleChange = (event: any) => {
@@ -417,9 +440,9 @@ const ConfSelect = () => {
     if (!new_conf) {
       return;
     }
-    localStorage.setItem("raconf", JSON.stringify(new_conf));
+    setCurrentConf(new_conf);
     window.location.reload();
-
+    console.log("handleChange Reload");
     window.location.href = "/";
   };
 
@@ -455,33 +478,31 @@ const ConfSelect = () => {
 const saveConfig = (conf: any) => {
   /*
     Save the current config in raconf to raconfigs
-    */
-  let current_conf = JSON.parse(localStorage.getItem("raconf") || "");
+  */
+  console.log("saveConfig", conf);
+  let current_conf = getRawConf();
   const api_root = current_conf.api_root;
-  if (!api_root && !window.location.href.includes("load")) {
+  if (window.location.origin !== "https://g.apifabric.ai" && !api_root && !window.location.href.includes("load")) {
     alert("Can't save: no 'api_root' set in config");
     return;
   }
   if (!api_root && window.location.href.includes("load")) {
     return;
   }
-  let configs = JSON.parse(localStorage.getItem("raconfigs") || "{}");
+  let configs = getConfigs();
   if (!configs) {
     configs = {};
   }
   configs[api_root] = current_conf;
-  localStorage.setItem("raconfigs", JSON.stringify(configs));
+  setConfigs(configs);
 };
 
 export const resetConf = (notify: any, reload: any = false) => {
-  let raConf = localStorage.getItem("raconf");
-  if (raConf && raConf !== "{}") {
-    let raConfObj = JSON.parse(raConf);
-    if (raConfObj.conf_source) {
-      let confSource = raConfObj.conf_source;
-      let decodedConfSource = atob(confSource);
-      als_yaml_url = decodedConfSource;
-    }
+  let raConfObj = getRawConf();
+  if (raConfObj.conf_source) {
+    let confSource = raConfObj.conf_source;
+    let decodedConfSource = atob(confSource);
+    als_yaml_url = decodedConfSource;
   }
 
   const configs: any = {};
@@ -489,17 +510,17 @@ export const resetConf = (notify: any, reload: any = false) => {
     default_configs.length > 0 ? default_configs[0] : { api_root: "" };
 
   for (defconf of default_configs) {
-    localStorage.setItem("raconf", JSON.stringify(defconf));
+    setCurrentConf(defconf);
     configs[defconf.api_root] = defconf;
   }
-  localStorage.setItem("raconf", JSON.stringify({}));
-  localStorage.setItem("raconfigs", JSON.stringify(configs));
-  let value = window.location.href.split("/");
+  //setCurrentConf({})
+  setConfigs(configs);
   let check_load = window.location.href.includes("load");
+  console.log("reload", check_load, reload);
   if (check_load) {
-    LoadYaml(als_yaml_url, notify, false);
+    loadYaml(als_yaml_url, notify, false);
   } else {
-    LoadYaml(als_yaml_url, notify, true);
+    loadYaml(als_yaml_url, notify, true);
   }
   return defconf;
 };
@@ -508,7 +529,7 @@ export const ThemeSelector = () => {
   const { themeColor, setThemeColor } = React.useContext(ThemeColorContext);
 
   const value: any = localStorage.getItem("ThemeColor");
-  const conf = JSON.parse(localStorage.getItem("raconf") || "{}");
+  const conf = getRawConf();
   if (!conf.ui) {
     conf.ui = {
       theme: {
@@ -535,7 +556,7 @@ export const ThemeSelector = () => {
       },
     };
     setThemeColor(event.target.value);
-    localStorage.setItem("raconf", JSON.stringify(conf));
+    setCurrentConf(conf);
     localStorage.setItem("autoReload", "false");
     window.location.reload();
   };
@@ -604,20 +625,20 @@ export const ThemeSelector = () => {
   );
 };
 
+
+
 const ConfigurationUI = (props) => {
-  const [data, setData] = useState(localStorage.getItem("raconf"));
-  const [raconfigsData, setRaconfigsData] = useState(
-    localStorage.getItem("raconfigs")
-  );
+  const [data, setData] = useState(getRawConf());
+  const [raconfigsData, setRaconfigsData] = useState(getConfigs());
   const [value, setValue] = useState(0);
-  const editorRef = useRef<IMonacoEditor | null>(null);
-  const editorJsonRef = useRef<IMonacoEditor | null>(null);
+  const editorRef = useRef(null);
+  const editorJsonRef = useRef(null);
   const notify = useNotify();
   const ref = useRef(true);
   const firstRender = ref.current;
   ref.current = false;
 
-  const saveYaml = (ystr, ev) => {
+  const saveYaml = (ystr) => {
     try {
       const jj = yaml.load(ystr);
       if (jj !== undefined) {
@@ -632,12 +653,12 @@ const ConfigurationUI = (props) => {
 
   const saveEdit = (text) => {
     try {
-      if (text) {
-        const parsed_conf = JSON.parse(text);
+      const parsed_conf = JSON.parse(text);
+      if (parsed_conf?.api_root) {
         setApiroot(parsed_conf.api_root);
       }
       setBgColor("#ddeedd");
-      localStorage.setItem("raconf", text);
+      setCurrentConf(parsed_conf);
       if (!taConf) {
         window.location.reload();
       }
@@ -648,15 +669,13 @@ const ConfigurationUI = (props) => {
   };
 
   if (window.location.href.includes("load=")) {
-    const qpStr = window.location.hash.substr(
-      window.location.hash.indexOf("?")
-    );
+    const qpStr = window.location.hash.substr(window.location.hash.indexOf("?"));
     const queryParams = new URLSearchParams(qpStr);
     const loadURI = queryParams.get("load");
     als_yaml_url = loadURI;
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (raconfigsData === null) {
       fetch(als_yaml_url, { cache: "no-store" })
         .then((response) => response.text())
@@ -666,65 +685,67 @@ const ConfigurationUI = (props) => {
             resetConf(() => {}, true);
           }
         })
-        .catch((err) => {
+        .catch(() => {
           notify("Can't Load configuration file");
-          // window.location.href = "/#/Configuration";
         });
     }
   }, [data]);
 
-  let conf =
-    localStorage.getItem("raconf") || JSON.stringify(resetConf(() => {}));
-  const [taConf, setTaConf] = useState(
-    conf ? JSON.stringify(JSON.parse(conf), null, 4) : ""
-  );
-  //console.debug("taConf", taConf);
+  let conf = getRawConf();
+  const [taConf, setTaConf] = useState(conf ? JSON.stringify(conf, null, 4) : "");
   const [bgColor, setBgColor] = useState("black");
   const [autosave, setAutosave] = useState(true);
-  const [loader, setLoader] = useState(false);
+  const [ showLoader, setShowLoader ] = useState(false);
+  const loader = useRef(false);
   const [autoReload, setAutoReload] = useState(() => {
-    if(document.location.origin.includes("apifabric")){
+    if (document.location.origin === "https://apifabric.ai" || document.location.origin === "https://g.apifabric.ai") {
+      localStorage.setItem("autoReload", "false");
       return false;
     }
     const storedAutoReload = localStorage.getItem("autoReload");
     return storedAutoReload !== null ? JSON.parse(storedAutoReload) : true;
   });
-  const [, setApiroot] = useState(JSON.parse(conf)?.api_root);
+  const [, setApiroot] = useState(conf?.api_root);
+
   const handleLoader = () => {
-    setLoader(false);
+    loader.current = false;
+    setShowLoader(false);
   };
 
-  React.useEffect(() => {
-    if (autoReload) {
+  useEffect(() => {
+    if (autoReload && ! sessionStorage.getItem("autoReloaded")) {
       if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-        const conf = JSON.parse(localStorage.getItem("raconf") || "{}");
-        if (conf?.conf_source !== undefined) {
-          setLoader(true);
-         
-          LoadYaml(conf?.conf_source, notify, true, handleLoader);
+        const conf = getRawConf();
+        if (conf?.conf_source !== undefined && loader.current === false) {
+          console.log("Auto reloading config");
+          sessionStorage.setItem("autoReloaded", "true");
+          loader.current = true;
+          setShowLoader(true)
+          loadYaml(conf?.conf_source, notify, true, handleLoader);
+          setShowLoader(false)
         }
       }
     }
-  }, [autoReload, notify, loader]);
+  }, [autoReload, notify]);
 
-  const handleAutoSaveChange = (event) => {
+  const handleAutoSaveChange = (event: any) => {
     setAutosave(event.target.checked);
   };
 
-  const handleAutoReloadChange = (event) => {
+  const handleAutoReloadChange = (event: any) => {
     localStorage.setItem("autoReload", event.target.checked);
+    if(event.target.checked === true){
+      sessionStorage.removeItem("autoReloaded");
+    }
     setAutoReload(event.target.checked);
   };
 
   const Editor = React.memo(
     React.lazy(() => import("@uiw/react-monacoeditor")),
-    (prevProps, nextProps) => {
-      // Only re-render if the value prop has changed
-      return prevProps.value === nextProps.value;
-    }
+    (prevProps, nextProps) => prevProps.value === nextProps.value
   );
 
-  const TabPanel = (props) => {
+  const TabPanel = (props: any) => {
     const { children, value, index, ...other } = props;
     return (
       <div
@@ -761,29 +782,22 @@ const ConfigurationUI = (props) => {
   };
 
   const [showButton, setShowButton] = useState(false);
-  const [currentYaml, setCurrentYaml] = useState(
-    yaml.dump(JSON.parse(localStorage?.getItem("raconf")))
-  );
+  const [currentYaml, setCurrentYaml] = useState(yaml.dump(getRawConf()));
 
-  const handleEdit = (newtaConf: any, ev: any) => {
-    // Store the edited configuration in the ref
+  const handleEdit = (newtaConf) => {
     editorRef.current = newtaConf;
-    const newContent = newtaConf;
-    const currentContent = currentYaml;
     setShowButton(true);
   };
 
-  const handleSaveJsonEditor = (newtext: any) => {
-    if (newtext === undefined) {
-    } else {
+  const handleSaveJsonEditor = (newtext) => {
+    if (newtext !== undefined) {
       saveEdit(editorJsonRef.current);
       window.location.reload();
     }
   };
+
   const TextareaAutosizeMemo = React.memo((props) => {
-    const [textAreaValue, setTextAreaValue] = useState(
-      JSON.stringify(JSON.parse(props.taConf), null, 4)
-    );
+    const [textAreaValue, setTextAreaValue] = useState(JSON.stringify(JSON.parse(props.taConf), null, 4));
 
     const handleTextAreaChange = (evt) => {
       setTextAreaValue(evt.target.value);
@@ -812,24 +826,17 @@ const ConfigurationUI = (props) => {
     }
   };
 
-  const handleSave = (newContent: any, ev: any) => {
-    // setEditedContent(true);
-    // Use the edited configuration from the ref
-    if (editorRef.current === null) {
-    } else {
+  const handleSave = () => {
+    if (editorRef.current !== null) {
       localStorage.setItem("autoReload", "false");
-      saveYaml(editorRef.current, ev);
+      saveYaml(editorRef.current);
       window.location.reload();
     }
   };
 
   const handleReset = () => {
-    let raconfigs = localStorage.getItem("raconf");
-    if (
-      editorJsonRef.current !== null ||
-      editorRef.current !== yaml.dump(JSON.parse(raconfigs))
-    ) {
-      // Implement reset logic here
+    let raconfigs = getConfigs()
+    if (editorJsonRef.current !== null || editorRef.current !== yaml.dump(raconfigs)) {
       saveYaml(currentYaml, "");
     } else {
       resetConf(notify);
@@ -840,79 +847,53 @@ const ConfigurationUI = (props) => {
     //resetConf(notify);
   }
 
+  const raConf = getRawConf();
+  if(document.location.origin === 'https://g.apifabric.ai' && !raConf ){
+    console.log('document.location.origin redir Config',document.location.origin, raConf);
+    if(!document.location.hash.includes("#Configuration")){
+      document.location.href = document.location.href.split("#")[0] + "#Configuration";
+    }
+  }
+  
   return (
     <div>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
         <ConfSelect />
         <ManageModal />
         <Button
-          style={{
-            border: "1px solid #3f51b5",
-            marginRight: "1em",
-            marginTop: "1em",
-            marginBottom: "1em",
-          }}
+          style={{ border: "1px solid #3f51b5", marginRight: "1em", marginTop: "1em", marginBottom: "1em" }}
           onClick={() => saveEdit("{}")}
           color="primary"
         >
           Clear
         </Button>
         <Button
-          style={{
-            border: "1px solid #3f51b5",
-            marginRight: "1em",
-            marginTop: "1em",
-            marginBottom: "1em",
-          }}
+          style={{ border: "1px solid #3f51b5", marginRight: "1em", marginTop: "1em", marginBottom: "1em" }}
           onClick={() => resetConf(notify)}
-          // onClick={() => handleReset()}
           color="primary"
         >
           Reset
         </Button>
         <Button
-          style={{
-            border: "1px solid #3f51b5",
-            marginRight: "1em",
-            marginTop: "1em",
-            marginBottom: "1em",
-          }}
+          style={{ border: "1px solid #3f51b5", marginRight: "1em", marginTop: "1em", marginBottom: "1em" }}
           onClick={() => handleClickSave()}
           color="primary"
         >
           Apply
         </Button>
         <Button
-          style={{
-            border: "1px solid #3f51b5",
-            marginRight: "1em",
-            marginTop: "1em",
-            marginBottom: "1em",
-          }}
+          style={{ border: "1px solid #3f51b5", marginRight: "1em", marginTop: "1em", marginBottom: "1em" }}
           onClick={() => saveConfig("")}
-          // onClick={() => handleClickSave()}
           color="primary"
         >
           Save
         </Button>
         <FormControlLabel
-          control={
-            <Checkbox
-              checked={autosave}
-              onChange={handleAutoSaveChange}
-              color="primary"
-            />
-          }
+          control={<Checkbox checked={autosave} onChange={handleAutoSaveChange} color="primary" />}
           label="Auto Save Config"
         />
         <FormControlLabel
-          control={
-            <Checkbox
-              checked={autoReload}
-              onChange={handleAutoReloadChange}
-              color="primary"
-            />
-          }
+          control={<Checkbox checked={autoReload} onChange={handleAutoReloadChange} color="primary" />}
           label="Auto Reload Config"
         />
         <ThemeSelector />
@@ -920,11 +901,7 @@ const ConfigurationUI = (props) => {
       <div>
         <Box sx={{ width: "100%" }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs
-              value={value}
-              onChange={handleChange}
-              aria-label="basic tabs example"
-            >
+            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
               <Tab label="yaml" {...a11yProps(0)} />
               <Tab label="json" {...a11yProps(1)} />
             </Tabs>
@@ -934,37 +911,32 @@ const ConfigurationUI = (props) => {
               <Editor
                 language="yaml"
                 value={yaml.dump(JSON.parse(taConf))}
-                options={{
-                  theme: "vs-dark",
-                }}
+                options={{ theme: "vs-dark" }}
                 height="1000px"
                 style={{ borderLeft: `8px solid ${bgColor}` }}
-                editorDidMount={(editor, monaco) => {
+                editorDidMount={(editor) => {
                   const initialValue = editor.getValue();
                 }}
-                onChange={(taConf, ev) => handleEdit(taConf, ev)}
+                onChange={(taConf) => handleEdit(taConf)}
               />
             </Suspense>
           </TabPanel>
           <TabPanel value={value} index={1}>
-            <TextareaAutosizeMemo
-              taConf={taConf}
-              handleSaveJson={handleSaveJsonEditor}
-            />
+            <TextareaAutosizeMemo taConf={taConf} handleSaveJson={handleSaveJsonEditor} />
           </TabPanel>
         </Box>
-        {!loader ? null : (
+        {showLoader ? (
           <Dialog
-            open={loader}
+            open={true}
             style={{
-              backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
-              color: "white", // white text color
-              borderRadius: "10px", // rounded corners
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              color: "white",
+              borderRadius: "10px",
             }}
           >
             <Loading />
           </Dialog>
-        )}
+        ): null}
       </div>
     </div>
   );

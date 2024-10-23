@@ -6,12 +6,14 @@ const get_Component = (name: any) => {
     const Component = loadable(() => import(`./components/Custom`), {
       resolveComponent: (components: any) => components[name],
     });
-    return Component;
+    if(Component){
+      return Component;
+    }
   } catch (e) {
     alert("Custom component error");
     console.error("Custom component error", e);
   }
-  return null;
+  return <>Component not found</>;
 };
 
 export default get_Component;

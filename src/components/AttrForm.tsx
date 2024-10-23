@@ -27,13 +27,14 @@ const AttrForm = ({
   attributes: [];
   [key: string]: any;
 }) => {
-  attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
+  attributes = attributes.filter((attribute:any) => attribute.hide_list !== "true");
   const recordRef = useRef({ data: {} });
   const [renderSwitch, setRenderSwitch] = useState([]);
   const [create] = useCreate(
     attributes[0].resource.name,
     { data: recordRef }
   );
+  console.log('dattrs', attributes)
 
   const focusRef = useRef("");
   const redirect = useRedirect();

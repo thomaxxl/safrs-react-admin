@@ -18,7 +18,7 @@ import { useNotify } from "react-admin";
 import englishMessages from "ra-language-english";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { jsonapiClient } from "./rav4-jsonapi-client/ra-jsonapi-client";
-import { useConf } from "./Config";
+import { useConf, loadHomeConf } from "./Config";
 import ConfigurationUI from "./components/ConfigurationUI";
 import { Layout } from "./components/Layout";
 import Home from "./components/Home";
@@ -30,7 +30,7 @@ import LoginPage from "./pages/LoginPage";
 import gen_DynResourceList from "./components/DynList";
 import { gen_DynResourceShow } from "./components/DynInstance";
 import { gen_DynResourceEdit } from "./components/DynResourceEdit";
-import { InfoToggleProvider } from "./InfoToggleContext";
+import { SraProvider } from "./SraToggleContext";
 import Keycloak, {
   KeycloakConfig,
   KeycloakTokenParsed,
@@ -39,7 +39,9 @@ import Keycloak, {
 import { keycloakAuthProvider } from "ra-keycloak";
 import { PaletteMode } from "@mui/material";
 import { ThemeColorContext } from "./ThemeProvider";
-
+import { ApiFabApp } from './ApiFabApp';
+//import { WebGenieApp } from "./WebGenieApp";
+import { Web } from "@mui/icons-material";
 
 const useDetectNewWindowOrTab = () => {
   React.useEffect(() => {
@@ -56,7 +58,7 @@ const useDetectNewWindowOrTab = () => {
 
 const initOptions: KeycloakInitOptions = {
   onLoad: "login-required",
-  checkLoginIframe: false,
+  checkLoginIframe: true
 };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
@@ -100,9 +102,6 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
       });
   }, [dataProvider]);
 
-  
- 
-
   if (
     resources.length === 0 ||
     (conf.authentication?.keycloak && keycloak === undefined)
@@ -112,8 +111,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
         //return <div>Failed to Load Yaml </div>;
       }
     }
-    
-    return <div>Loading...</div>;
+    //return <div>Loading...</div>;
   }
 
   if (typeof conf.api_root !== "string" && conf.api_root) {
@@ -127,7 +125,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const adminUIProps =
     conf.authentication?.keycloak !== undefined ? {} : { loginPage: LoginPage };
 
-  return (
+  return <>
     <AdminUI
       ready={() => (
         <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />
@@ -143,14 +141,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
         options={{ label: "Home" }}
         icon={HomeIcon}
       />
-      <Resource
-        name="Configuration"
-        show={ConfigurationUI}
-        list={ConfigurationUI}
-        options={{ label: "Configuration" }}
-        icon={SettingsIcon}
-      />
-
+      
       {resources.map((resource: any) =>
         conf.resources && conf.resources[resource.name] ? (
           <Resource
@@ -176,11 +167,22 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
           />
         ) : null
       )}
+      
+      {<Resource
+        name="Configuration"
+        show={ConfigurationUI}
+        list={ConfigurationUI}
+        options={{ label: "Configuration" }}
+        icon={SettingsIcon}
+      />}
+
     </AdminUI>
-  );
+    
+    </>
 };
 
-const App: React.FC = () => {
+const DefaultApp: React.FC = () => {
+
   React.useEffect(() => {
     let test_raconf = localStorage.getItem("raconf")
     if (test_raconf === "{}") {
@@ -188,6 +190,7 @@ const App: React.FC = () => {
       window.location.reload();
     }
   },[]);
+
   useDetectNewWindowOrTab();
   let { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
@@ -248,13 +251,14 @@ const App: React.FC = () => {
     const refreshTokenInterval = 900 * 1000;  // refresh token every 900 seconds
     await keycloakClient.init(initOptions).then( authenticated => {
       setInterval(() => {
-        keycloak.updateToken(30).then(refreshed => {
+        const keycloakClient = new Keycloak(kcConfig);
+        keycloakClient.updateToken(30).then(refreshed => {
             if (refreshed) {
             } else {
                 console.warn('Token not refreshed');
             }
-        }).catch(() => {
-            console.error('Failed to refresh token');
+        }).catch((e) => {
+            console.error('Failed to refresh token',keycloakClient, e);
         });
     }, refreshTokenInterval);
     })
@@ -270,19 +274,26 @@ const App: React.FC = () => {
     );
     setKeycloak(keycloakClient);
   };
-  if (document.location.hash.includes("Home")) {
-  } else if (conf.authentication?.keycloak && !keycloak) {
-    initKeyCloakClient();
+  
+  /*if (document.location.hash.includes("Home")) {
+  } else */
+  if (conf.authentication?.keycloak && !keycloak) {
+    setLoading(true);
+    initKeyCloakClient().finally(() => setLoading(false));
   } else if (conf.authentication?.endpoint) {
     dataProvider.current = jsonapiClient(conf.api_root, { conf: {} }, null);
     authProvider.current = sraAuthPorvider;
   }
 
+  if(loading){
+    return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
+  }
+
   return (
-    <InfoToggleProvider>
+    <SraProvider>
       <AdminContext
         theme={theme}
-        darkTheme={darkTheme}
+        /*darkTheme={darkTheme}*/
         defaultTheme={"light"}
         dataProvider={dataProvider}
         authProvider={conf.authentication ? authProvider.current : undefined}
@@ -292,8 +303,51 @@ const App: React.FC = () => {
       >
         <AsyncResources />
       </AdminContext>
-    </InfoToggleProvider>
+    </SraProvider>
   );
 };
 
+const App: React.FC = () => {
+  const [loading, setLoading] = React.useState(true);
+  const [conf, setConf] = React.useState<any>({});
+  
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setConf(await loadHomeConf())
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
+  }  
+  console.log("AppConf: ", conf);
+  if(['https://apifabric.ai','http://localhost:3000'].includes(document.location.origin)){
+    if(localStorage.getItem("infoswitch") !== "false"){
+      sessionStorage.setItem("infoswitch", "true")
+    }
+  }
+  if(document.location.href.startsWith('https://apifabric.ai/01') || document.location.pathname.startsWith('/01')){
+    sessionStorage.setItem('sidebarOpen','true');
+  }
+  
+  if(conf.settings?.Home === "WebGenie"){
+    // webgenie container home page
+    console.log('loading ApiFabApp/WebGenie 0')
+    //return <WebGenieApp />
+  }
+
+  if(conf.settings?.Home === "ApiFab"){
+    // apifabric.ai home page
+    console.log('loading ApiFabApp/WebGenie 1')
+    return <ApiFabApp />
+  }
+  
+  return <><DefaultApp /></>
+}
 export default App;

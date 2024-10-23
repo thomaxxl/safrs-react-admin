@@ -1,6 +1,7 @@
 import {
   TextInput,
   DateInput,
+  DateTimeInput,
   NumberInput,
   PasswordInput,
   required,
@@ -109,6 +110,21 @@ const DynInput = ({
     result = (
       <GridWrap>
         <DateInput
+          onChange={(e) => {
+            dynamicRender(attribute.name, e.target.value);
+          }}
+          defaultValue={null}
+          source={attribute.name}
+          fullWidth
+          autoFocus={attribute.name === myfocusRef}
+        />
+      </GridWrap>
+    );
+  }
+  if (attr_type === "datetime") {
+    result = (
+      <GridWrap>
+        <DateTimeInput
           onChange={(e) => {
             dynamicRender(attribute.name, e.target.value);
           }}

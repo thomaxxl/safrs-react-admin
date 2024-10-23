@@ -12,6 +12,7 @@ import Checkbox from "@mui/material/Checkbox";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import { useConf } from "../Config";
 
 const theme = createTheme({
   palette: {
@@ -25,20 +26,29 @@ const theme = createTheme({
 });
 
 export function LoginPage(props) {
-  const [username, setusername] = useState("");
+  const [username, setusername] = useState("admin");
   const [password, setpassword] = useState("");
   const login = useLogin();
   const notify = useNotify();
   const authProvider = useAuthProvider();
   console.log("AProv", authProvider);
+  localStorage.removeItem("auth_token");
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // will call authProvider.login({ email, password })
+    // will call authProvider.login({ username, password }))
     login({ username, password }).catch(() =>
       notify("Invalid email or password")
     );
   };
+
+  const conf = useConf();
+
+  let msg = <Typography component="h6" variant="h6">Username: <b>admin</b> <br /> Password: <b>p</b></Typography>
+
+  if (conf.settings?.Home === "WebGenie") {
+    msg = <Typography component="h6" variant="h6">Username: <b>admin</b> <br /> Password: <br/> <b>Container environment variable <code>ADMIN_PASSWORD</code></b></Typography>
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -63,10 +73,7 @@ export function LoginPage(props) {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
-          <Typography component="h5" variant="h5">
-            <br />
-            Username: <b>admin</b> <br /> Password: <b>p</b>
-          </Typography>
+          {msg}
           <form
             style={{
               width: "100%", // Fix IE 11 issue.
@@ -88,7 +95,7 @@ export function LoginPage(props) {
               }}
               value={username}
               autoComplete="username"
-              autoFocus
+              
               onChange={(e) => setusername(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -107,6 +114,7 @@ export function LoginPage(props) {
             <TextField
               variant="outlined"
               margin="normal"
+              autoFocus
               required
               fullWidth
               name="password"
@@ -150,7 +158,6 @@ export function LoginPage(props) {
             </Button>
           </form>
           <Typography>
-            <i>This is a demo login page</i>
           </Typography>
         </div>
       </Container>

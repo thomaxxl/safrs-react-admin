@@ -11,11 +11,13 @@ import {
   FunctionField,
   useGetList,
 } from "react-admin";
-import Button from "@mui/material/Button";
+//import Button from "@mui/material/Button";
+import {Button} from "react-admin";
 import { useState } from "react";
 import { attr_fields } from "./DynFields";
 import { DynPagination } from "../util";
 import DeleteIcon from "@mui/icons-material/Delete";
+
 import { DetailPanel } from "./DynInstance";
 import {
   FilterButton,
@@ -25,8 +27,9 @@ import {
 } from "react-admin";
 import InfoModal from "./InfoModal";
 import get_Component from "../get_Component";
-import { useInfoToggle } from "../InfoToggleContext";
+import { useInfoToggle } from "../SraToggleContext";
 import { Typography } from "@mui/material";
+//import {styled} from "@mui/material"
 import * as React from "react";
 
 const searchFilters = [<TextInput source="q" label="Search" alwaysOn />];
@@ -38,8 +41,8 @@ const deleteField = (
   refresh: any
 ) => {
   /*
-        resource: name of the resource
-    */
+    resource: name of the resource
+  */
   dataProvider
     .delete(resource.type, record)
     .then(() => refresh())
@@ -53,7 +56,7 @@ const DeleteButton = (props: any) => {
   const record = useRecordContext();
 
   return (
-    <span>
+    <>
       <FunctionField
         title="Delete"
         onClick={(e: any) => {
@@ -62,8 +65,8 @@ const DeleteButton = (props: any) => {
         }}
         key={`${props.resource.name}_delete`}
         render={(record: any) => (
-          <Button>
-            <DeleteIcon style={{ color: "#3f51b5" }} />
+          <Button color="primary">
+            <DeleteIcon  />
           </Button>
         )}
         {...props}
@@ -80,7 +83,7 @@ const DeleteButton = (props: any) => {
           setOpen(false);
         }}
       />
-    </span>
+    </>
   );
 };
 
@@ -116,6 +119,53 @@ const ListActions = ({ resource }: { resource: any }) => {
   );
 };
 
+const CustomButton = ({btnConf, props}: { btnConf: any, props: any}) => {
+  
+  if(!btnConf.component){
+    return null
+  }
+  const Component: any = get_Component(btnConf.component)
+  if(Component !== null){
+    return <Component attribute={{}} attr={{}} value={props}/>
+  }
+  return null
+}
+
+const DynListButtons = ({resource_conf, filtered_props}: { resource_conf: any, filtered_props: any}) => {
+
+  const hideShow = resource_conf.buttons?.some((btn:any) => btn.name === "show" && btn.hidden) || resource_conf.show === false
+  const hideEdit = resource_conf.buttons?.find((btn:any) => btn.name === "edit" && btn.hidden) || resource_conf.edit === false
+  const hideDelete = resource_conf.buttons?.find((btn:any) => btn.name === "delete" && btn.hidden) || resource_conf.delete === false
+  
+  const defaultButtons = (
+    <span key={`${resource_conf.name}_defbtns`}>
+      {resource_conf.edit !== false ? (
+        <EditButton
+          title="Edit"
+          key={`${resource_conf.name}_edit`}
+          label={""}
+          sx={{border: "0px solid black", margin: "0px", textAlign: "center"}}
+          style={{ width: '0px' }} 
+        />
+      ) : null}
+      {resource_conf.delete !== false ? (
+        <DeleteButton {...filtered_props} key={`${resource_conf.name}_delete`}/>
+      ) : null}
+      {resource_conf.show !== false && !hideShow ? (
+      <ShowButton title="Show" label="" key={`${resource_conf.name}_show`}/>)
+      : null
+      }
+    </span>
+  );
+
+  const customButtons = resource_conf.buttons?.map((btn : any) => <CustomButton btnConf={btn} props={filtered_props} key={`${btn.name}`}/>)
+
+  return <span  style={{whiteSpace: "nowrap"}}>
+  {customButtons}
+  {defaultButtons}
+  </span>
+}
+
 const gen_DynResourceList = (resource_conf: any) => (props: any) => {
   const ButtonField = (props: any) => {
     let filtered_props: { [key: string]: any } = {};
@@ -127,28 +177,13 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
         filtered_props[k] = v;
       }
     }
-    const buttons = (
-      <span>
-        {resource_conf.edit !== false ? (
-          <EditButton
-            title="Edit"
-            key={`${resource_conf.name}_edit`}
-            label={""}
-          />
-        ) : null}
-        {resource_conf.delete !== false ? (
-          <DeleteButton {...filtered_props} />
-        ) : null}
-        <ShowButton title="Show" label="" />
-      </span>
-    );
+    const buttons = <DynListButtons resource_conf={resource_conf} filtered_props={filtered_props} />
     return buttons;
   };
 
   const ListTitle = (props: any) => <>{resource_conf.name} List</>;
   let attributes = resource_conf.attributes;
   attributes = attributes.filter((attribute) => attribute.hide_list !== "true");
-
   const fields = attr_fields(attributes, "list");
   const col_nr = resource_conf.max_list_columns;
   const sort = resource_conf.sort_attr_names
@@ -173,14 +208,13 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    console.log("data called");
-    if (isSuccess === true) {
+    if (isSuccess === true || !isFetching || !isPending || !isLoading) {
       const timer = setTimeout(() => {
         setLoading(false);
-      }, 500);
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isSuccess]);
+  }, [isSuccess, isFetching, isPending, isLoading]);
 
   document.title = resource_conf.label || resource_conf.name;
   let list = (
@@ -207,8 +241,8 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
     </>
   );
 
-  if (resource_conf.components?.list) {
-    const Wrapper: any = get_Component(resource_conf.components?.list);
+  if (resource_conf.list) {
+    const Wrapper: any = get_Component(resource_conf.list);
 
     if (Wrapper !== null) {
       list = <Wrapper list={list} />;
