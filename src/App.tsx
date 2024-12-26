@@ -40,8 +40,8 @@ import { keycloakAuthProvider } from "ra-keycloak";
 import { PaletteMode } from "@mui/material";
 import { ThemeColorContext } from "./ThemeProvider";
 import { ApiFabApp } from './ApiFabApp';
-//import { WebGenieApp } from "./WebGenieApp";
-import { Web } from "@mui/icons-material";
+import SimpleApp from './SimpleApp';
+import { RaSpa } from "./RaSpa";
 
 const useDetectNewWindowOrTab = () => {
   React.useEffect(() => {
@@ -87,10 +87,12 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
   const notify = useNotify();
 
   const dataProvider = useDataProvider();
+  
   React.useEffect(() => {
     dataProvider
       .getResources()
       .then((response: any) => {
+        console.log('Resources:', response);  
         let res = Object.keys(response.data.resources).map((resource_name) => {
           return { name: resource_name };
         });
@@ -181,6 +183,7 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
     </>
 };
 
+
 const DefaultApp: React.FC = () => {
 
   React.useEffect(() => {
@@ -191,6 +194,11 @@ const DefaultApp: React.FC = () => {
     }
   },[]);
 
+  if(document.location.href.startsWith('https://apifabric.ai/01') || document.location.pathname.startsWith('/01')){
+    // temp hack to force sidebar open
+    sessionStorage.setItem('sidebarOpen','true');
+  }
+  
   useDetectNewWindowOrTab();
   let { themeColor } = React.useContext(ThemeColorContext);
   const [loading, setLoading] = React.useState(false);
@@ -222,6 +230,7 @@ const DefaultApp: React.FC = () => {
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000,
       },
     },
   });
@@ -289,22 +298,25 @@ const DefaultApp: React.FC = () => {
     return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
   }
 
-  return (
-    <SraProvider>
-      <AdminContext
+  let raSpa = conf.settings?.Home == "RaSpa" || sessionStorage.getItem("raSpa") === "true" || document.location.hash.includes("raSpa");
+  
+  const AppComp = raSpa ? <RaSpa /> : <AsyncResources />
+  //const AppComp = <AsyncResources />
+
+  return <SraProvider>
+    <AdminContext
         theme={theme}
-        /*darkTheme={darkTheme}*/
         defaultTheme={"light"}
         dataProvider={dataProvider}
         authProvider={conf.authentication ? authProvider.current : undefined}
         queryClient={queryClient}
-        // locale="en"
         i18nProvider={i18nProvider}
       >
-        <AsyncResources />
+        {AppComp}
       </AdminContext>
-    </SraProvider>
-  );
+    
+  </SraProvider>
+
 };
 
 const App: React.FC = () => {
@@ -314,10 +326,14 @@ const App: React.FC = () => {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        setConf(await loadHomeConf())
+        console.log('loading HomeConf-1')
+        const conf = await loadHomeConf()
+        setConf(conf)
         setLoading(false);
+        console.log('AppConf: ', conf);
       } catch (error) {
         console.error('Error fetching data:', error);
+        sessionStorage.removeItem("raSpa");
       }
     };
     fetchData();
@@ -326,28 +342,29 @@ const App: React.FC = () => {
   if (loading) {
     return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
   }  
+  
+  let raSpa = conf.settings?.Home == "RaSpa" || sessionStorage.getItem("raSpa") === "true" || document.location.hash.includes("raSpa");
+  if(raSpa && conf.resources?.SPAPage){
+    sessionStorage.setItem("raSpa", "true");
+    return <DefaultApp />
+  }
+  
   console.log("AppConf: ", conf);
   if(['https://apifabric.ai','http://localhost:3000'].includes(document.location.origin)){
     if(localStorage.getItem("infoswitch") !== "false"){
       sessionStorage.setItem("infoswitch", "true")
     }
   }
-  if(document.location.href.startsWith('https://apifabric.ai/01') || document.location.pathname.startsWith('/01')){
-    sessionStorage.setItem('sidebarOpen','true');
-  }
   
-  if(conf.settings?.Home === "WebGenie"){
-    // webgenie container home page
-    console.log('loading ApiFabApp/WebGenie 0')
-    //return <WebGenieApp />
-  }
-
-  if(conf.settings?.Home === "ApiFab"){
+  if(conf.settings?.Home === "ApiFab" || conf.settings?.Home === "WebGenie"){
     // apifabric.ai home page
     console.log('loading ApiFabApp/WebGenie 1')
     return <ApiFabApp />
   }
   
-  return <><DefaultApp /></>
+  return <DefaultApp />
 }
+
+
 export default App;
+//export default SimpleApp;

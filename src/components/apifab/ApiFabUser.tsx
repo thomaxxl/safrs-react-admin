@@ -4,6 +4,8 @@ import { Show, SimpleShowLayout, TextField, DateField, RichTextField, Link } fro
 import { useUpdate, useRecordContext } from 'react-admin';
 import { Checkbox, FormControlLabel, FormGroup, Button } from '@mui/material';
 import { parseJwt } from '../../util.tsx';
+import { DynRelationshipMany, DynRelationshipOne } from '../DynInstance.tsx';
+import { TabbedShowLayout, Tab, TabbedShowLayoutTabs, } from "react-admin";
 
 interface UserSettingsProps {
     accepted_eula: boolean;
@@ -75,8 +77,9 @@ export const SecuritySettings = ({identity}:{identity:any}) => {
     </>
 }
 
-export const ApiFabUser = () => {
+export const ApiFabUser = (props:any) => {
 
+    console.log("afprop",props)
     const { identity, isLoading } = useGetIdentity();
     const record = useRecordContext();
     const authToken = parseJwt(localStorage.getItem('authToken')||"");
@@ -84,7 +87,20 @@ export const ApiFabUser = () => {
 
     if (isLoading) return <div>Loading...</div>;
 
-    if (!identity || !authToken) return <div>No user found</div>;
+    if (!identity || !authToken || !record.id) return <div>No user found</div>;
+
+    const tabs = props?.tab_groups?.map((tab: any) => {
+        const basePath = `/${props?.resource_name}`;
+        if (tab.direction === "tomany") {
+          // <> "toone"
+          return DynRelationshipMany(props.resource_name, record.id, tab, basePath);
+        }
+        if (tab.direction === "toone") {
+          return DynRelationshipOne(props.resource_name, `${record.id}`, tab);
+        }
+      });
+    
+    const selectedIdentity = identity.id === record.id ? identity : {id:record.id};
     
     return <>
     
@@ -99,9 +115,16 @@ export const ApiFabUser = () => {
                 <TextField source="username" />
                 <br/>
                 
-                <SecuritySettings identity={identity}/>
+                <SecuritySettings identity={selectedIdentity}/>
                 <UserSettings settings={record.settings || {}} />
-                
+                <hr style={{ margin: "30px 0px 30px" }} />
+                <TabbedShowLayout
+                    tabs={
+                    <TabbedShowLayoutTabs variant="scrollable" scrollButtons="auto" />
+                    }
+                >
+                    {tabs}
+                </TabbedShowLayout>
             </SimpleShowLayout>
         </Show>
 

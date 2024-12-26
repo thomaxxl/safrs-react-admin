@@ -5,23 +5,77 @@ import { defaultSettings } from './default-settings';
 import ResourceLookup from './resourceLookup';
 import Keycloak from 'keycloak-js';
 import {getConf} from '../Config'
-import urlJoin from 'url-join';
+import {GetOneParams, GetListParams, GetManyParams, UpdateParams, UpdateManyParams} from 'react-admin';
+import {IJSONAPIResource} from './interfaces';
+import { httpAuthClient, createKCHttpAuthClient } from './authClient';
+export { httpAuthClient } from './authClient';
+
+if(typeof window?.location === 'undefined'){
+    // cli testing
+    require('../globals');
+}
 
 const conf : { [ key: string] : any } = getConf();
-const duration = 2000;
+const duration = 3000;
 
-const prepareAttributes = (attributes : any, resource_en : any) => {
-    const resource = decodeURI(resource_en)
-    // temp: convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :////)
-    const resource_attr_rels = conf.resources[resource].attributes?.map( (attr : any) => attr.relationship ? attr.name : null)    
-    const m_attrs = Object.assign({}, attributes)
-    for(let [k, v] of Object.entries(attributes)){
-      m_attrs[k] = v
-      if(typeof v === 'number' && resource_attr_rels.find((n: string) => n === k)){
-        m_attrs[k] = v.toString();
-      }
+const prepareListQuery = (resource_name: string, params: GetListParams) => {
+    /*
+        Prepare the query for the list request.
+        using the resource configuration and the react-admin params
+    */
+    const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
+    const resource_conf : any = conf.resources[resource_name];
+    const sort : string = resource_conf.sort
+    // Create query with pagination params.
+    const query : {[k: string]: any} = {
+        'page[number]': page,
+        'page[size]': perPage,
+        'page[offset]': (page - 1) * perPage,
+        'page[limit]': perPage
+    };
+
+    // Add all filter params to query.
+    if(params.filter?.q && resource_conf){
+        /*
+            Search is requested
+            Construct a jsonapi filter from the search_cols
+        */
+        const search_cols = resource_conf.search_cols
+        const filter = search_cols?.map((col: any) => {
+                            return { 
+                                "name":col.name,
+                                "op": col.op? col.op : "ilike",
+                                "val": col.val ? col.val.format(params.filter.q) : `%${params.filter.q}%`
+                            };}) || ""
+        if(filter){
+            query['filter'] = JSON.stringify(filter)
+        }
     }
-    return m_attrs
+    else{
+        Object.keys(params.filter || {}).forEach((key) => {
+            query[`filter[${key}]`] = params.filter[key];
+        });
+    }
+
+    /*
+        Add sort parameter, first check the default configured sorting, then the customized sort
+        default sort, from the resource configuration, or "id" if not provided
+    */
+    query.sort = sort ? sort : "id"
+    if (params.sort && params.sort.field) {
+        // sort provided by the caller
+        const prefix = params.sort.order?.toLowerCase() === 'desc' ? '-' : ''; // <> ASC
+        query.sort = `${prefix}${params.sort.field}`;
+    }
+    
+    const rel_conf = conf.resources[resource_name].relationships || []
+    // we only need "toone" rels in order to display the join/user key
+    const includes: string[] = rel_conf.filter((rel : any) => rel.direction !== 'tomany').map((rel : any) => rel.name);
+    if(params.meta?.include?.length){
+        includes.push(...params.meta.include)
+    }
+    query['include'] = includes.join(',');
+    return query
 }
 
 const prepareQueryFilter = (query: any, ids : any, fks : any) => {
@@ -40,80 +94,51 @@ const prepareQueryFilter = (query: any, ids : any, fks : any) => {
   }
 }
 
-export const getKeycloakHeaders = (
-  keycloak: Keycloak,
-  options: fetchUtils.Options | undefined
-): Headers => {
-  const headers = ((options && options.headers) ||
-      new Headers({
-          Accept: 'application/json',
-      })) as Headers;
-  if(keycloak?.isTokenExpired()){
-      keycloak.updateToken(30)
-  }
-  if (keycloak.token) {
-      headers.set('Authorization', `Bearer ${keycloak.token}`);
-  }
-  return headers;
-};
+const collectionResponse2Data = (json: any, settings: any) => {
+    /*
+        Convert a jsonapi collection response to a react-admin data response
+    */
 
-export const httpAuthClient = (url: string, options : any) => {
-  if (!options.headers) {
-      options.headers = new Headers({ Accept: 'application/json' });
-  }
-  const token : string = localStorage.getItem('auth_token') || "";
-  if(token){
-    options.headers.set('Authorization', `Bearer ${token}`);
-  }
-  return fetchUtils.fetchJson(url, options)
-  .catch((e:HttpError ) => {
-    const msg = e.body?.msg || "Unknown Error."
-    console.warn('httpAuthClient httperror', e, e.status, e.body, msg)
-    if(e.body?.message?.startsWith('Booting project')){
-      // Custom error handling for booting, todo!!
-      console.log('WGserver_response: booting', e, e.status, e.body)
-      setTimeout(() => document.location.reload(), 3000);
-      throw new HttpError(e, e.status, 
-        {title: "Booting", 
-         detail:"Booting project, please wait", 
-         message:"Booting project, please wait",
-         code:e.status})
+    // When meta data and the 'total' setting is returned then set the total count.
+    let total = 0;
+    if (json.meta && settings.total) {
+        total = json.meta[settings.total];
     }
-    throw new HttpError(e, e.status, e.body)
-  })
+    // Use the length of the data array as a fallback.
+    total = total || json.data.length;
+    const lookup = new ResourceLookup(json);
+    const jsonData = json.data.map((item: IJSONAPIResource) =>{
+        return lookup.unwrapData(item)
+        }
+    );
+    // tanstack cache validUntil
+    const validUntil = new Date();
+    validUntil.setTime(validUntil.getTime() + duration);
+    
+    return {
+        data: jsonData,
+        included: json.included,
+        validUntil : validUntil,
+        total: total
+    };
 }
 
-const createKCHttpAuthClient = (keycloak: Keycloak) => (
-  url: any,
-  options: fetchUtils.Options | undefined
-) => {
-  if(!keycloak){
-    console.error("No keycloak")
-    return
-  }
-  if(keycloak.token){
-    localStorage.setItem('auth_token', keycloak.token)
-  }
-  const requestHeaders = getKeycloakHeaders(keycloak, options);
-  return fetchUtils.fetchJson(url, {
-      ...options,
-      headers: requestHeaders,
-  })
-  .catch(e => {
-    console.warn('KC httpAuthClient httperror', e, e.body)
-    if(e.body?.message?.startsWith('Booting project')){
-      // Custom error handling for booting, todo!!
-      console.log('WGserver_response: booting', e, e.status, e.body)
-      setTimeout(() => document.location.reload(), 3000);
-      throw new HttpError(e, e.status, 
-        {title: "Booting", 
-         detail:"Booting project, please wait", 
-         message:"Booting project, please wait",
-         code:e.status})
+const prepareAttributes = (attributes : any, resource_en : any) => {
+    /*
+        convert all numbers to string to allow FK lookups (jsonapi ids are strings, while FKs may be numbers :/)
+    */
+    const resource = decodeURI(resource_en)
+    const resource_attr_rels = conf.resources[resource].attributes?.map( (attr : any) => attr.relationship ? attr.name : null)    
+    const m_attrs = Object.assign({}, attributes)
+    for(let [k, v] of Object.entries(attributes)){
+      m_attrs[k] = v
+      if(typeof v === 'number' && resource_attr_rels.find((n: string) => n === k)){
+        m_attrs[k] = v.toString();
+      }
     }
-    throw new HttpError(e, e.status, e.statusText)
-  })
-};
+    return m_attrs
+}
+
 
 /**
  * Based on
@@ -123,420 +148,345 @@ const createKCHttpAuthClient = (keycloak: Keycloak) => (
  * 
  */
 export const jsonapiClient = (
-  apiUrl: string,
-  userSettings = {conf : {}},
-  keycloak: Keycloak| null = null,
-  httpClient = httpAuthClient,//fetchUtils.fetchJson,
-  countHeader: string = 'Content-Range',
-): DataProvider => {
-  //console.log('kcjac,',keycloak)
-  if(keycloak?.isTokenExpired()){
-      keycloak.login();
-  }
-  if(keycloak){
-      httpClient = createKCHttpAuthClient(keycloak)
-  }
-  const settings = merge(defaultSettings, userSettings);
+        apiUrl: string,
+        userSettings = {conf : {}},
+        keycloak: Keycloak| null = null,
+        httpClient = httpAuthClient,//fetchUtils.fetchJson,
+        countHeader: string = 'Content-Range',
+    ): DataProvider => {
+    if(keycloak?.isTokenExpired()){
+        keycloak.login();
+    }
+    if(keycloak){
+        httpClient = createKCHttpAuthClient(keycloak)
+    }
+    const settings = merge(defaultSettings, userSettings);
 
-  
-  return {
+    return {
+
     /*******************************************************************************************
-     * getList
-     *******************************************************************************************/
-    getList: (resource, params) => {
-      /*todo: rename resource to resource_name*/
-      const resource_name = decodeURI(resource);
-      const { page, perPage } = params.pagination;
-      
-      const resource_conf : any = conf.resources[resource_name];
-      const sort : string = resource_conf.sort
-      // Create query with pagination params.
-      const query : {[k: string]: any} = {
-        'page[number]': page,
-        'page[size]': perPage,
-        'page[offset]': (page - 1) * perPage,
-        'page[limit]': perPage
-      };
+    * getOne : get a single resource from the jsonapi endpoint (GET /resource/id)
+    ********************************************************************************************/
+    getOne: (resource: string, params: GetOneParams) => {
+        if(params.id === null || params.id === undefined){
+            console.warn(`Invalid params.id: '${params.id}'`)
+            return new Promise(()=>{return {data: {}}})
+        }
+        const resource_name = decodeURI(resource)
+        const resource_conf = conf["resources"][resource_name];
+        const query : {[k: string]: any} = {
+            'include' : [],
+            'page[limit]': 2
+        };
+        if(!resource_conf){
+            console.warn(`Invalid resource ${resource_name}`)
+            return new Promise(()=>{});
+        }
+        
+        const rel_conf = resource_conf?.relationships || [];
+        const includes: string[] = rel_conf.map((rel : any) => rel.name)
+        if(params.meta?.include?.length){
+            includes.push(...params.meta.include)
+        }
+        query['include'] = includes.join(',');
 
-      if(sort){
-          query.sort = sort
-      }
+        const url = `${apiUrl}/${resource_name}/${params.id}?${stringify(query)}`; // we only need 1 include at most, use useGetManyReference for more
+        
+        return httpClient(url, {}).then(({ json }) => {
 
-      // console.log(resource_conf)
-      // Add all filter params to query.
-      if(params.filter?.q && "resources" in conf){
-          // search is requested by react-admin
-          const search_cols = resource_conf.search_cols
-          const filter = search_cols?.map((col: any) => {
-                              return { 
-                                "name":col.name,
-                                "op": col.op? col.op : "ilike",
-                                "val": col.val ? col.val.format(params.filter.q) : `%${params.filter.q}%`
-                              };}) || ""
-          if(filter){
-            query['filter'] = JSON.stringify(filter)
-          }
-      }
-      else{
-        Object.keys(params.filter || {}).forEach((key) => {
-          query[`filter[${key}]`] = params.filter[key];
-        });
-      }
-
-      // Add sort parameter, first check the default configured sorting, then the customized sort
-      if (params.sort && params.sort.field) {
-          const prefix = params.sort.order?.toLowerCase() === 'desc' ? '-' : ''; // <> ASC
-          query.sort = `${prefix}${params.sort.field}`;
-      }
-      if(!query.sort){
-          query.sort = resource_conf.sort || "id"
-      }
-      const rel_conf = conf.resources[resource_name].relationships || []
-      // we only need "toone" rels in getList so we can show the join/user key
-      const includes: string[] = rel_conf.filter((rel : any) => rel.direction !== 'tomany').map((rel : any) => rel.name);
-      query['include'] = includes.join(',');
-
-      const url = `${apiUrl}/${resource}?${stringify(query)}`;
-      return httpClient(url, {})
-        .then(({ json }) => {
-          // const lookup = new ResourceLookup(json.data);
-          // When meta data and the 'total' setting is provided try
-          // to get the total count.
-          let total = 0;
-          if (json.meta && settings.total) {
-            total = json.meta[settings.total];
-          }
-          // Use the length of the data array as a fallback.
-          total = total || json.data.length;
-          const lookup = new ResourceLookup(json);
-          const jsonData = json.data.map((resource: any) =>{
-              return lookup.unwrapData(resource, includes)
+            let { id, attributes, relationships, type } = json.data;
+            if(id === undefined){
+                return {data:{}}
             }
-          );
-          const validUntil = new Date();
-          validUntil.setTime(validUntil.getTime() + duration);
-          return {
-            data: jsonData,
-            included: json.included,
-            validUntil : validUntil,
-            total: total
-          };
-        })
-        .catch((err: HttpError) => {
-          console.warn('getList Error', err, err.body, err.status);
-          const errorHandler = settings.errorHandler;
-          return Promise.reject(errorHandler(err));
+            Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
+            attributes = prepareAttributes(attributes, resource_name)
+            const validUntil = new Date();
+            validUntil.setTime(validUntil.getTime() + duration);
+            return {
+            data: {
+                id,
+                validUntil : validUntil,
+                ...attributes
+            }
+            };
         });
     },
 
     /*******************************************************************************************
-      getOne
-    ********************************************************************************************/
-    getOne: (resource_en: any, params: { id: any }) => {
-      const resource = decodeURI(resource_en)
-      if(params.id === null || params.id === undefined){
-          console.debug(`params.id is '${params.id}'`)
-          return new Promise(()=>{return {data: {}}})
-      }
-      const resource_conf = conf["resources"][resource];
-      if(!resource_conf){
-        console.warn(`Invalid resource ${resource}`)
-        return new Promise(()=>{});
-      }
-      const rel_conf = resource_conf?.relationships || [];
-      const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      const url = `${apiUrl}/${resource}/${params.id}?include=${includes}&page[limit]=1`; // we only need 1 include at most
-      
-      return httpClient(url, {}).then(({ json }) => {
-
-        let { id, attributes, relationships, type } = json.data;
-        if(id === undefined){
-          return {data:{}}
-        }
-        Object.assign(attributes, relationships, {type: type}, {relationships: relationships}, {attributes: {...attributes} });
-        attributes = prepareAttributes(attributes, resource)
-        const validUntil = new Date();
-        validUntil.setTime(validUntil.getTime() + duration);
-        return {
-          data: {
-            id,
-            validUntil : validUntil,
-            ...attributes
-          }
-        };
-      });
+     * getList: get a collection of resources from the jsonapi endpoint (GET /resource?...)
+     *******************************************************************************************/
+    getList: (resource: string, params: GetListParams) => {
+        
+        const resource_name = decodeURI(resource);
+        const query = prepareListQuery(resource, params);
+        const url = new URL(`${apiUrl}/${resource_name}`);
+        
+        url.search = stringify(query);
+        
+        return httpClient(url.toString(), {})
+            .then(({ json }) => {
+                const response = collectionResponse2Data(json, settings)
+                return response
+            })
+            .catch((err: HttpError) => {
+                console.warn('getList Error', err, err.body, err.status);
+                const errorHandler = settings.errorHandler;
+                return Promise.reject(errorHandler(err));
+            });
     },
-
+    
     /*******************************************************************************************
-      getMany
+    * getMany: get a collection of resources specified by their ids (GET /resource?filter[id]=...)
     ********************************************************************************************/
-    getMany: (resource_en, params: any) => {
+    getMany: (resource: string, params: GetManyParams) => {
      
-      if(resource_en === null || resource_en === undefined  || resource_en === "" ||  resource_en === "Location"){
-          return new Promise(()=>{return {data: {}}})
-      }
-      const  resource_de = decodeURI(resource_en)
-      const  resource = capitalize(resource_de);
-      let query = `filter[id]=${params.ids instanceof Array ? params.ids.join(',') : JSON.stringify(params.ids)}`
-      if(params.meta?.include?.length){
-        query += `&include=${(params.meta.include).join(',')}`
-      }
-      
-      const url = `${apiUrl}/${resource}?${query}`;
-      return httpClient(url, {}).then(({ json }) => {
+        const resource_name = decodeURI(resource);
+        const query = prepareListQuery(resource, params);
+        const url = new URL(`${apiUrl}/${resource_name}`);
         
-        // When meta data and the 'total' setting is provided try
-        // to get the total count.
-        let total = 0;
-        if (json.meta && settings.total) {
-          total = json.meta[settings.total];
-        }
-        // Use the length of the data array as a fallback.
-        total = total || json.data.length; // { id: any; attributes: any; }
+        query['filter[id]'] = params.ids instanceof Array ? params.ids.join(',') : params.ids
+        url.search = stringify(query);
         
-        const jsonData = json.data.map((value: any) => {
-            const result = Object.assign({ id: value.id, type: value.type, relationships: value.relationships }, prepareAttributes(value.attributes, resource))
-            //const related = json.included || [];
-            // TODO!!: this is not working, we need to find the included resources
-            // for(const [k,v] of Object.entries(value.relationships || {})){
-            //   console.log('getMany', k, v)
-            //   if(v instanceof Array){
-            //     v.forEach((inc: any) => {
-            //       const type = inc.data?.type
-            //       if(!type){
-            //         return
-            //       }
-            //       const related = json.included?.find((rel: any) => rel.type === type && rel.id === inc.id)
-            //       Object.assign(result, { [k]: related})
-            //     });
-            //   }
-            // }
-            return result;
-          }
-        );
-        const validUntil = new Date();
-        validUntil.setTime(validUntil.getTime() + duration);
-        return {
-          data: jsonData,
-          validUntil : validUntil,
-          total: total
-        };
-      });
+        return httpClient(url.toString(), {})
+            .then(({ json }) => {
+                const response = collectionResponse2Data(json, settings)
+                return response
+            })
+            .catch((err: HttpError) => {
+                console.warn('getMany Error', err, err.body, err.status);
+                const errorHandler = settings.errorHandler;
+                return Promise.reject(errorHandler(err));
+            });
     },
 
     /*******************************************************************************************
       getManyReference
     ********************************************************************************************/
-    getManyReference: (resource_name_en, params : any) => {
-      const resource_name = decodeURI(resource_name_en)
-      const { page, perPage } = params.pagination;
-      const { field, order } = params.sort;
-
-      const query: {[k: string]: any} = { };
-
-      if (field) {
-        const prefix = order === 'DESC' ? '-' : ''; // <> ASC
-        query.sort = `${prefix}${field}`;
-      }
+    getManyReference: (resource, params : any) => {
       
-
-      let fks = params.target.split('_')
-      //const ids = fks.length > 1 ? params.id.split('_') : params.id
-      let ids = params.id.split('_')
-
-      if(ids.length !== fks.length){
-          console.warn("Wrong FK length ", ids, fks)
-          fks = [params.target]
-          ids = [params.id]
-      }
-      
-      prepareQueryFilter(query, ids, fks);
-      
-      query[`page[limit]`] = perPage
-      query[`page[offset]`] = (page - 1) * perPage
-     
-      const options = {};
-      const resource_conf = conf["resources"][resource_name];
-      const rel_conf = resource_conf?.relationships || [];
-      const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
-      const url = `${apiUrl}/${resource_name}?${stringify(query)}&include=${includes}`
-      return httpClient(url, options).then(({ headers, json }) => {
-        if (!headers.has(countHeader)) {
-          console.debug(
-            `The ${countHeader} header is missing in the HTTP Response. The simple REST data provider expects responses for lists of resources to contain this header with the total number of results to build the pagination. If you are using CORS, did you declare ${countHeader} in the Access-Control-Expose-Headers header?`
-          );
+        const resource_name = decodeURI(resource)
+        const resource_conf = conf["resources"][resource_name];
+        const { page, perPage } = params.pagination;
+        const { field, order } = params.sort;
+        const query: {[k: string]: any} = { };
+        
+        if (field) {
+            const prefix = order === 'DESC' ? '-' : ''; // <> ASC
+            query.sort = `${prefix}${field}`;
         }
-        let total = json.meta?.total;
-        if (json.meta && settings.total) {
-          total = json.meta[settings.total];
-        }
-        // Use the length of the data array as a fallback.
-        total = total || json.data.length;
-        const lookup = new ResourceLookup(json);
-        const jsonData = json.data.map((resource: any) =>{
-          return lookup.unwrapData(resource, includes)
-          }
-        );
 
-        return {
-          data: jsonData,
-          total: total
-        };
-      });
+        if(!params.target || ! params.id){
+            console.warn('No target provided')
+            return new Promise(()=>{return {data: []}})
+        }
+        
+        const pk_delimiter = resource_conf.pk_delimiter || '_'
+        let fks = params.target.split(pk_delimiter)
+        let ids = params.id.split(pk_delimiter)
+
+        if(ids.length !== fks.length){
+            if(fks.length > 1){
+                console.warn("Wrong FK length, check your pk_delimiter", ids, fks) // todo
+            }
+            fks = [params.target]
+            ids = [params.id]
+        }
+
+        prepareQueryFilter(query, ids, fks);
+        
+        query[`page[limit]`] = perPage
+        query[`page[offset]`] = (page - 1) * perPage
+
+        Object.keys(params.filter || {}).forEach((key) => {
+            query[`filter[${key}]`] = params.filter[key];
+        });
+        
+        const options = {};
+        const rel_conf = resource_conf?.relationships || [];
+        const includes: string[] = rel_conf.map((rel : any) => rel.name).join(",")
+        const url = `${apiUrl}/${resource_name}?${stringify(query)}&include=${includes}`
+        return httpClient(url, options).then(({ headers, json }) => {
+            let total = json.meta?.total;
+            if (json.meta && settings.total) {
+            total = json.meta[settings.total];
+            }
+            // Use the length of the data array as a fallback.
+            total = total || json.data.length;
+            const lookup = new ResourceLookup(json);
+            const jsonData = json.data.map((item: IJSONAPIResource) =>{
+                return lookup.unwrapData(item)
+            }
+            );
+
+            return {
+            data: jsonData,
+            total: total
+            };
+        });
     },
 
-    update: async(resource_name_en : string, params: any) => {
+    /*******************************************************************************************
+      update: update a resource on the jsonapi endpoint (PATCH /resource/id)
+    ********************************************************************************************/
+    update: async(resource : string, params: UpdateParams) => {
       
-      const resource_name = decodeURI(resource_name_en)
-      let type = conf["resources"][resource_name].type || resource_name;
-      
-      const previousDataFiltered = Object.keys(params.previousData)
-      .filter(key => !(key in params.data))
-      .reduce((obj, key) => {
-        obj[key] = params.previousData[key];
-        return obj;
-      }, {});
+        const resource_name = decodeURI(resource)
+        let type = conf["resources"][resource_name].type || resource_name;
+        
+        const previousDataFiltered = Object.keys(params.previousData)
+            .filter(key => !(key in params.data))
+            .reduce((obj: any, key: string) => {
+                obj[key] = params.previousData[key];
+                return obj;
+            },
+        {});
 
-        let Sendingdata = { ...previousDataFiltered, ...params.data };
+        let attributes = { ...previousDataFiltered, ...params.data };
         const data = {
-          data: {
-            id:  params.id,
-            type: type,
-            attributes:  Sendingdata
-          }
+            data: {
+                id:  params.id,
+                type: type,
+                attributes: attributes
+            }
         };
 
-        console.log('Update ', data)
-  
         return httpClient(`${apiUrl}/${resource_name}/${params.id}`, {
-          method: settings.updateMethod,
-          body: JSON.stringify(data)
+            method: settings.updateMethod,
+            body: JSON.stringify(data)
+            })
+            .then(({ json }) => {
+                const { id, attributes } = json.data;
+                return {
+                data: {
+                    id,
+                    ...attributes
+                }
+                };
+            })
+            .catch((err: HttpError) => {
+                console.log('catch Error', err.body);
+                const errorHandler = settings.errorHandler;
+                return Promise.reject(errorHandler(err));
+            });
+      },
+    
+    /*******************************************************************************************
+     * updateMany: update multiple resources on the jsonapi endpoint (PATCH /resource/id)
+     *******************************************************************************************/
+    updateMany: (resource: string, params: UpdateManyParams) =>
+        Promise.all(
+            params.ids.map((id) => {
+            const data = {
+                data: {
+                attributes: params.data
+                }
+            };
+            return httpClient(`${apiUrl}/${decodeURI(resource)}/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(params.data)
+            })
+            })
+        )
+        .then((responses) => ({ data: responses.map(({ json }) => json.id) })),
+
+    /*******************************************************************************************
+     * create: create a resource on the jsonapi endpoint (POST /resource)
+     *******************************************************************************************/
+    create: (resource : string, params: any) => {
+        const conf : { [ key: string] : any } = getConf();
+        const resource_name = decodeURI(resource)
+        let type = conf["resources"][resource_name].type || resource_name;
+        const attributes = params.data?.current?.data || params.data;
+        console.debug('creating resource with params', attributes)
+        
+        const data = {
+            data: {
+            type: type,
+            attributes: attributes
+            }
+        };
+        return httpClient(`${apiUrl}/${resource_name}`, {
+            method: 'POST',
+            body: JSON.stringify(data)
         })
-          .then(({ json }) => {
+            .then(({ json }) => {
             const { id, attributes } = json.data;
             return {
-              data: {
+                data: {
                 id,
                 ...attributes
-              }
+                }
             };
-          })
-          .catch((err: HttpError) => {
+            })
+            .catch((err: HttpError) => {
             console.log('catch Error', err.body);
             const errorHandler = settings.errorHandler;
             return Promise.reject(errorHandler(err));
-          });
-      },
-      
-    // },
-
-    // simple-rest doesn't handle provide an updateMany route, so we fallback to calling update n times instead
-    updateMany: (resource_name, params) =>
-      // todo : bulk update
-      
-      Promise.all(
-        params.ids.map((id) => {
-          const data = {
-            data: {
-              attributes: params.data
-            }
-          };
-          return httpClient(`${apiUrl}/${decodeURI(resource_name)}/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(params.data)
-          })
-        })
-      )
-      .then((responses) => ({ data: responses.map(({ json }) => json.id) }))
-      ,
-
-    create: (resource_name_en : string, params: any) => {
-      const resource_name = decodeURI(resource_name_en)
-      let type = conf["resources"][resource_name].type || resource_name;
-      
-      console.log('creating resource with params', params)
-      const data = {
-        data: {
-          type: type,
-          attributes: params.data.current.data
-        }
-      };
-      return httpClient(`${apiUrl}/${resource_name}`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      })
-        .then(({ json }) => {
-          const { id, attributes } = json.data;
-          return {
-            data: {
-              id,
-              ...attributes
-            }
-          };
-        })
-        .catch((err: HttpError) => {
-          console.log('catch Error', err.body);
-          const errorHandler = settings.errorHandler;
-          return Promise.reject(errorHandler(err));
-        })
-    },
-
-    delete: (resource, params) =>
-      httpClient(`${apiUrl}/${decodeURI(resource)}/${params.id}`, {
-        method: 'DELETE',
-        headers: new Headers({
-          'Content-Type': 'text/plain'
-        })
-      }).then(({ json }) => ({ data: json })),
-
-    // simple-rest doesn't handle filters on DELETE route, so we fallback to calling DELETE n times instead
-    deleteMany: (resource, params) =>
-      Promise.all(
-        params.ids.map((id) =>
-          httpClient(`${apiUrl}/${decodeURI(resource)}/${id}`, {
-            method: 'DELETE',
-            headers: new Headers({
-              'Content-Type': 'text/plain'
             })
-          })
-        )
-      ).then((responses) => ({
-        data: responses.map(({ json }) => json)
-      })),
+        },
 
-    getResources: () => {
-        
-        if(conf){
-            return Promise.resolve({data: conf});
-        };
-        return httpClient(`${apiUrl}/schema`, {
-            method: 'GET'
-        }).then(({json}) => {
-            localStorage.setItem('raconf', JSON.stringify(json));
+    /*******************************************************************************************
+     * delete: delete a resource on the jsonapi endpoint (DELETE /resource/id)
+     *******************************************************************************************/
+    delete: (resource, params) =>
+        httpClient(`${apiUrl}/${decodeURI(resource)}/${params.id}`, {
+            method: 'DELETE',
+            headers: new Headers({'Content-Type': 'text/plain'})
+        }).then(({ json }) => ({ data: json })),
+
+    /*******************************************************************************************
+     * deleteMany: delete multiple resources on the jsonapi endpoint (DELETE /resource/id)
+     *******************************************************************************************/
+    deleteMany: (resource, params) =>
+        Promise.all(params.ids.map((id) =>
+            httpClient(`${apiUrl}/${decodeURI(resource)}/${id}`, {
+                method: 'DELETE',
+                headers: new Headers({'Content-Type': 'text/plain'})
+            })
+        )
+        ).then((responses) => ({
+            data: responses.map(({ json }) => json)
+        })),
+
+    /*******************************************************************************************
+     * execute: execute a rpc command on the jsonapi endpoint (POST /resource/id/command)
+     *******************************************************************************************/
+    execute: (resource_name_en: string, command: string, data: {  id: string|undefined, data?: any, args?: any }) => {
+        const conf = getConf();
+        const resource_name = decodeURI(resource_name_en)
+        console.log(`execute rpc on resource ${resource_name} with params`, data)
+        const id = data?.id || ""
+        if(!command){
+            console.warn('No command provided')
+            return new Promise(()=>{})
+        }
+        const endpoint = id ? `${apiUrl}/${resource_name}/${id}/${command}` : `${apiUrl}/${resource_name}/${command}`
+        return httpClient(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data?.args || {})
+        })
+        .then(({json}) => {
             return { data: json };
         })
-        .catch(()=> {return {data : {}} })
       },
+
+    /*******************************************************************************************
+     * getResources
+     *******************************************************************************************/
+    getResources: () => {
+
+        return Promise.resolve({data: conf});
+
+    },
   };
 };
-
-function capitalize(s: string): string {
-  // todo
-  return s;
-  return s[0].toUpperCase() + s.slice(1);
-}
-export interface includeRelations {
-  resource: string;
-  includes: string[];
-}
 
 /*
 Call safrs jsonapi rpc endpoints
 */
 export const jaRpc = async (endpoint: string, data?: any, options?: RequestInit) => {
-  const url = urlJoin(conf.api_root, endpoint);
-  console.log('jaRpc', url, data, options);
-  console.log('jaRpc', conf);
+  
+  const url = `${conf.api_root}/${endpoint}`;
   
   const defaultOptions: RequestInit = {
     method: "POST",
@@ -550,3 +500,4 @@ export const jaRpc = async (endpoint: string, data?: any, options?: RequestInit)
   const response = await fetch(url, requestOptions);
   return response.json();
 };
+

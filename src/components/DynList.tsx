@@ -10,6 +10,7 @@ import {
   Confirm,
   FunctionField,
   useGetList,
+  
 } from "react-admin";
 //import Button from "@mui/material/Button";
 import {Button} from "react-admin";
@@ -17,13 +18,13 @@ import { useState } from "react";
 import { attr_fields } from "./DynFields";
 import { DynPagination } from "../util";
 import DeleteIcon from "@mui/icons-material/Delete";
-
 import { DetailPanel } from "./DynInstance";
 import {
   FilterButton,
   TopToolbar,
   CreateButton,
   ExportButton,
+  TextField,
 } from "react-admin";
 import InfoModal from "./InfoModal";
 import get_Component from "../get_Component";
@@ -166,6 +167,16 @@ const DynListButtons = ({resource_conf, filtered_props}: { resource_conf: any, f
   </span>
 }
 
+
+export const SimpleList = () => (
+  <List>
+      <Datagrid>
+          <TextField source="id" />
+          
+      </Datagrid>
+  </List>
+);
+
 const gen_DynResourceList = (resource_conf: any) => (props: any) => {
   const ButtonField = (props: any) => {
     let filtered_props: { [key: string]: any } = {};
@@ -205,8 +216,9 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
     error,
   } = useGetList(basePath);
 
+  
   const [loading, setLoading] = useState(true);
-
+  
   React.useEffect(() => {
     if (isSuccess === true || !isFetching || !isPending || !isLoading) {
       const timer = setTimeout(() => {
@@ -217,6 +229,8 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
   }, [isSuccess, isFetching, isPending, isLoading]);
 
   document.title = resource_conf.label || resource_conf.name;
+  console.log("DynList", document.location.hash, resource_conf, props);
+  
   let list = (
     <>
       <ShowInfoContent resource={resource_conf} />

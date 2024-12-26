@@ -200,7 +200,7 @@ export const Layout = (props: any) => {
         return <SpaLayout {...props} menu={Menu} appBar={CustomAppBar} sidebar={Sidebar} />
     }
 
-  return <><RALayout {...props} menu={Menu} appBar={CustomAppBar} sidebar={Sidebar} />
+    return <><RALayout {...props} menu={Menu} appBar={CustomAppBar} sidebar={Sidebar} />
   
     </>
 };

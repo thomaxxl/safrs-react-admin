@@ -20,7 +20,7 @@ import {
   TextField,
   useGetMany,
 } from "react-admin";
-import { Typography, Stack } from "@mui/material";
+import { Typography, Stack, Divider } from "@mui/material";
 import { useRefresh } from "react-admin";
 import { ShowAttrField } from "../DynFields";
 import { DynRelationshipOne, DynRelationshipMany } from "../DynInstance";
@@ -31,6 +31,8 @@ import Button from "@mui/material/Button";
 import CodeSnippet from "../util/CodeSnippet";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DownloadIcon from "@mui/icons-material/Download";
+import LogicDetails from "./LogicDetails.tsx";
+import DataModelModal from "./DataModelModal.tsx";
 
 const logStyle = {
   fontSize: "0.9em",
@@ -161,14 +163,21 @@ const ProjectTabs = ({ record, appLinkStyle }: { record: any; appLinkStyle: any 
     setTabValue(newValue);
   };
 
+  useEffect(() => {
+    if (window.location.hash.includes("tab=logic")) { // check ValH.tsx
+      setTabValue(1);
+    }
+  }, []);
+
+
   console.log("show", tab_groups);
-  const hasFamily = record.parent_id || record.iterations?.data.length > 0;
+  const hasFamily = record.parent_id || record.iterations?.data?.length > 0;
 
   console.log("showrecord", record);
   if (!record) {
     return <>...</>;
   }
-
+  console.log("confapi_root", conf.api_root);
   return (
     <Box sx={{ width: "100%", marginTop: "-2px" }}>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -177,7 +186,7 @@ const ProjectTabs = ({ record, appLinkStyle }: { record: any; appLinkStyle: any 
           <Tab
             label="Logic"
             {...a11yProps(1)}
-            sx={{ display: document.location.href.includes('logic') ? "inline-block" : "none" }}
+            //sx={{ display: document.location.href.includes('logic') ? "inline-block" : "none" }}
           />
           <Tab
             label="Iterations"
@@ -244,14 +253,12 @@ const UserDetail = ({ id }: { id: string }) => {
   );
 };
 
-const LogicDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: any }) => {
-  return <ul><li>Rule1...</li><li>Rule2...</li></ul>
-}
-
 
 const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: any }) => {
+  const name = record.display_name || record.name;
+  const conf = useConf();
   const code = `docker run -p5656:5656 -it apilogicserver/api_logic_server bash -c \\
-"curl ${document.location.origin}${record.download} | tar xvfz - ; ${record.name}/run.sh"`;
+"curl ${document.location.origin}${record.download} | tar xvfz - ; ${name}/run.sh"`;
   const buttonStyle = {
     textTransform: "none",
     fontWeight: "bold",
@@ -259,6 +266,10 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
     width: "100%",
     display: "inline-block",
   };
+
+  const appLink = record.link?.startsWith('http') ? record.link : `${document.location.origin}${record.link}`;
+  const datamodelSvg = conf.api_root.replace(new RegExp("api$"),record.id + "/ui/dber.svg");
+  console.log("datamodelSvg", datamodelSvg);
 
   return (
     <>
@@ -268,7 +279,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
             {record.running ? (
               <Button
                 sx={buttonStyle}
-                onClick={() => window.open(`${document.location.origin}${record.link}`, "_blank")}
+                onClick={() => window.open(`${appLink}`, "_blank")}
               >
                 Open App <OpenInNewIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
               </Button>
@@ -285,8 +296,20 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
               }}
               onClick={() => window.open(`${document.location.origin}${record.download}`, "_blank")}
             >
-              Project Download <DownloadIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
+              Download <DownloadIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
             </Button>
+          </Grid>
+          <Grid item xs={2}>
+            { document.location.hash.includes(record.id) ? null : <Button
+              sx={{
+                textTransform: "none",
+                border: "1px solid #eee",
+                width: "100%",
+              }}
+              onClick={() => document.location.href = `${document.location.pathname}#/Project/${record.id}/show`}
+            >
+              Manager 
+            </Button>}
           </Grid>
         </Grid>
       
@@ -297,8 +320,8 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
           <Typography variant="body2" color="textSecondary" component="p">
             Name
           </Typography>
-          <Typography variant="body2" component="p">
-            {record.name || "-"}
+          <Typography variant="body2" component="p" sx={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+            {name || "-"}
           </Typography>
           <Xr />
         </Grid>
@@ -344,8 +367,8 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
             {"Github Repository"}
           </Typography>
           <Typography variant="body2">
-            <Link to={"https://github.com/apifabric/" + record.name} target="_blank">
-              {"https://github.com/apifabric/" + record.name}
+            <Link to={"https://github.com/apifabric/" + name} target="_blank">
+              {"https://github.com/apifabric/" + name}
             </Link>
           </Typography>
         </Grid>
@@ -369,6 +392,18 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
       <Xr />
 
       <Grid container spacing={2}>
+      <Grid item xs={4}>
+      <Typography variant="body2" color="textSecondary" component="p">
+            Data Model
+      </Typography>
+      <DataModelModal thumbnailSrc={datamodelSvg} 
+                      fullSizeSrc={datamodelSvg} 
+                      alt="Database ER Diagram" />
+      </Grid>
+      </Grid>
+      <Xr />
+
+        <Grid container spacing={2}>
         <Grid item xs={12}>
           <Typography variant="body2" color="textSecondary" component="p">
             {"Log"}
@@ -408,8 +443,7 @@ export const ShowApiFab = () => {
     return <>...</>;
   }
 
-  const name = record?.name;
-
+  
   return (
     <>
       <SimpleShowLayout>

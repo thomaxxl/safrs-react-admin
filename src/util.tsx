@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Typography } from "@mui/material";
-import { Pagination } from "react-admin";
+import { Pagination,useListContext } from "react-admin";
 import loadable from "@loadable/component";
 import Popover from "@mui/material/Popover";
 
@@ -15,6 +15,9 @@ export const type2resource = (type: any, conf: any) => {
 };
 
 export const DynPagination = (props: any) => {
+
+  const { page, perPage } = useListContext();
+  console.log("loading page ", page);
   return (
     <Pagination
       rowsPerPageOptions={[10, 25, 50, 100]}
@@ -138,6 +141,10 @@ export const useHash = () => {
 
 
 export const parseJwt = (token: string) => {
+  if(!token){
+    console.warn(`No token to parse`, token);
+    return {};
+  }
   try{
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');

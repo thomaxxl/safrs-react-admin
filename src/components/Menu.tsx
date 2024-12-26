@@ -240,6 +240,23 @@ const onMenuClick = (evt: any) => {
   //console.log(`Menu Click`, evt);
 };
 
+
+const SRAMenuItemLink = ({resource, conf}) => {
+  return <>
+          <MenuItemLink
+            key={resource.name}
+            to={`/${resource.name}`}
+            primaryText={
+              (resource.options && resource.options.label) || resource.name
+            }
+            leftIcon={resource.icon ? <resource.icon /> : <DefaultIcon />}
+            onClick={onMenuClick}
+            sx={conf.resources![resource.name].sx || {}}
+          />
+          
+      </>
+}
+
 export const Menu = (props: any) => {
   const conf = useConf();
   const resourcesDefinitions = useResourceDefinitions();
@@ -262,16 +279,7 @@ export const Menu = (props: any) => {
       <RAMenu {...props}>
         {resources.map((resource) => (
           conf.resources![resource.name] && !conf.resources![resource.name].hidden &&
-          <MenuItemLink
-            key={resource.name}
-            to={`/${resource.name}`}
-            primaryText={
-              (resource.options && resource.options.label) || resource.name
-            }
-            leftIcon={resource.icon ? <resource.icon /> : <DefaultIcon />}
-            onClick={onMenuClick}
-            sx={conf.resources![resource.name].sx || {}}
-          />
+          <SRAMenuItemLink resource={resource} key={resource.name} conf={conf}/>
         ))}
       </RAMenu>
     </>

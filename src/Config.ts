@@ -1,8 +1,24 @@
-import defaultConf from "./Config.json";
 import { compareVersions } from 'compare-versions';
+const yaml = require("js-yaml");
 
+const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
-const config = defaultConf;
+let sessionStorage: Storage;
+let localStorage: Storage;
+
+if (process.env.NODE_ENV === 'test' && process.env.CLI_MODE === 'on') {
+  const { LocalStorage } = require('node-localstorage');
+  sessionStorage = new LocalStorage('./scratch');
+  localStorage = new LocalStorage('./scratch');
+} else {
+  sessionStorage = window.localStorage;
+  localStorage = window.localStorage;
+}
+
+const setRaconf = (value: string) => {
+  localStorage.setItem('raconf', value);
+  console.log(`raconf set to: ${value}`);
+};
 
 interface Config {
   api_root: string;
@@ -31,15 +47,9 @@ interface Config {
   path?: string;
   info_toggle_checked?: boolean;
   server_msg?: string;
+  ui_root? : string;
 }
 
-const initConf = (): void => {
-  const raconf: Config = defaultConf;
-  if (!("raconf" in localStorage)) {
-    setCurrentConf(raconf);
-    window.location.reload();
-  }
-};
 
 const getBrowserLocales = (
   options: { languageCodeOnly?: boolean } = {}
@@ -51,6 +61,9 @@ const getBrowserLocales = (
     ...defaultOptions,
     ...options,
   };
+  if (isNode) {
+    return undefined;
+  }
   const browserLocales =
     navigator.languages === undefined
       ? [navigator.language]
@@ -72,11 +85,11 @@ export const getLSConf = (): Config => {
     result = ls_conf ?? result;
   } catch (e) {
     console.warn(`Failed to parse config `);
-    localStorage.setItem("raconf", JSON.stringify(config));
+    throw e;    
   }
 
   console.debug("LSConf", result);
-  doTelemetry();
+  
   return result;
 };
 
@@ -99,8 +112,10 @@ const json2Conf = (conf: Config) => {
   if (!result.settings) {
     result.settings = {};
   }
-  const resources = result.resources;
-
+  const resourceEntries = Object.entries(result.resources);
+  resourceEntries.sort((a, b) => (b.order || 0) - (a.order || 0))
+  const resources = Object.fromEntries(resourceEntries);
+  
   for (let [resource_name, resource] of Object.entries(resources || {})) {
     resource.relationships = resource.relationships || [];
     if (resource.tab_groups instanceof Array) {
@@ -197,11 +212,27 @@ const json2Conf = (conf: Config) => {
 
 export const useConf = (): Config => {
   let conf = getCurrentConf();
+  if(document.location.hash.includes("/SPA")){
+    // workaround to show/hide SPA resources in the webgenai SPA admin
+    Object.entries(conf.resources || {}).forEach(([key, value]) => {
+      if(value?.hidden){
+        value.hidden = false;
+      }
+    })
+  }
+  try{
+    let uiUrl = new URL(conf.api_root);
+    uiUrl.pathname = uiUrl.pathname.replace('/api', '/') + '/ui/';
+    conf.ui_root = uiUrl.toString();
+  }
+  catch(e){
+    console.log('api_root not set')
+  }
+  
   return conf;
 };
 
 export const getConf = (): Config => {
-  initConf();
   return json2Conf(getLSConf());
 };
 
@@ -218,7 +249,6 @@ export const resetConf = (reload: boolean) => {
   return config;
 };
 
-export const default_configs = [config];
 
 export const getKcUrl = (): string | undefined => {
   const conf: any = getCurrentConf();
@@ -238,6 +268,7 @@ export const getCurrentConf = (raw: boolean = false): Config => {
   const conf = sessionStorage.getItem("raconf") || localStorage.getItem("raconf") || "{}";
   let result = null;
   try {
+
     result = JSON.parse(conf);
   } catch (e) {
     console.warn("Failed to parse raconf", e);
@@ -258,7 +289,7 @@ export const setCurrentConf = (conf: Config): boolean => {
   }
   if (!conf.api_root) {
     console.warn("No api_root in conf", conf);
-    window.location.href = "/#/Error?message=No%20api_root%20in%20conf";
+    window.location.href = `/#/Error?message=No%20api_root%20in%20conf&ref=${window.location.href}`;
     return false;
   }
 
@@ -266,6 +297,11 @@ export const setCurrentConf = (conf: Config): boolean => {
   localStorage.setItem("raconf", JSON.stringify(conf));
 
   const stFndStr = "fetchedNonDefault";
+  if(isNode){
+    loadYaml('http://localhost:8282/ui/admin/admin.yaml');
+    return true
+  }
+  
   if (conf.about?.default && !sessionStorage.getItem(stFndStr)) {
     sessionStorage.setItem(stFndStr, "true");
     console.debug("default config - checking for " + DEFAULT_YAML_URL);
@@ -295,16 +331,6 @@ export const setConfigs = (configs: any) => {
   localStorage.setItem("raconfigs", JSON.stringify(configs));
 };
 
-export const getProjectId = () => {
-  /*
-  Check if the path is a project id, used for apifabric..
-  */
-  let id = window.location.pathname.split("/")[1];
-  if (!id || id === "index.html" || id === "admin-app" || !id.startsWith("0")) {
-    id = "";
-  }
-  return id;
-};
 
 export const needsReload = () => {
   // check if a reload is needed, only once per session
@@ -323,14 +349,57 @@ export const needsReload = () => {
   return result;
 }
 
+
 export const loadHomeConf = async () => {
   const currentConf = getCurrentConf();
   const storedConfigs = localStorage.getItem("raconfigs");
-  const id = getProjectId();
+  const projectId = getProjectId();
+  let configs = storedConfigs ? JSON.parse(storedConfigs) : {};
+  let found = false;
+  //console.debug("loadHomeConf path:", window.location.pathname);
+  if(!isNode){
+    doTelemetry();
+  }
+  
+  for (let root in configs) {
+    let conf = configs[root];
+    
+    if (conf.path === window.location.pathname.split("#")[0]) {
+      console.log("loadHomeConf conf:", conf);
+      if (found) {
+        console.warn("Multiple configs found for path", conf.path, conf.api_root);
+      }
+      found = true;
+      setCurrentConf(conf);
+    }
+  }
+  let confPath;
+  if(isNode){
+    confPath = `http://localhost:8282/${projectId}/ui/admin/admin.yaml`;
+  } else {
+    confPath = window.location.origin + `/${projectId}/ui/admin/admin.yaml?v=${new Date().getTime()}`;
+    if (window.location.origin === "http://localhost:3000") {
+        console.log("DEVMODE!!!");
+        confPath = `http://localhost:8282/${projectId}/ui/admin/admin.yaml`;
+    }
+  }
+
+  console.log("loadHomeConf, loading", projectId, confPath);
+  await loadYaml(confPath);
+  const newConf = getCurrentConf();
+ 
+  return newConf;
+};
+
+export const loadHomeConfTbd = async () => {
+  const currentConf = getCurrentConf();
+  const storedConfigs = localStorage.getItem("raconfigs");
+  const projectId = getProjectId();
   let configs = storedConfigs ? JSON.parse(storedConfigs) : {};
   let found = false;
   console.debug("loadHomeConf path:", window.location.pathname);
-
+  doTelemetry();
+  
   for (let root in configs) {
     let conf = configs[root];
     
@@ -349,19 +418,18 @@ export const loadHomeConf = async () => {
     sessionStorage.setItem("autoReloaded", window.location.pathname);
     window.location.reload();
   } else if (!found || needsReload()) {
-    let confPath = window.location.origin + `/${id}/ui/admin/admin.yaml?v=${new Date().getTime()}`;
+    let confPath = window.location.origin + `/${projectId}/ui/admin/admin.yaml?v=${new Date().getTime()}`;
 
     if (window.location.origin === "http://localhost:3000") {
       console.log("DEVMODE!!!");
-      //confPath = newConf.api_root.replace('/api',`/${id}/ui/admin/admin.yaml`) //`http://localhost:8282/${id}/ui/admin/admin.yaml`;
-      confPath = `http://localhost:8282/${id}/ui/admin/admin.yaml`;
+      confPath = `http://localhost:8282/${projectId}/ui/admin/admin.yaml`;
     }
 
-    console.log("loadHomeConf, loading", id, confPath);
+    console.log("loadHomeConf, loading", projectId, confPath);
     await loadYaml(confPath);
 
   } else {
-    console.log("loadHomeConf: conf found", window.location.pathname);
+    console.log("loadHomeConf: conf found for", window.location.pathname);
   }
   return newConf;
 };
@@ -373,14 +441,14 @@ export const loadYaml = async (confPath: string) => {
   await fetch(confPath)
     .then((response) => response.text())
     .then((text) => {
-      let yaml = require("js-yaml");
-      const c_conf = getCurrentConf(true);
+      
+      const prevConf = getCurrentConf(true);
       let conf;
       try {
         conf = yaml.load(text);
         let loadUrl = confPath
 
-        if(document.location.hash.includes("Configuration")){
+        if(!isNode && document.location.hash.includes("Configuration")){
           // special case: configuration page contains a load parameter
           const hashParams = new URLSearchParams(document.location.hash.split("?")[1]);
           loadUrl = hashParams.get("load") ?? confPath
@@ -391,17 +459,17 @@ export const loadYaml = async (confPath: string) => {
           conf.conf_source = encodedLoadUrl;
         }
       } catch (e) {
-        console.warn("Failed to parse yaml", e);
+        console.warn("Failed to parse yaml", e, conf);
         return;
       }
       if (!setCurrentConf(conf)) {
         return;
       }
       
-      if(compareConf(c_conf, conf)){
+      if(isNode || compareConf(prevConf, conf)){
         return
       }
-      console.log("loadYaml Reload...", conf);
+      console.log("loadYaml ymal changed...", conf);
       configs[conf.api_root] = conf;
       setConfigs(configs);
       window.location.reload();
@@ -425,4 +493,62 @@ export const compareConf = (conf1: Config, conf2: Config): boolean => {
   }
   console.debug("compareConf", result);
   return result;
+}
+
+
+export const getAppId = (appId?:string) => {
+  // set the app id for the current session
+  if( isNode){
+    return "";
+  }
+  appId = appId || window.location.pathname.split("/")[1];
+  if (!appId || appId === "index.html" || appId === "admin-app" || !appId.startsWith("0")) {
+    appId = "";
+    localStorage.removeItem("appId");
+    sessionStorage.removeItem("appId");
+    return appId;
+  }
+
+  appId = appId || sessionStorage.getItem("appId") || localStorage.getItem("appId") || "";
+  const hash = window.location.hash;
+  
+  if (hash.includes('?') && hash.includes('appId')) {
+      // get the app id from the URL hash
+      const queryString = hash.split('?')[1];
+      const params = new URLSearchParams(queryString);
+      appId = params.get("appId") || appId;
+  }
+  else if (document.location.pathname.startsWith("/01")){
+      // get the app id from the URL path
+      appId = document.location.pathname.split("/")[1];
+  }
+  if(appId){
+    if(appId !== localStorage.getItem("appId")){
+      console.log("Changing LS appId", appId);
+      localStorage.setItem("appId", appId);
+    }
+    if(appId !== sessionStorage.getItem("appId")){
+      console.log("Changing SS appId", appId);
+      sessionStorage.setItem("appId", appId);
+    }
+  }
+  else{
+    localStorage.removeItem("appId");
+    sessionStorage.removeItem("appId");
+  }
+
+  return appId;
+}
+
+
+export const getProjectId = () => {
+  /*
+  Check if the path is a project id, used for apifabric..
+  */
+  return getAppId();
+  
+};
+
+export const isSpa = () => {
+  return sessionStorage.getItem("raSpa") == "true" || window.location.href.includes("raSpa")
 }

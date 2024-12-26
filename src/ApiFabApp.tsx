@@ -170,7 +170,7 @@ const AsyncResources = (keycloak: Keycloak) => { // todo: : React.FC
 
 // Main component
 export const ApiFabApp: React.FC = () => {
-  localStorage.setItem("minVersion", "0.0.5");
+  //localStorage.setItem("minVersion", "0.0.4");
   React.useEffect(() => {
     const test_raconf = localStorage.getItem("raconf");
     if (test_raconf === "{}") {
@@ -221,6 +221,7 @@ export const ApiFabApp: React.FC = () => {
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000,
       },
     },
   });
@@ -249,19 +250,10 @@ export const ApiFabApp: React.FC = () => {
         localStorage.removeItem('auth_token');
         //keycloakClient.login();
       }
-      console.log('KC: authenticated');
-      setInterval(async () => {
-        await keycloakClient.updateToken(30).then(refreshed => {
-          if (refreshed) {
-            deletePrefixedEntries('kc-callback'); // Clear prefixed entries if token is refreshed
-          } else {
-            console.warn('Token not refreshed'); // Log warning if token is not refreshed
-          }
-        }).catch((e) => {
-          console.warn('Failed to refresh token', e); // Log warning if token refresh fails
-        })
-      }, refreshTokenInterval) // Set interval for token refresh
-      
+      console.log('KC: Authenticated');
+      setTimeout(() => {
+        deletePrefixedEntries('kc-callback'); // Clear prefixed entries after 20 seconds
+      }, 20000);
     });
 
     authProvider.current = keycloakAuthProvider(keycloakClient, raKeycloakOptions); // Initialize auth provider with Keycloak

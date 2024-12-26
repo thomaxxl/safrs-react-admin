@@ -1,3 +1,4 @@
+// fuck i hate this code :((
 import {  useGetOne } from "react-admin";
 import { useRecordContext, DateField } from "react-admin";
 import Grid from "@mui/material/Grid";
@@ -143,7 +144,14 @@ const JoinedField: React.FC<JoinedFieldProps> = ({
   const user_component = target_resource?.user_component;
   const fk = join.fks.join("_");
   const id = record && record[fk] != "-" ? record[fk] : null; // "-" is a special value for empty joins
-  const { data, isLoading } = useGetOne(target_resource.name, { id: id });
+  
+  if(!target_resource?.name){
+    alert("Invalid DynField join");
+    console.warn("Invalid join", attribute, target_resource);
+    record = null;
+  }
+  
+  const { data, isLoading } = useGetOne(target_resource?.name, { id: id });
 
   if (!record) {
     return null;
@@ -156,13 +164,14 @@ const JoinedField: React.FC<JoinedFieldProps> = ({
   let item = data || record[rel_name];
   let label = item?.id || id;
 
-  if (!item) {
+  if (!item || item === "-") {
     // no item: if there is data then we're in a nested view and pvalue already holds our id
     // without data this join is empty
     return data ? (
       <NestedJoinedField resource_name={target_resource.name} id={pvalue} />
-    ) : null;
+    ) : item || "-";
   }
+  
   if (user_component) {
     // user_component: custom component
     label = load_custom_component(user_component, item);
@@ -273,6 +282,17 @@ const StatusField = ({ source, attribute }: { source: string, attribute: any }) 
   return <span>{text}</span>;
 };
 
+const OptionField = ({ source, attribute }: { source: string, attribute: any }) => {
+  const record = useRecordContext();
+  
+  let text = record && record[source]
+  if(attribute.options){
+    text = attribute.options.find((o: any) => o.value === text)?.label
+  }
+  return <span>{text}</span>;
+};
+
+
 export const LinkField = ({ source, attribute }: { source: string, attribute: any }) => {
 
   const record = useRecordContext();
@@ -300,6 +320,7 @@ const AttrField = ({
 }) => {
   const record = useRecordContext();
   const conf = useConf();
+  
   if (attribute.type?.toLowerCase() === "boolean") {
     return <BooleanFieldToString source={attribute.name} attribute={attribute} key={`${attribute.name}_bool`}/>;
   }
@@ -309,7 +330,7 @@ const AttrField = ({
   if (attribute.type?.toLowerCase() === "link") {
     return <LinkField source={attribute.name} attribute={attribute} key={`${attribute.name}_link`}/>;
   }
-
+  
   const component: any = attribute.component;
   const style = attribute.style || {};
 
@@ -325,6 +346,7 @@ const AttrField = ({
     />
   );
 
+ 
   if (attribute.type?.toLowerCase() === "date") {
     result = (
       <DateField
@@ -415,12 +437,46 @@ const ShowField = ({
     );
     component = "pre";
   }
+
+
   const result = () => {
     if (attr?.type?.toLowerCase() === "link") {
-      return <LinkField source={attr.name} attribute={attr}/>;
+      return <Grid item xs={3}>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {label}
+              </Typography>
+              <LinkField source={attr.name} attribute={attr}/>;
+              </Grid>
+    }
+
+    if (attr?.type?.toLowerCase() === "option") {
+      return <Grid item xs={3}>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {label}
+              </Typography>
+              <OptionField source={attr.name} attribute={attr}/>
+              </Grid>
+    }
+
+    if (attr?.type?.toLowerCase() === "code") {
+      return <Grid item xs={12}>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {label}
+              </Typography>
+              <pre>{value}</pre>
+              </Grid>
+    }
+
+    if (attr?.type?.toLowerCase() === "textarea") {
+      return <Grid item xs={6}>
+              <Typography variant="body2" color="textSecondary" component="p">
+                {label}
+              </Typography>
+              {value}
+              </Grid>
     }
   
-    if (attr?.type === "Boolean") {
+    if (attr?.type?.toLowerCase()  === "boolean") {
       return (
         <Grid item xs={3}>
           <Typography variant="body2" color="textSecondary" component="p">
@@ -477,7 +533,7 @@ const ShowField = ({
     return (
       <Grid item xs={3}>
         <Typography variant="body2" color="textSecondary" component="p">
-          {label}
+          {label} 
         </Typography>
         <Typography variant="body2" component={component} style={style}>
           {full_text || shown}
@@ -512,7 +568,7 @@ export const ShowAttrField = ({
   };
   if (attr.relationship) {
     // todo: make the onClick handler open the corresponding tab
-    const jf = (
+    const joinedField = (
       <JoinedField label key={attr.name} attribute={attr} pvalue={value} />
     );
     const rel_label = (
@@ -536,7 +592,7 @@ export const ShowAttrField = ({
     value =
       value || value === 0 ? (
         <>
-          {value} / {jf}
+          {value} / {joinedField}
         </>
       ) : (
         <></>
@@ -550,7 +606,7 @@ export const ShowAttrField = ({
       type={attr.type}
       id={id}
       mode="show"
-      attr
+      attr={attr}
     />
   );
 };

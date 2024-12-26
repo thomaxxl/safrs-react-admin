@@ -382,7 +382,7 @@ export const DynRelationshipMany = (
   const fk = relationship.fks.join("_");
   const label = relationship.label || relationship.name;
   return (
-    <Tab label={label} key={relationship.name} style={{ color: "#3f51b5" }}>
+    <Tab label={label} key={relationship.name} sx={{ color: "primary" }}>
       <ReferenceManyField
         reference={relationship.resource}
         target={fk}
@@ -526,7 +526,7 @@ export const gen_DynResourceShow = (resource_conf: any) => {
   );
   if (resource_conf?.show) {
     const Wrapper: any = get_Component(resource_conf.show);
-    if (Wrapper !== null) show = <Wrapper show={show} />;
+    if (Wrapper !== null) show = <Wrapper show={show} attributes={attributes} tab_groups={tab_groups} resource_name={resource_conf.name}/>;
   }
   // conf: hide_actions
   return (

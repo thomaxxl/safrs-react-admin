@@ -1,53 +1,40 @@
 import React, { useEffect, useRef, useState } from "react";
-import DynInput from "../DynInput";
-import {
-  SimpleForm,
-  useDataProvider
-} from "react-admin";
-import { useRedirect, useRefresh, useNotify, TextInput, Link } from "react-admin";
-import Grid from "@mui/material/Grid";
-import { redirect, useLocation } from "react-router";
-import { useFormContext } from "react-hook-form";
-import Slider from '@mui/material/Slider';
+import { TextInput, Link } from "react-admin";
 import Typography from '@mui/material/Typography';
-import { Card, CardContent, IconButton, Container, Box } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { attributes } from "../types/SraTypes"
-import { ProjectCreateToolbar } from "./ApiFabCreate";
-import {WebGenAICreatePanel} from "./WebGenAICreate";
 
 
 export const IterateProjectWGAI = ({handleCreate, recordRef, ...props}: {handleCreate: any, recordRef: any}) => {
   
-  // TODO: CSRF token
-  const paramsObject = {prompt : '', project_id : null};
-  const [params, setParams] = useState(paramsObject);
-  
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.includes('?')) {
-      const queryString = hash.substring(hash.indexOf('?')); // Remove the leading '#'
-      const searchParams = new URLSearchParams(queryString);
-      
-      for (const [key, value] of searchParams.entries()) {
-        paramsObject[key] = value;
-      }
-      setParams(paramsObject);
-      console.log(paramsObject)
-      recordRef.current = { data: { parent_id: paramsObject.project_id, prompt: paramsObject.prompt}};
-      recordRef.current.data.connection_string = ""
-      handleCreate().then(() => {
-        //recordRef.current = { data: { }};
-      });
+    // TODO: CSRF token
+    const paramsObject = {prompt : '', project_id : null};
+    const [params, setParams] = useState(paramsObject);
+    const [rows, setRows] = useState<number>(2);
+    
+    const handleChange = (event: React.SyntheticEvent) => {
+        const prompt = event.target.value;
+        setRows(Math.max(prompt.split('\n').length, 2))
+        console.log('handleChange', prompt);
+        paramsObject.prompt = prompt;
     }
-  }, []);
-  
-//   return (
-//     <Card sx={{ p: 3 }}>
-//       <Typography variant="h6">Iterate Project</Typography>
-//       <pre>{JSON.stringify(params, null, 2)}</pre>
-//     </Card>
-//   );
+
+    useEffect(() => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('?')) {
+        const queryString = hash.substring(hash.indexOf('?')); // Remove the leading '#'
+        const searchParams = new URLSearchParams(queryString);
+        
+        for (const [key, value] of searchParams.entries()) {
+          paramsObject[key] = value;
+        }
+        setParams(paramsObject);
+        console.log('Iterating Project:', paramsObject);
+        recordRef.current = { data: { parent_id: paramsObject.project_id, prompt: paramsObject.prompt}};
+        recordRef.current.data.connection_string = ""
+        handleCreate().then(() => {
+          //recordRef.current = { data: { }};
+        });
+      }
+    }, []);
 
     if(!params.prompt && !params.project_id){
         return <></>
@@ -55,7 +42,9 @@ export const IterateProjectWGAI = ({handleCreate, recordRef, ...props}: {handleC
 
     return <>
             <Typography variant="h6">Iterate Project</Typography>
-            <TextInput source="prompt" multiline fullWidth defaultValue={params.prompt} disabled />
+            <TextInput source="prompt" multiline fullWidth defaultValue={params.prompt} 
+                       disabled rows={rows} 
+                       onChange={(e) => handleChange(e)}  />
     </>
 };
 

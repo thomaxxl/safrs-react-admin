@@ -12,6 +12,8 @@ import CodeSnippet from './util/CodeSnippet';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { UnthemedCollapsAccordion } from "./util/Accordion";
 import { useHash } from "../util";
+//import LogicDetails from "./apifab/LogicDetails";
+import LogicInfo from "./LogicInfo";
 
 /*
 ApiLogicProject Home Page
@@ -30,23 +32,36 @@ export default function ALPHome() {
   }
   uiUrl.pathname = uiUrl.pathname.replace('/api', '/') + '/ui/';
   const dberUrl = uiUrl + 'dber.svg';
+  let projData0 = {name: "", description: "", prompt: "", download: ""};
+  const [projData, setProjData] = useState(projData0);
   const projUrl = uiUrl + 'project.json';
-
-  const [projData, setProjData] = useState({ name: "", description: "", prompt: "", download: "" });
-
+      
   useEffect(() => {
     setShowDevelop(window.location.hash.includes('/develop'));
   }, [hash]);
 
   useEffect(() => {
     const fetchData = async () => {
+      const gptRespUrl = uiUrl + 'response.json';
+      let projData = projData0;
+
       try {
-        const response = await fetch(projUrl);
-        const projData = await response.json();
-        setProjData(projData);
-      } catch (error) {
+        const projResponse = await fetch(projUrl);
+        projData = await projResponse.json();
+      }
+      catch (error) {
         console.error('Error fetching data:', error);
       }
+      try{
+        const gptResponse = await fetch(gptRespUrl);
+        const gptData = await gptResponse.json();
+        projData.rules = gptData.rules;
+      }
+      catch (error) {
+        console.error('Error fetching data:', error);
+      }
+      setProjData(projData);
+      
     };
 
     fetchData();
@@ -65,16 +80,16 @@ export default function ALPHome() {
       <Typography variant="h6" align="left">
         Project Info
       </Typography>
-      <ProjectInfo projData={projData} />
+      <ProjectInfo projData={projData} conf={conf}/>
       <br/>
       <Typography variant="body2" color="textSecondary" component="p"></Typography>
-      
+      <LogicInfo projData={projData}/>
       { projData?.name ? 
-      <UnthemedCollapsAccordion title="Develop" defaultExpanded={showDevelop} sx={{borderTop: "1px solid #ddd"}}>
+      <UnthemedCollapsAccordion title="Develop" defaultExpanded={showDevelop} >
         <Typography variant="body2">
           <ul>
             <li>
-              <Link to={`${conf.api_root}/index.html`} target="_blank">Explore OpenAPI</Link> <br />
+              A standard multi-table JSON:API - explore Open API <Link to={`${conf.api_root}/index.html`} target="_blank">Explore OpenAPI</Link>
             </li>
             <li>
               <Link to={`${document.location.origin}${projData?.download}`} target="_blank">Project Download</Link> (Open in your IDE to add customizations such as logic & security)
@@ -89,6 +104,7 @@ export default function ALPHome() {
           </ul>
         </Typography>
       </UnthemedCollapsAccordion> : null }
+      
       <About />
       <br/>
       <DBER dber={dber} />
@@ -97,8 +113,8 @@ export default function ALPHome() {
   );
 }
 
-const ProjectInfo = ({ projData }: { projData: { name: string, description: string, prompt: string, download: string } }) => {
-  const conf = useConf();
+const ProjectInfo = ({ projData, conf }: { projData: { name: string, description: string, prompt: string, download: string }, conf: any }) => {
+  
   if(!projData.name) {
     return <></>
   }
@@ -117,6 +133,12 @@ const ProjectInfo = ({ projData }: { projData: { name: string, description: stri
           <>
             <Box component="dt" sx={{ fontWeight: 'bold' }}>Prompt</Box>
             <Box component="dd">{projData?.prompt?.split('\n').map(line => <>{line}<br/></>) }</Box>
+            <Box component="dt" sx={{ fontWeight: 'bold' }}>Landing Page</Box>
+            <Box component="dd">
+              <Link to="/raSpa" target="_blank">Landing Page</Link>
+              <br/>
+              <Link to="/SPASection">Landing Page Admin</Link>
+            </Box>
           </>
         )}
         
@@ -133,7 +155,7 @@ const About = () => {
   const conf = useConf();
 
   return (
-    <UnthemedCollapsAccordion title="About" sx={{ borderBottom: '1px solid #ccc' }} defaultExpanded={showAbout} >
+    <UnthemedCollapsAccordion title="About WebGenAI" sx={{ borderBottom: '1px solid #ccc' }} defaultExpanded={showAbout} >
       <Typography variant="body2">
         API Logic Server / GenAI Microservice Automation has turned your prompt into a microservice:
         <ul>
@@ -141,7 +163,7 @@ const About = () => {
             A multi-table application - explore the links in the left-hand menu
           </li>
           <li>
-            A standard multi-table JSON:API - explore Open API <Link to={`${conf.api_root}`} target="_blank">here</Link>
+            A standard multi-table JSON:API - explore Open API <Link to={`${conf.api_root}/index.html`} target="_blank">here</Link>
           </li>
         </ul>
         
@@ -166,10 +188,10 @@ const About = () => {
             <summary>Customize - Declarative Rules and Python in your IDE</summary>
             The speed and simplicity, plus all the flexibility of a framework.
             <ul>
-              <li>Download the generated project, and <Link to="https://apilogicserver.github.io/Docs/Tutorial/#3-customize-and-debug-in-your-ide">customize in your IDE</Link>              </li>
-              <li><Link to="https://apilogicserver.github.io/Docs/Security-Overview/">Declarative security</Link>: configure keycloak authentication, declare role-based row authorization</li>
-              <li><Link to="https://apilogicserver.github.io/Docs/Logic-Why/">Declarative business logic</Link>: multi-table constraints and derivations using unique rules that are 40X more concise than code, extensible with Python.</li>
-              <li>Use standard Python: e.g. provide <Link to="https://apilogicserver.github.io/Docs/Sample-Integration/">Application integration</Link> (e.g., custom APIs and kafka messaging).</li>
+              <li>Download the generated project, and <Link target="_blank" to="https://apilogicserver.github.io/Docs/Tutorial/#3-customize-and-debug-in-your-ide">customize in your IDE</Link>              </li>
+              <li><Link target="_blank" to="https://apilogicserver.github.io/Docs/Security-Overview/">Declarative security</Link>: configure keycloak authentication, declare role-based row authorization</li>
+              <li><Link target="_blank" to="https://apilogicserver.github.io/Docs/Logic-Why/">Declarative business logic</Link>: multi-table constraints and derivations using unique rules that are 40X more concise than code, extensible with Python.</li>
+              <li>Use standard Python: e.g. provide <Link target="_blank" to="https://apilogicserver.github.io/Docs/Sample-Integration/">Application integration</Link> (e.g., custom APIs and kafka messaging).</li>
             </ul>
             </details>
           <br/><br/>

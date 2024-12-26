@@ -249,7 +249,7 @@ export const ApiFabCreate = ({
     }
     
     let createDiv = null;
-    if(createStatus?.id){
+    if(createStatus?.id || createStatus === null){
         createDiv = <CreateStatusGenning createStatus={createStatus}/>
     }
 

@@ -40,7 +40,10 @@ User:
 
 ### Attribute Components
 
-Implementation:  `src/components/DynInstance.tsx` -> `get_Component()` -> `src/components/Custom.tsx` 
+Implementation:  `src/components/DynInstance.tsx` -> `get_Component()` -> `src/components/Custom.tsx`
+
+Show Mode: `src/components/DynFields.tsx`
+Edit Mode: `src/components/DynInput.tsx` 
 
 **Parameters**
 
@@ -50,7 +53,18 @@ Implementation:  `src/components/DynInstance.tsx` -> `get_Component()` -> `src/c
 * mode
   * `list`, `show`
 
-** Components **
+
+**type** 
+
+Default type: `string` 
+
+SRA builtin types:
+* `number`
+* `textarea`
+* `json`
+* `image`
+
+**Custom Components**
 * [`SampleColumnField`](src/components/Custom.tsx)
 * [`UserPasswordField`]
 

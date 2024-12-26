@@ -77,11 +77,9 @@ export default function DraggableDialog() {
 
     const handleIterate = () => {
         
-        const iterateUrl = `${window.location.origin}/admin-app/#/Home/iterate?project_id=${projectId}&prompt=${promptVal}&token=xxx`;
-        // TODO: CSRF token
         console.log("Iterating with prompt: ", promptVal);
-        //redirect();
-        //window.open(iterateUrl,'_blank');
+        const iterateUrl = `${window.location.origin}/admin-app/#/Home/iterate?project_id=${projectId}&prompt=${encodeURIComponent(promptVal)}&token=xxx`;
+        // TODO: CSRF token
         document.location.href = iterateUrl;
         setOpen(false);
     };
@@ -93,6 +91,17 @@ export default function DraggableDialog() {
     return (
             <React.Fragment>
             
+            <a href={document.location.origin.replace('g.apifabric','apifabric') + `/admin-app/index.html#/Project/${projectId}/show?tab=logic`} target="_blank">
+              <Button sx={{marginRight: "1em", ...iterateSx }} variant="contained" >
+                <i className="fi fi-ss-microchip"></i>
+                &nbsp; Logic
+                <br/>
+                <span style={{color: '#ccc', fontSize:"9px"}}>&nbsp;Tech Preview</span>
+              </Button>
+            </a>
+
+            
+
             <Button sx={{marginRight: "1em", ...iterateSx }} variant="contained" onClick={handleClickOpen} >
               <i className="fi fi-rs-flask-gear"></i>
               &nbsp; Iterate
@@ -105,7 +114,7 @@ export default function DraggableDialog() {
               </Button>
             </Link>
             
-            <a href={document.location.origin+ '/admin-app/index.html#/Project'}>
+            <a href={document.location.origin.replace('g.apifabric','apifabric') + '/admin-app/index.html#/Project'}>
               <Button sx={{marginRight: "1em"}} variant="contained">
               <ListAltIcon/>
               &nbsp; Projects

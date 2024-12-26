@@ -15,6 +15,26 @@ import { useConf } from "../Config";
 import get_Component from "../get_Component";
 import DynReferenceInput from "./DynReferenceInput";
 import * as React from "react";
+
+
+const SRAImageInput = ({attribute, onChange}) => {
+
+  return <div><TextInput
+                onChange={onChange}
+                defaultValue={null}
+                source={attribute.name}
+                fullWidth
+                rows={12}
+                multiline={attribute.multiline}
+          />
+  </div>
+
+  return <ImageInput source={attribute.name} label="Image" onChange={onChange}>
+            <ImageField source="src" title="title" />
+        </ImageInput>
+}
+
+
 const DynInput = ({
   renderSwitch,
   setRecords,
@@ -58,6 +78,7 @@ const DynInput = ({
     validate: attribute.required ? required() : undefined,
     label: label,
   };
+
   const GridWrap = (props: any) => (
     <Grid sx={className} item xs={xs || 4} spacing={4}>
       {props.children}
@@ -66,8 +87,6 @@ const DynInput = ({
   const attr_type = attribute.type?.toLowerCase();
 
   const [validationMessage, setValidationMessage] = useState(false);
-
-
 
   const validateUrl = (name: any, value: any) => {
     try {
@@ -203,13 +222,11 @@ const DynInput = ({
 
   if ((attr_type)?.toLowerCase() === "image") {
     result = (
-      <GridWrap>
-        <ImageInput source={attribute.name} label="Image" accept="image/*" onChange={(e)=>{
-          dynamicRender(attribute.name, e?.path);
-        }}>
-          <ImageField source="src" title="title" />
-        </ImageInput>
-      </GridWrap>
+       <Grid sx={className} item xs={xs || 10} spacing={4}>
+        <SRAImageInput attribute={attribute} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>{
+          dynamicRender(attribute.name, e?.target.value);
+        }}/>
+      </Grid>
     );
   }
 

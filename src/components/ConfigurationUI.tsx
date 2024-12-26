@@ -19,7 +19,7 @@ import Button from "@mui/material/Button";
 import { useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { default_configs, getConfigs, setConfigs, getCurrentConf, setCurrentConf, compareConf } from "../Config";
+import { getConfigs, setConfigs, getCurrentConf, setCurrentConf, compareConf, isSpa } from "../Config";
 import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -52,7 +52,6 @@ if (index === -1) {
   yamlName = arr[index + 1] ?? "admin";
 }
 const yarm = yamlName.split(".");
-console.log('yarm',yarm);
 
 let als_yaml_url = `/ui/admin/${yarm[0]}.yaml`;
 als_yaml_url = window.location.href.replace(/\/admin-app\/.*$/, '/ui/admin/admin.yaml');
@@ -68,7 +67,7 @@ if (
 // if(window.location.origin === 'https://g.apifabric.ai'){
 
 // }
-console.log('als_yaml_url',als_yaml_url);
+
 
 const getRawConf = () => {
   let conf = getCurrentConf(true); // get current config without parsing
@@ -506,13 +505,13 @@ export const resetConf = (notify: any, reload: any = false) => {
   }
 
   const configs: any = {};
-  let defconf: any =
-    default_configs.length > 0 ? default_configs[0] : { api_root: "" };
+  // let defconf: any =
+  //   default_configs.length > 0 ? default_configs[0] : { api_root: "" };
 
-  for (defconf of default_configs) {
-    setCurrentConf(defconf);
-    configs[defconf.api_root] = defconf;
-  }
+  // for (defconf of default_configs) {
+  //   setCurrentConf(defconf);
+  //   configs[defconf.api_root] = defconf;
+  // }
   //setCurrentConf({})
   setConfigs(configs);
   let check_load = window.location.href.includes("load");
@@ -942,4 +941,15 @@ const ConfigurationUI = (props) => {
   );
 };
 
-export default ConfigurationUI;
+const ConfigurationUIWrapper = (props) => {
+  if(isSpa()){
+    return (
+      <>NoConfigurationUI-SPA</>
+    );
+  }
+  return (
+    <ConfigurationUI {...props} />
+  );
+}
+
+export default ConfigurationUIWrapper;
