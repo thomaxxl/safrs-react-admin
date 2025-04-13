@@ -1,0 +1,237 @@
+---
+models:
+- classname: Customer
+  code: |-
+    class Customer(SAFRSBaseX, Base):
+        """
+        description: Maintains information about restaurant customers.
+        """
+        __tablename__ = 'customer'
+        _s_collection_name = 'Customer'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String, nullable=False)
+        email = Column(String)
+
+        # parent relationships (access parent)
+
+        # child relationships (access children)
+        BookingList : Mapped[List["Booking"]] = relationship(back_populates="customer")
+        OrderList : Mapped[List["Order"]] = relationship(back_populates="customer")
+        ReviewList : Mapped[List["Review"]] = relationship(back_populates="customer")
+- classname: Restaurant
+  code: |-
+    class Restaurant(SAFRSBaseX, Base):
+        """
+        description: Stores restaurant details such as name and location.
+        """
+        __tablename__ = 'restaurant'
+        _s_collection_name = 'Restaurant'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String, nullable=False)
+        location = Column(String)
+
+        # parent relationships (access parent)
+
+        # child relationships (access children)
+        BookingList : Mapped[List["Booking"]] = relationship(back_populates="restaurant")
+        MenuList : Mapped[List["Menu"]] = relationship(back_populates="restaurant")
+        ReviewList : Mapped[List["Review"]] = relationship(back_populates="restaurant")
+- classname: Supplier
+  code: |-
+    class Supplier(SAFRSBaseX, Base):
+        """
+        description: Information about suppliers providing goods to restaurants.
+        """
+        __tablename__ = 'supplier'
+        _s_collection_name = 'Supplier'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String, nullable=False)
+        contact = Column(String)
+
+        # parent relationships (access parent)
+
+        # child relationships (access children)
+        IngredientList : Mapped[List["Ingredient"]] = relationship(back_populates="supplier")
+        SupplyList : Mapped[List["Supply"]] = relationship(back_populates="supplier")
+- classname: Booking
+  code: |-
+    class Booking(SAFRSBaseX, Base):
+        """
+        description: Keeps track of restaurant table bookings by customers.
+        """
+        __tablename__ = 'booking'
+        _s_collection_name = 'Booking'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        customer_id = Column(ForeignKey('customer.id'))
+        restaurant_id = Column(ForeignKey('restaurant.id'))
+        booking_date = Column(DateTime, nullable=False)
+        number_of_people = Column(Integer, nullable=False)
+
+        # parent relationships (access parent)
+        customer : Mapped["Customer"] = relationship(back_populates=("BookingList"))
+        restaurant : Mapped["Restaurant"] = relationship(back_populates=("BookingList"))
+- classname: Ingredient
+  code: |-
+    class Ingredient(SAFRSBaseX, Base):
+        """
+        description: Stores information about ingredients used in menu items.
+        """
+        __tablename__ = 'ingredient'
+        _s_collection_name = 'Ingredient'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        name = Column(String, nullable=False)
+        supplier_id = Column(ForeignKey('supplier.id'))
+        stock_quantity = Column(Integer, nullable=False)
+
+        # parent relationships (access parent)
+        supplier : Mapped["Supplier"] = relationship(back_populates=("IngredientList"))
+
+        # child relationships (access children)
+        ItemIngredientList : Mapped[List["ItemIngredient"]] = relationship(back_populates="ingredient")
+- classname: Menu
+  code: |-
+    class Menu(SAFRSBaseX, Base):
+        """
+        description: Information about the available menu types in a restaurant (e.g., breakfast, lunch).
+        """
+        __tablename__ = 'menu'
+        _s_collection_name = 'Menu'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        restaurant_id = Column(ForeignKey('restaurant.id'))
+        type = Column(String, nullable=False)
+
+        # parent relationships (access parent)
+        restaurant : Mapped["Restaurant"] = relationship(back_populates=("MenuList"))
+
+        # child relationships (access children)
+        ItemList : Mapped[List["Item"]] = relationship(back_populates="menu")
+- classname: Order
+  code: |-
+    class Order(SAFRSBaseX, Base):
+        """
+        description: Holds details about customer orders in the restaurant.
+        """
+        __tablename__ = 'order'
+        _s_collection_name = 'Order'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        customer_id = Column(ForeignKey('customer.id'))
+        order_date = Column(DateTime, nullable=False)
+        total_amount : DECIMAL = Column(DECIMAL, nullable=False)
+
+        # parent relationships (access parent)
+        customer : Mapped["Customer"] = relationship(back_populates=("OrderList"))
+
+        # child relationships (access children)
+        OrderItemList : Mapped[List["OrderItem"]] = relationship(back_populates="order")
+- classname: Review
+  code: |-
+    class Review(SAFRSBaseX, Base):
+        """
+        description: Captures customer feedback and reviews of the restaurant.
+        """
+        __tablename__ = 'review'
+        _s_collection_name = 'Review'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        restaurant_id = Column(ForeignKey('restaurant.id'))
+        customer_id = Column(ForeignKey('customer.id'))
+        review_date = Column(DateTime, nullable=False)
+        rating = Column(Integer, nullable=False)
+        comment = Column(String)
+
+        # parent relationships (access parent)
+        customer : Mapped["Customer"] = relationship(back_populates=("ReviewList"))
+        restaurant : Mapped["Restaurant"] = relationship(back_populates=("ReviewList"))
+- classname: Item
+  code: |-
+    class Item(SAFRSBaseX, Base):
+        """
+        description: Represents individual items in a restaurant's menu.
+        """
+        __tablename__ = 'item'
+        _s_collection_name = 'Item'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        menu_id = Column(ForeignKey('menu.id'))
+        name = Column(String, nullable=False)
+        price : DECIMAL = Column(DECIMAL, nullable=False)
+
+        # parent relationships (access parent)
+        menu : Mapped["Menu"] = relationship(back_populates=("ItemList"))
+
+        # child relationships (access children)
+        ItemIngredientList : Mapped[List["ItemIngredient"]] = relationship(back_populates="item")
+        OrderItemList : Mapped[List["OrderItem"]] = relationship(back_populates="item")
+        SupplyList : Mapped[List["Supply"]] = relationship(back_populates="item")
+- classname: ItemIngredient
+  code: |-
+    class ItemIngredient(SAFRSBaseX, Base):
+        """
+        description: Junction table for connecting items with their ingredients.
+        """
+        __tablename__ = 'item_ingredient'
+        _s_collection_name = 'ItemIngredient'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        item_id = Column(ForeignKey('item.id'))
+        ingredient_id = Column(ForeignKey('ingredient.id'))
+        quantity_used = Column(Integer, nullable=False)
+
+        # parent relationships (access parent)
+        ingredient : Mapped["Ingredient"] = relationship(back_populates=("ItemIngredientList"))
+        item : Mapped["Item"] = relationship(back_populates=("ItemIngredientList"))
+- classname: OrderItem
+  code: |-
+    class OrderItem(SAFRSBaseX, Base):
+        """
+        description: Tracks items within a customer order.
+        """
+        __tablename__ = 'order_item'
+        _s_collection_name = 'OrderItem'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        order_id = Column(ForeignKey('order.id'))
+        item_id = Column(ForeignKey('item.id'))
+        quantity = Column(Integer, nullable=False)
+
+        # parent relationships (access parent)
+        item : Mapped["Item"] = relationship(back_populates=("OrderItemList"))
+        order : Mapped["Order"] = relationship(back_populates=("OrderItemList"))
+- classname: Supply
+  code: |-
+    class Supply(SAFRSBaseX, Base):
+        """
+        description: Details about supplies ordered from suppliers to restaurants.
+        """
+        __tablename__ = 'supply'
+        _s_collection_name = 'Supply'  # type: ignore
+        __bind_key__ = 'None'
+
+        id = Column(Integer, primary_key=True)
+        supplier_id = Column(ForeignKey('supplier.id'))
+        item_id = Column(ForeignKey('item.id'))
+        quantity_ordered = Column(Integer, nullable=False)
+        supply_date = Column(DateTime, nullable=False)
+
+        # parent relationships (access parent)
+        item : Mapped["Item"] = relationship(back_populates=("SupplyList"))
+        supplier : Mapped["Supplier"] = relationship(back_populates=("SupplyList"))
+rules: []

@@ -1,0 +1,166 @@
+{
+  "Header": {
+    "title": "API Fabric - AI API Generator",
+    "paragraph": "API Generator & Tooling"
+  },
+  "About": {
+    "paragraph": "Our API generator creates APIs and frontends using AI or existing databases",
+    "Why": [
+      "React-admin Frontend",
+      "Angular Ontimize Frontend",
+      "Python ApiLogicServer Backend",
+      "Python Safrs API Backend",
+      "Python SQLAlchemy ORM"
+    ],
+    "Why2": [
+      "Docker",
+      "Nginx",
+      "Keycloak",
+      "SQLite, Postgres, MySQL, Oracle, SQL Server"
+    ]
+  },
+  "Gallery": [
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/01-large.jpg",
+      "smallImage": "img/portfolio/01-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/02-large.jpg",
+      "smallImage": "img/portfolio/02-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/03-large.jpg",
+      "smallImage": "img/portfolio/03-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/04-large.jpg",
+      "smallImage": "img/portfolio/04-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/05-large.jpg",
+      "smallImage": "img/portfolio/05-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/06-large.jpg",
+      "smallImage": "img/portfolio/06-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/07-large.jpg",
+      "smallImage": "img/portfolio/07-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/08-large.jpg",
+      "smallImage": "img/portfolio/08-small.jpg"
+    },
+    {
+      "title": "Project Title",
+      "largeImage": "img/portfolio/09-large.jpg",
+      "smallImage": "img/portfolio/09-small.jpg"
+    }
+  ],
+  "Services": [
+    {
+      "icon": "fa fa-gear",
+      "name": "Backend Software Development",
+      "text": "API Customization, Business Rule Integration, Access Control"
+    },
+    {
+      "icon": "fa fa-code",
+      "name": "Frontend Software Development",
+      "text": "React and Angular"
+    },
+    {
+      "icon": "fa fa-cloud",
+      "name": "Infrastructure Integration",
+      "text": "On-premise GenAI, Containerization, Security"
+    }
+  ],
+  "Testimonials": [
+    {
+      "img": "img/testimonials/01.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "John Doe"
+    },
+    {
+      "img": "img/testimonials/02.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "Johnathan Doe"
+    },
+    {
+      "img": "img/testimonials/03.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "John Doe"
+    },
+    {
+      "img": "img/testimonials/04.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "Johnathan Doe"
+    },
+    {
+      "img": "img/testimonials/05.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "John Doe"
+    },
+    {
+      "img": "img/testimonials/06.jpg",
+      "text": "\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis sed dapibus leo nec ornare diam sedasd commodo nibh ante facilisis bibendum dolor feugiat at.\"",
+      "name": "Johnathan Doe"
+    }
+  ],
+  "Team2": [
+    {
+      "img": "img/team/01.jpg",
+      "name": "Val Huber",
+      "job": "Wizzard"
+    },
+    {
+      "img": "img/team/02.jpg",
+      "name": "Thomas Pollet",
+      "job": "Ninja"
+    },
+    {
+      "img": "img/team/03.jpg",
+      "name": "Tyler Band",
+      "job": "Astronaut"
+    }
+  ],
+  "Contact": {
+    "address": "US , Belgium",
+    "phone": "+32 471 597891",
+    "email": "info@apifabric.ai",
+    "facebook": "https://www.linkedin.com/in/pollet/",
+    "twitter": "https://x.com/Tohmaxx",
+    "youtube": "https://www.youtube.com/@apilogicserver",
+    "linkedin" : "https://www.linkedin.com/in/pollet/"
+  },
+  "Features": [
+    {
+      "icon": "fa fa-diamond",
+      "title": "JSON:API",
+      "text": "Industry-standard JSON:API allows for easy frontend integration"
+    },
+    {
+      "icon": "fa fa-gears",
+      "title": "Business Logic",
+      "text": "Our business-logic layer makes it possible to declare data rules"
+    },
+    {
+      "icon": "fa fa-group",
+      "title": "Open-Source",
+      "text": "Open-source components for unlimited customization"
+    },
+    {
+      "icon": "fa fa-magic",
+      "title": "Generative AI",
+      "text": "Design applications by describing them to our GPT backend"
+    }
+  ]
+}
