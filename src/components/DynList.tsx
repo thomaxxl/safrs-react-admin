@@ -228,6 +228,7 @@ const gen_DynResourceList = (resource_conf: any) => (props: any) => {
     }
   }, [isSuccess, isFetching, isPending, isLoading]);
 
+
   document.title = resource_conf.label || resource_conf.name;
   console.log("DynList", document.location.hash, resource_conf, props);
   

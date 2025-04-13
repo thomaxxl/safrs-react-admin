@@ -167,6 +167,7 @@ const ShowInstance = ({
 }) => {
   const record = useRecordContext();
   const resource_name2 = useResourceContext();
+  const refresh = useRefresh();
   const id = record?.id;
   resource_name = resource_name || resource_name2;
   const basePath = `/${resource_name}`;
@@ -197,6 +198,10 @@ const ShowInstance = ({
       return DynRelationshipOne(resource_name, id, tab);
     }
   });
+
+  useEffect(() => {
+    refresh();
+  },[]);
   
   return (
     <SimpleShowLayout>
@@ -257,6 +262,7 @@ export const DynRelationshipOne = (resource_name: string, id: string, relationsh
         setLoading(false);
       });
   }, [data]);
+
   const resetErrorBoundary = () => {
     console.log("error");
   };

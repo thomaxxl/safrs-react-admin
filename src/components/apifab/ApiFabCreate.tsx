@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import DynInput from "../DynInput";
 import {
   DeleteButton,
+  Loading,
   SaveButton,
   SimpleForm,
   Toolbar,
@@ -22,6 +23,8 @@ import { WebGenAICreatePanel, CreateProjectWGAI } from "./WebGenAICreate";
 import { Padding } from "@mui/icons-material";
 import AddIcon from '@mui/icons-material/Add';
 import { jaRpc } from "../../rav4-jsonapi-client/ra-jsonapi-client";
+import { set } from "react-hook-form";
+import { useTranslate } from 'react-admin';
 
 
 const a11yProps = (index: number) => {
@@ -54,9 +57,10 @@ const detailsStyle = {
 // }
 
 export const ProjectCreateToolbar = ({createStatus, setCreateStatus, attributes, handleCreate, recordRef, ...props}: any) => {
-    const resource_name = "Project"
+    const translate = useTranslate();
     const location = useLocation();
     const notify = useNotify();
+    const [ disabled, setDisabled ] = useState(false);
     
     const onSuccess = (data: any) => {
       notify("Element updated");
@@ -69,6 +73,17 @@ export const ProjectCreateToolbar = ({createStatus, setCreateStatus, attributes,
       redirect(redirect_loc);
     };
 
+    const handleCreateProject = async (event?:React.SyntheticEvent) => {
+      if(event){
+        event.preventDefault();
+      }
+      handleCreate(event);
+      setDisabled(true);
+      setTimeout(() => {
+        setDisabled(false);
+      }, 15000);
+    }
+
     return (
       <Toolbar {...props}>
         <div
@@ -79,12 +94,14 @@ export const ProjectCreateToolbar = ({createStatus, setCreateStatus, attributes,
           }}
         >
           <SaveButton
+            disabled={disabled}
             type="button"
-            label="Create Project"
-            variant="outlined"
-            onClick={handleCreate}
+            label={"wg.create.create_project"}
+            variant="contained"
+            onClick={handleCreateProject}
             mutationOptions={{ onSuccess }}
-            icon={<AddIcon />}
+            sx={{backgroundColor: '#4682B4', color: 'white', width : '14em'}}
+            icon= {<AddIcon />}
           />
         </div>
       </Toolbar>
@@ -103,6 +120,7 @@ const CreateStatusGenning: React.FC<CreateStatusProps> = ({ createStatus }) => {
     const [error, setError ] = useState<string>("");
     const [countdown, setCountdown] = useState(5);
     const [finished, setFinished] = useState(false);
+    const [cdInterval, setCdInterval] = useState<any>(null);
     
     /*
     The backend is expected to return a log of the process.
@@ -111,6 +129,11 @@ const CreateStatusGenning: React.FC<CreateStatusProps> = ({ createStatus }) => {
     cfr. project.py http patch method
     */
     const getLog = async () => {
+      if(createStatus === null){
+        console.log('createStatus is null')
+        setData({log: "..."})
+        return
+      }
       const endpoint = 'Project/' + createStatus.id + '/get_log';
       return jaRpc(endpoint, {log: data?.log}).then((response) => {
         console.log('getLog:', response)
@@ -144,17 +167,19 @@ const CreateStatusGenning: React.FC<CreateStatusProps> = ({ createStatus }) => {
             return;
         }
         const timeOut = data?.log?.includes("Starting") ? 1000 : 1000;
-        console.log('timeOut:', timeOut)
+        
         const countdownInterval = setInterval(() => {
-          setCountdown((prevCountdown) => prevCountdown - 1);
+          console.log('timeOut:', timeOut, 'countdownInterval:', countdownInterval)
+          countdown && setCountdown((prevCountdown) => prevCountdown - 1);
         }, timeOut);
-    
+        setCdInterval(countdownInterval);
         return () => clearInterval(countdownInterval);
       }, []);
     
     useEffect(() => {
         if(finished || error !== ""){
           setCountdown(0);
+          clearInterval(cdInterval);
           return
         }
         if (!finished && !error && countdown === 0) {
@@ -197,45 +222,52 @@ export const ApiFabCreate = ({
   }) => {
     const [value, setValue] = React.useState(0);
     const [createStatus, setCreateStatus] = useState<any>(false);
+    const [initializing, setInitializing] = useState<any>(false);
     const iterate = window.location.hash.includes('/iterate');
     const notify = useNotify();
-    const recordRef = useRef({ data: {} });
+    const recordRef = useRef({ data: {build_ontimize: false, enable_defaults: true} });
     const [create] = useCreate(
       "Project",
       { data: recordRef }
     );
-
+    const bottomRef = useRef(null);
 
     const handleCreate = async (event?:React.SyntheticEvent) => {
-      console.log("handleCreate", recordRef);
-      setCreateStatus(null)
       if(event){
         event.preventDefault();
-      }
-      try {
-        await create(
-          attributes[0].resource.name,
-          { data: recordRef },
-          {
-            onSuccess: (data : {}) => {
-              console.log("onSuccess data:", data);
-              setCreateStatus(data);
-              notify("Gen Started...",{ 
-                autoHideDuration: 2000 // 5 seconds
-              });
-            },
-            onError: (error: any) => {
-              console.log("error: ", error);
-              notify(`Error: ${error?.message}`, { type: "warning" });
-            },
-          }
-        )
-        
-      } catch (error: any) {
-        console.log("error: ", error);
-        notify(`Error: ${error.message}`, { type: "warning" });
-      }
-      setCreateStatus("Creating Project, Please Wait")
+      }      
+
+      // Set initializing immediately
+      setInitializing(true);
+      bottomRef?.current.scrollIntoView({ behavior: 'smooth' });
+      // Defer API call to next tick to allow UI update
+      setTimeout(async () => {
+        try {
+          setCreateStatus(null);
+          await create(
+            attributes[0].resource.name,
+            { data: recordRef },
+            {
+              onSuccess: (data : {}) => {
+                console.log("onSuccess data:", data);
+                setCreateStatus(data);
+                notify("Started Application Generation...",{ 
+                  autoHideDuration: 2000
+                });
+              },
+              onError: (error: any) => {
+                console.log("error: ", error);
+                notify(`Error: ${error?.message}`, { type: "warning" });
+              },
+            }
+          );
+        } catch (error: any) {
+          console.log("error: ", error);
+          notify(`Error: ${error.message}`, { type: "warning" });
+        } 
+        setInitializing(false);
+        setCreateStatus("Creating Project, Please Wait");
+      }, 0);
     };
 
     useEffect(() => {
@@ -250,7 +282,7 @@ export const ApiFabCreate = ({
     
     let createDiv = null;
     if(createStatus?.id || createStatus === null){
-        createDiv = <CreateStatusGenning createStatus={createStatus}/>
+        createDiv = <><CreateStatusGenning createStatus={createStatus}/></>
     }
 
     const ToolBar = <ProjectCreateToolbar createStatus={createStatus} setCreateStatus={setCreateStatus} handleCreate={handleCreate} attributes={attributes} recordRef={recordRef} />
@@ -269,7 +301,7 @@ export const ApiFabCreate = ({
         </Box>
         <Box>
         <WebGenAICreatePanel value={value} index={0}>
-          <CreateProjectWGAI attributes={attributes} toolBar={ToolBar} recordRef={recordRef} setCreateStatus={setCreateStatus} {...props}/>
+          <CreateProjectWGAI attributes={attributes} toolBar={ToolBar} recordRef={recordRef} setCreateStatus={setCreateStatus} handleCreate={handleCreate} {...props}/>
         </WebGenAICreatePanel>
         <WebGenAICreatePanel value={value} index={1}>
           <DBConnection mode="edit" attributes={attributes} toolBar={ToolBar} recordRef={recordRef} setCreateStatus={setCreateStatus} />
@@ -279,6 +311,7 @@ export const ApiFabCreate = ({
         </WebGenAICreatePanel>
         </Box>
         {createDiv}
+        <div ref={bottomRef} />
       </Box>
     );
   }

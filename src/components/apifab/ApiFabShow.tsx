@@ -33,12 +33,8 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DownloadIcon from "@mui/icons-material/Download";
 import LogicDetails from "./LogicDetails.tsx";
 import DataModelModal from "./DataModelModal.tsx";
-
-const logStyle = {
-  fontSize: "0.9em",
-  fontFamily: "monospace",
-  color: "black",
-};
+import ProjectLog from "./ProjectLog.tsx"
+import { useTranslate } from 'react-admin';
 
 const IterationEntry = ({ record, current }: { record: any; current: boolean }) => {
   const createPath = useCreatePath();
@@ -112,7 +108,7 @@ const Ancestor = ({ record, current = false }: { record: any; current?: boolean 
 };
 
 const Children = ({ record, current }: { record: any; current: boolean }) => {
-  const childIds = record.relationships.iterations?.data.map((child: any) => child.id);
+  const childIds = record.iterations?.data?.map((child: any) => child.id);
   const { data, isLoading, error } = useGetMany("Project", {
     ids: childIds,
     meta: { include: ["iterations"] },
@@ -255,6 +251,7 @@ const UserDetail = ({ id }: { id: string }) => {
 
 
 const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: any }) => {
+  const translate = useTranslate();
   const name = record.display_name || record.name;
   const conf = useConf();
   const code = `docker run -p5656:5656 -it apilogicserver/api_logic_server bash -c \\
@@ -269,6 +266,8 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
 
   const appLink = record.link?.startsWith('http') ? record.link : `${document.location.origin}${record.link}`;
   const datamodelSvg = conf.api_root.replace(new RegExp("api$"),record.id + "/ui/dber.svg");
+
+  const repository = record.repository ;
   console.log("datamodelSvg", datamodelSvg);
 
   return (
@@ -281,7 +280,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
                 sx={buttonStyle}
                 onClick={() => window.open(`${appLink}`, "_blank")}
               >
-                Open App <OpenInNewIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
+                {translate("wg.show.open_app")} <OpenInNewIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
               </Button>
             ) : (
               <StartStopModal record={record} buttonVal={"Start App"} sx={buttonStyle} />
@@ -296,7 +295,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
               }}
               onClick={() => window.open(`${document.location.origin}${record.download}`, "_blank")}
             >
-              Download <DownloadIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
+               {translate("wg.show.download")} <DownloadIcon style={{ height: "0.75em", verticalAlign: "middle" }} />
             </Button>
           </Grid>
           <Grid item xs={2}>
@@ -308,7 +307,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
               }}
               onClick={() => document.location.href = `${document.location.pathname}#/Project/${record.id}/show`}
             >
-              Manager 
+               {translate("wg.show.manager")} 
             </Button>}
           </Grid>
         </Grid>
@@ -318,7 +317,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
       <Grid container spacing={2}>
         <Grid item xs={2}>
           <Typography variant="body2" color="textSecondary" component="p">
-            Name
+          {translate("wg.show.name")}
           </Typography>
           <Typography variant="body2" component="p" sx={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
             {name || "-"}
@@ -339,7 +338,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
       <Grid container spacing={2}>
         <Grid item xs={2}>
           <Typography variant="body2" color="textSecondary" component="p">
-            Status
+          {translate("wg.show.status")}
           </Typography>
           <Typography variant="body2" component="p">
             {record.running ? "Running" : "Stopped"}
@@ -348,7 +347,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
 
         <Grid item xs={8}>
           <Typography variant="body2" color="textSecondary" component="p">
-            {"Description"}
+          {translate("wg.show.description")}
           </Typography>
           <Typography variant="body2">{record.description || "-"}</Typography>
         </Grid>
@@ -357,20 +356,24 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
 
       <Grid container spacing={2}>
         <Grid item xs={12}>
+        <Typography variant="body2" color="textSecondary" component="p">
+            {translate("wg.show.github_repository")}
+          </Typography>
+          <Typography variant="body2">
+            {repository && <Link to={repository} target="_blank" sx={{ fontWeight: "bold" }}>
+              {repository}
+            </Link>}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+
           <Typography variant="body2" color="textSecondary" component="p">
-            Run project in container
+          {translate("wg.show.run_project")}
           </Typography>
           <Typography variant="body2" color="textSecondary" component="div">
             <CodeSnippet code={code} />
           </Typography>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {"Github Repository"}
-          </Typography>
-          <Typography variant="body2">
-            <Link to={"https://github.com/apifabric/" + name} target="_blank">
-              {"https://github.com/apifabric/" + name}
-            </Link>
-          </Typography>
+          
         </Grid>
       </Grid>
 
@@ -378,7 +381,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
       <Grid container spacing={2}>
         <Grid item xs={2}>
           <Typography variant="body2" color="textSecondary" component="p">
-            Created At
+          {translate("wg.show.created_at")}
           </Typography>
           <Typography variant="body2">{record.created_at.split(".")[0] || "-"}</Typography>
         </Grid>
@@ -394,7 +397,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
       <Grid container spacing={2}>
       <Grid item xs={4}>
       <Typography variant="body2" color="textSecondary" component="p">
-            Data Model
+        {translate("wg.show.data_model")}
       </Typography>
       <DataModelModal thumbnailSrc={datamodelSvg} 
                       fullSizeSrc={datamodelSvg} 
@@ -405,12 +408,7 @@ const ProjectDetails = ({ record, appLinkStyle }: { record: any; appLinkStyle: a
 
         <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {"Log"}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" component="div" >
-            <pre style={logStyle}>{record.log}</pre>
-          </Typography>
+          <ProjectLog project={record} />
         </Grid>
       </Grid>
       <Xr />

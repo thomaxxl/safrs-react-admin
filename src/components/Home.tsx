@@ -74,14 +74,14 @@ const Home = (props: any) => {
   else {
     content = (
       <>
-        {/* <Script
+        <Script
           url={config.settings?.HomeJS || "#"}
           onError={(e: any) => {
             setScriptLoaded(true);
             console.error('Script Load error', e);
           }}
           onLoad={() => setScriptLoaded(true)}
-        /> */}
+        />
         <Demo ready={scriptLoaded} config={config} />
         {init}
       </>

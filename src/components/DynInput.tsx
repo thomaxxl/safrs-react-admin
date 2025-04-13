@@ -220,6 +220,27 @@ const DynInput = ({
     );
   }
 
+  if (attr_type === "code") {
+    result = (
+      <Grid sx={className} item xs={12} spacing={4}>
+        <TextInput
+          onBlur={(e) => {
+            validateUrl(attribute.name, e.target.value);
+          }}
+          defaultValue={null}
+          source={attribute.name}
+          fullWidth
+          rows={12}
+          multiline={true}
+          validate={attribute.required ? required() : undefined}
+          autoFocus={attribute.name === myfocusRef}
+          error={validationMessage}
+          helperText={false}
+        />
+      </Grid>
+    );
+  }
+
   if ((attr_type)?.toLowerCase() === "image") {
     result = (
        <Grid sx={className} item xs={xs || 10} spacing={4}>

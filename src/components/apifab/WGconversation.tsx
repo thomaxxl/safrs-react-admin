@@ -37,12 +37,12 @@ export default function DraggableDialog() {
     
     React.useEffect(() => {      
         const timeout = setTimeout(() => {
-          setIterateSx({border: '1px solid white', backgroundColor: 'white', color: '#f467a1'})
+          //setIterateSx({border: '1px solid white', backgroundColor: 'white', color: '#f467a1'})
         }, 1000);
 
         const timeout2 = setTimeout(() => {
-          setIterateSx({padding: '1px solid transparent'})
-        }, 6000);
+          //setIterateSx({padding: '1px solid transparent'})
+        }, 4000);
   
         return () => {
           clearTimeout(timeout);
@@ -77,8 +77,12 @@ export default function DraggableDialog() {
 
     const handleIterate = () => {
         
+        let iterateOrigin = window.location.origin;
+        if(origin.includes('g.apifabric')){
+          iterateOrigin = origin.replace('g.apifabric','apifabric');
+        }
         console.log("Iterating with prompt: ", promptVal);
-        const iterateUrl = `${window.location.origin}/admin-app/#/Home/iterate?project_id=${projectId}&prompt=${encodeURIComponent(promptVal)}&token=xxx`;
+        const iterateUrl = `${iterateOrigin}/admin-app/#/Home/iterate?project_id=${projectId}&prompt=${encodeURIComponent(promptVal)}&token=xxx`;
         // TODO: CSRF token
         document.location.href = iterateUrl;
         setOpen(false);
@@ -92,30 +96,30 @@ export default function DraggableDialog() {
             <React.Fragment>
             
             <a href={document.location.origin.replace('g.apifabric','apifabric') + `/admin-app/index.html#/Project/${projectId}/show?tab=logic`} target="_blank">
-              <Button sx={{marginRight: "1em", ...iterateSx }} variant="contained" >
+              <Button sx={{marginRight: "1em", width: "11em", ...iterateSx }} variant="contained" >
                 <i className="fi fi-ss-microchip"></i>
                 &nbsp; Logic
                 <br/>
-                <span style={{color: '#ccc', fontSize:"9px"}}>&nbsp;Tech Preview</span>
+                <span style={{color: '#ccc', fontSize:"9px"}}></span>
               </Button>
             </a>
 
             
 
-            <Button sx={{marginRight: "1em", ...iterateSx }} variant="contained" onClick={handleClickOpen} >
+            <Button sx={{marginRight: "1em", ...iterateSx, width:"11em" }} variant="contained" onClick={handleClickOpen} >
               <i className="fi fi-rs-flask-gear"></i>
               &nbsp; Iterate
             </Button>
             
             <Link to="/Home/develop" onClick={()=>refresh()}>
-              <Button variant="contained" sx={{marginRight: "1em"}} >
+              <Button variant="contained" sx={{marginRight: "1em", width: "11em"}} >
               <DeveloperModeIcon/>
               &nbsp; Develop
               </Button>
             </Link>
             
             <a href={document.location.origin.replace('g.apifabric','apifabric') + '/admin-app/index.html#/Project'}>
-              <Button sx={{marginRight: "1em"}} variant="contained">
+              <Button sx={{marginRight: "1em", width: "11em"}} variant="contained">
               <ListAltIcon/>
               &nbsp; Projects
               </Button>

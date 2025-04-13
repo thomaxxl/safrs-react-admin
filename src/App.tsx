@@ -40,8 +40,10 @@ import { keycloakAuthProvider } from "ra-keycloak";
 import { PaletteMode } from "@mui/material";
 import { ThemeColorContext } from "./ThemeProvider";
 import { ApiFabApp } from './ApiFabApp';
+import { deletePrefixedEntries } from './util';
 import SimpleApp from './SimpleApp';
 import { RaSpa } from "./RaSpa";
+import KcApp from "./KcApp";
 
 const useDetectNewWindowOrTab = () => {
   React.useEffect(() => {
@@ -51,6 +53,7 @@ const useDetectNewWindowOrTab = () => {
       localStorage.setItem("autoReload","true")
       sessionStorage.setItem('hasReloaded', 'true');
       // Reload the page to refresh the application
+      console.log('reloading')
       window.location.reload();
     }
   }, []);
@@ -58,7 +61,8 @@ const useDetectNewWindowOrTab = () => {
 
 const initOptions: KeycloakInitOptions = {
   onLoad: "login-required",
-  checkLoginIframe: true
+  checkLoginIframe: document.location.protocol === "https:",
+  //checkLoginIframe: true
 };
 
 const getPermissions = (decoded: KeycloakTokenParsed) => {
@@ -187,9 +191,11 @@ const AsyncResources: React.FC = (keycloak: Keycloak) => {
 const DefaultApp: React.FC = () => {
 
   React.useEffect(() => {
+    deletePrefixedEntries('kc-callback');
     let test_raconf = localStorage.getItem("raconf")
     if (test_raconf === "{}") {
       localStorage.removeItem("raconf");
+      console.warn("Failed to Load raconf");
       window.location.reload();
     }
   },[]);
@@ -256,11 +262,19 @@ const DefaultApp: React.FC = () => {
     const kcConfig: KeycloakConfig = conf.authentication?.keycloak;
     const keycloakClient = new Keycloak(kcConfig);
     initOptions.redirectUri = redirURL(); // kc redirect url
-
+    console.log('initKeycloakClient', keycloakClient)
+    
     const refreshTokenInterval = 900 * 1000;  // refresh token every 900 seconds
     await keycloakClient.init(initOptions).then( authenticated => {
+
+      if(authenticated){
+        console.log('kcauthenticated', keycloakClient)
+        setKeycloak(keycloakClient);
+      }
+      
       setInterval(() => {
         const keycloakClient = new Keycloak(kcConfig);
+        console.log('refreshing token', keycloakClient);
         keycloakClient.updateToken(30).then(refreshed => {
             if (refreshed) {
             } else {
@@ -272,6 +286,7 @@ const DefaultApp: React.FC = () => {
     }, refreshTokenInterval);
     })
 
+    console.log('kctoken', keycloakClient.token)
     authProvider.current = keycloakAuthProvider(
       keycloakClient,
       raKeycloakOptions
@@ -281,28 +296,31 @@ const DefaultApp: React.FC = () => {
       { conf: {} },
       keycloakClient
     );
-    setKeycloak(keycloakClient);
   };
+  
   
   /*if (document.location.hash.includes("Home")) {
   } else */
   if (conf.authentication?.keycloak && !keycloak) {
-    setLoading(true);
-    initKeyCloakClient().finally(() => setLoading(false));
+    //setLoading(true);
+    initKeyCloakClient().finally(() => {
+      //setLoading(false);
+    })
   } else if (conf.authentication?.endpoint) {
     dataProvider.current = jsonapiClient(conf.api_root, { conf: {} }, null);
     authProvider.current = sraAuthPorvider;
   }
 
-  if(loading){
+  console.log('kcstarting', loading, conf.authentication?.keycloak, keycloak?.token)
+  
+  if(loading || (conf.authentication?.keycloak && !keycloak)){
     return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
   }
 
   let raSpa = conf.settings?.Home == "RaSpa" || sessionStorage.getItem("raSpa") === "true" || document.location.hash.includes("raSpa");
   
   const AppComp = raSpa ? <RaSpa /> : <AsyncResources />
-  //const AppComp = <AsyncResources />
-
+  
   return <SraProvider>
     <AdminContext
         theme={theme}
@@ -330,7 +348,7 @@ const App: React.FC = () => {
         const conf = await loadHomeConf()
         setConf(conf)
         setLoading(false);
-        console.log('AppConf: ', conf);
+        console.log('AppConf0: ', conf);
       } catch (error) {
         console.error('Error fetching data:', error);
         sessionStorage.removeItem("raSpa");
@@ -341,8 +359,8 @@ const App: React.FC = () => {
 
   if (loading) {
     return <Loading loadingPrimary="Loading..." loadingSecondary="Please wait" />;
-  }  
-  
+  }
+
   let raSpa = conf.settings?.Home == "RaSpa" || sessionStorage.getItem("raSpa") === "true" || document.location.hash.includes("raSpa");
   if(raSpa && conf.resources?.SPAPage){
     sessionStorage.setItem("raSpa", "true");
@@ -361,8 +379,13 @@ const App: React.FC = () => {
     console.log('loading ApiFabApp/WebGenie 1')
     return <ApiFabApp />
   }
+
+  if(conf.authentication?.keycloak){
+    return <KcApp />
+  }
   
   return <DefaultApp />
+  
 }
 
 

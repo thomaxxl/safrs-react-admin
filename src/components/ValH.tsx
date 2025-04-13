@@ -12,13 +12,26 @@ import CodeSnippet from './util/CodeSnippet';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { UnthemedCollapsAccordion } from "./util/Accordion";
 import { useHash } from "../util";
-//import LogicDetails from "./apifab/LogicDetails";
 import LogicInfo from "./LogicInfo";
+import SimpleAppHome from "./SimpleAppHome";
 
 /*
 ApiLogicProject Home Page
 */
-export default function ALPHome() {
+export const ALPHome = () => {
+
+  if(window.location.origin.includes(':5656')){
+    return <SimpleAppHome />
+    return <WGAppHome />
+  }
+  return (
+    
+    <WGAppHome />
+  );
+}
+
+
+const WGAppHome = () => {
   const conf = useConf();
   const hash = useHash();
   const [showDevelop, setShowDevelop] = useState(document.location.hash.includes('/develop'));
@@ -240,3 +253,5 @@ const DBER = ({ dber }: { dber: string }) => {
     </>
   );
 };
+
+export default ALPHome;

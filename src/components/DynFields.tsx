@@ -482,7 +482,7 @@ const ShowField = ({
           <Typography variant="body2" color="textSecondary" component="p">
             {label}
           </Typography>
-          {shown ? <CheckIcon /> : <ClearIcon />}
+          {value ? <CheckIcon /> : <ClearIcon />}
         </Grid>
       );
     }

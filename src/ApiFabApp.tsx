@@ -16,7 +16,9 @@ import {
   CustomRoutes,
   useNotify
 } from "react-admin";
-import englishMessages from "ra-language-english";
+//import englishMessages from "ra-language-english";
+import englishMessages from "./i18n/en";
+import spanisMessages from "./i18n/es";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import { jsonapiClient } from "./rav4-jsonapi-client/ra-jsonapi-client";
 import { useConf, getProjectId } from "./Config";
@@ -41,6 +43,7 @@ import { Container, CircularProgress } from '@mui/material';
 import { Route } from 'react-router-dom';
 import { IterateProjectWGAI } from "./components/apifab/WebGenIterate";
 import { ApiFabricLightTheme } from "./themes/ApiFabricTheme";
+import { resolveBrowserLocale } from 'ra-core';
 
 // Hook to detect new window or tab and reload the page
 const useDetectNewWindowOrTab = () => {
@@ -76,8 +79,9 @@ const raKeycloakOptions = {
 
 const messages: { [key: string]: TranslationMessages } = {
   en: englishMessages,
+  es: spanisMessages,
 };
-const i18nProvider = polyglotI18nProvider((locale) => messages[locale], "en", { allowMissing: true });
+
 
 // Loader component
 const Loader = () => (
@@ -284,6 +288,13 @@ export const ApiFabApp: React.FC = () => {
     return <Loader />; // Show loader if loading is true
   }
   
+  let initialLocale = resolveBrowserLocale(); // Get initial locale
+  if(! (initialLocale in messages)) {
+      console.log('initialLocale not in messages', initialLocale);
+      initialLocale = 'en';
+  }
+  
+  const i18nProvider = polyglotI18nProvider((locale) => messages[locale], initialLocale, { allowMissing: true });
   const authProvider_=conf.authentication ? authProvider.current : undefined
   return (
     <SraProvider>
@@ -295,6 +306,7 @@ export const ApiFabApp: React.FC = () => {
         authProvider={authProvider_}
         queryClient={queryClient}
         i18nProvider={i18nProvider}
+        initialLocale={initialLocale}
       >
         <AsyncResources />
       </AdminContext>

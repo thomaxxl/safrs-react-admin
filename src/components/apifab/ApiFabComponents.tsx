@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Link, IconButton, Tooltip } from '@mui/material';
+import { Box, Link, IconButton } from '@mui/material';
 import { useRecordContext } from 'react-admin';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { StartStopModal } from './StartStopModal.tsx';
@@ -26,11 +26,11 @@ export const Running = ({attribute, mode, label, record}: {attribute: any, mode:
 
   return (
     <Box sx={{ textAlign: 'center' }}>
-      <Tooltip title={record.running ? "Stop App" : "Start App"}>
+      
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <StartStopModal record={record} />
         </Box>
-      </Tooltip>
+      
     </Box>
   );
 };

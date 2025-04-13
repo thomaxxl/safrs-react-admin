@@ -263,7 +263,7 @@ export const jsonapiClient = (
       getManyReference
     ********************************************************************************************/
     getManyReference: (resource, params : any) => {
-      
+        console.log('getManyReference', resource, params)
         const resource_name = decodeURI(resource)
         const resource_conf = conf["resources"][resource_name];
         const { page, perPage } = params.pagination;

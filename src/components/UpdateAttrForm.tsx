@@ -35,8 +35,8 @@ const UpdateAttrForm = ({
   const prevDataRef = useRef();
   const [, setData] = useState(recordRef.current.data);
   const [renderSwitch, setRenderSwitch] = useState([]);
-  const id = window.location.href.split("/").pop();
-  recordRef.current.id = id;
+  const id = record?.id || window.location.href.split("/").pop(); // todo
+  recordRef.current.id =  id;
 
   const [update, {data, error, isPending }] = useUpdate(
     attributes[0].resource.name,
@@ -124,7 +124,7 @@ const UpdateAttrForm = ({
         await update(
           attributes[0].resource.name, 
           {
-            id: recordRef.current.id,
+            id: recordRef.current.id == "edit" ? record.id : recordRef.current.id,
             data: recordRef.current.data,
             previousData: recordRef.current.previousData,
           },
